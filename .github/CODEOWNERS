@@ -1,0 +1,18 @@
+# CODEOWNERS - Defines merge authority for space_framework governance
+# Documentation: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything in the repository
+# Replace [GITHUB_USERNAME] with your GitHub username or team (e.g., @username or @org/team-name)
+* @[GITHUB_USERNAME]
+
+# Critical governance paths requiring CODEOWNER approval
+/.github/ @[GITHUB_USERNAME]
+/.github/workflows/ @[GITHUB_USERNAME]
+/.github/copilot-instructions.md @[GITHUB_USERNAME]
+/.context/ @[GITHUB_USERNAME]
+
+# Core application paths (adjust based on your project structure)
+# Uncomment and modify as needed:
+# /src/core/ @[GITHUB_USERNAME]
+# /lib/ @[GITHUB_USERNAME]
+# /config/ @[GITHUB_USERNAME]
