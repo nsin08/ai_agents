@@ -30,6 +30,7 @@ class Calculator(Tool):
     def __init__(self):
         """Initialize Calculator tool."""
         self.name = "calculator"
+        self.input_model = CalculatorInput
         self.contract = ToolContract(
             name="calculator",
             description="Perform arithmetic operations (add, subtract, multiply, divide)",
@@ -151,6 +152,7 @@ class WebSearch(Tool):
     def __init__(self):
         """Initialize WebSearch tool."""
         self.name = "web_search"
+        self.input_model = WebSearchInput
         self.contract = ToolContract(
             name="web_search",
             description="Search the web and return results (mock implementation)",
@@ -281,6 +283,7 @@ class FileRead(Tool):
                           If None, defaults to current directory only.
         """
         self.name = "file_read"
+        self.input_model = FileReadInput
         self.allowed_roots = [Path(root).resolve() for root in (allowed_roots or ["."])]
         
         self.contract = ToolContract(

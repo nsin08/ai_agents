@@ -11,6 +11,7 @@ Exports:
 from .base import Provider, LLMResponse
 from .mock import MockProvider
 from .ollama import OllamaProvider
+from .cloud import CloudProvider
 from .exceptions import (
     ProviderError,
     ProviderConnectionError,
@@ -29,6 +30,7 @@ __all__ = [
     # Implementations
     "MockProvider",
     "OllamaProvider",
+    "CloudProvider",
     # Exceptions
     "ProviderError",
     "ProviderConnectionError",

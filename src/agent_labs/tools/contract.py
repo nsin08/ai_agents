@@ -84,6 +84,7 @@ class ToolContract:
             "name": self.name,
             "description": self.description,
             "input_schema": self.input_schema,
+            "parameters": self.input_schema,
             "output_schema": self.output_schema,
             "version": self.version,
             "tags": self.tags,

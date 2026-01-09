@@ -53,7 +53,7 @@ Tests for error scenarios:
 ## Files Created/Modified
 
 ### New Files
-- [tests/unit/llm_providers/test_ollama_integration.py](tests/unit/llm_providers/test_ollama_integration.py) (387 lines)
+- [tests/integration/test_ollama_integration.py](tests/integration/test_ollama_integration.py) (387 lines)
   - 23 comprehensive integration tests
   - Marked with `@pytest.mark.ollama` for selective execution
   - All tests use try/finally for proper cleanup
@@ -90,12 +90,12 @@ Tests for error scenarios:
 
 ### Run all integration tests:
 ```bash
-pytest tests/unit/llm_providers/test_ollama_integration.py -v
+pytest tests/integration/test_ollama_integration.py -v
 ```
 
 ### Run only configuration tests (no Ollama required):
 ```bash
-pytest tests/unit/llm_providers/test_ollama_integration.py::TestOllamaProviderConfiguration -v
+pytest tests/integration/test_ollama_integration.py::TestOllamaProviderConfiguration -v
 ```
 
 ### Skip Ollama tests:
@@ -105,12 +105,12 @@ pytest -m "not ollama"
 
 ### Run specific test:
 ```bash
-pytest tests/unit/llm_providers/test_ollama_integration.py::TestOllamaProviderIntegration::test_ollama_generate_simple_prompt -v
+pytest tests/integration/test_ollama_integration.py::TestOllamaProviderIntegration::test_ollama_generate_simple_prompt -v
 ```
 
 ### Run with coverage:
 ```bash
-pytest tests/unit/llm_providers/test_ollama_integration.py --cov=src.agent_labs.llm_providers --cov-report=html
+pytest tests/integration/test_ollama_integration.py --cov=src.agent_labs.llm_providers --cov-report=html
 ```
 
 ## Ollama Setup Requirements

@@ -5,11 +5,13 @@ Pluggable LLM provider interface for flexible backend switching without code cha
 ## Overview
 
 The `llm_providers` module provides a unified async interface for multiple LLM backends:
-- **MockProvider** - Deterministic testing (no external calls)
-- **OllamaProvider** - Local model inference (privacy-first)
-- **CloudProvider** - Template for OpenAI, Anthropic, etc. (Phase 2)
+
+- **MockProvider**: Deterministic testing (no external calls)
+- **OllamaProvider**: Local model inference (privacy-first)
+- **CloudProvider**: Template for OpenAI, Anthropic, etc. (Phase 2)
 
 All providers implement the same interface:
+
 ```python
 async def generate(prompt, max_tokens=1000, temperature=0.7) -> LLMResponse
 async def stream(prompt, max_tokens=1000) -> AsyncIterator[str]
@@ -158,79 +160,58 @@ except ProviderTimeoutError as e:
 
 ## Testing
 
-All providers can be tested with mock mode (no external calls):
+Unit tests (mock provider):
 
-```python
-import pytest
-from src.agent_labs.llm_providers import MockProvider
+```bash
+pytest tests/unit/llm_providers/test_base.py -v
+```
 
-@pytest.mark.asyncio
-async def test_agent_with_mock_provider():
-    provider = MockProvider()
-    
-    # Test agent logic without external dependencies
-    response = await provider.generate("What is AI?")
-    
-    assert response.model == "mock"
-    assert response.tokens_used > 0
-    assert "Mock response" in response.text
+Integration tests (Ollama):
+
+```bash
+pytest tests/integration/test_ollama_integration.py -v
 ```
 
 ## File Organization
 
 ```
 src/agent_labs/llm_providers/
-├── __init__.py          # Package exports
-├── base.py              # Provider ABC + LLMResponse
-├── mock.py              # MockProvider implementation
-├── ollama.py            # OllamaProvider implementation
-├── exceptions.py        # Custom exceptions
-└── README.md            # This file
+  __init__.py          # Package exports
+  base.py              # Provider ABC + LLMResponse
+  mock.py              # MockProvider implementation
+  ollama.py            # OllamaProvider implementation
+  cloud.py             # CloudProvider template
+  exceptions.py        # Custom exceptions
+  README.md            # This file
 
 tests/unit/llm_providers/
-└── test_providers.py    # Comprehensive tests
+  test_base.py         # Unit tests
+
+tests/integration/
+  test_ollama_integration.py
 ```
 
 ## Supported Providers
 
 ### Available Now
-- ✅ **MockProvider** - Deterministic testing (zero external calls)
-- ✅ **OllamaProvider** - Local model inference (privacy-first)
+- **MockProvider**: Deterministic testing (zero external calls)
+- **OllamaProvider**: Local model inference (privacy-first)
 
 ### Coming in Phase 2
-- ⏳ **OpenAIProvider** - GPT-3.5, GPT-4
-- ⏳ **AnthropicProvider** - Claude
-- ⏳ **GoogleProvider** - PaLM, Gemini
-- ⏳ **AzureProvider** - Azure OpenAI
+- **OpenAIProvider**: GPT-3.5, GPT-4
+- **AnthropicProvider**: Claude
+- **GoogleProvider**: Gemini
+- **AzureProvider**: Azure OpenAI
 
 ## Performance Tips
 
-1. **Token Counting**: Use `count_tokens()` before generation to stay under limits:
-   ```python
-   tokens = await provider.count_tokens(prompt)
-   if tokens + max_tokens > 4000:
-       max_tokens = 4000 - tokens
-   ```
-
-2. **Streaming**: Use `stream()` for interactive applications:
-   ```python
-   async for chunk in provider.stream(prompt):
-       print(chunk, end="", flush=True)
-   ```
-
+1. **Token counting**: Use `count_tokens()` before generation to stay under limits.
+2. **Streaming**: Use `stream()` for interactive applications.
 3. **Temperature**:
-   - 0.0 = Deterministic (always same response)
+   - 0.0 = Deterministic
    - 0.7 = Balanced
    - 1.0 = Maximum creativity
-
-4. **Ollama Caching**: Ollama caches model weights (first load is slow):
-   ```bash
-   # First run - downloads model (slow)
-   ollama pull llama2
-   
-   # Subsequent runs use cached weights (fast)
-   ollama serve
-   ```
+4. **Ollama caching**: First model load is slow; subsequent runs are faster.
 
 ## Examples
 
@@ -240,7 +221,6 @@ tests/unit/llm_providers/
 from src.agent_labs.llm_providers import MockProvider, OllamaProvider
 
 async def run_agent(use_mock: bool = True):
-    # Switch providers without changing agent code
     if use_mock:
         provider = MockProvider()
     else:
@@ -249,10 +229,7 @@ async def run_agent(use_mock: bool = True):
     response = await provider.generate("Solve x + 2 = 5")
     print(response.text)
 
-# Test with mock
 await run_agent(use_mock=True)
-
-# Run with real model
 await run_agent(use_mock=False)
 ```
 
@@ -264,8 +241,6 @@ from src.agent_labs.llm_providers import OllamaProvider
 
 provider = OllamaProvider(model="llama2")
 agent = Agent(provider=provider)
-
-# Agent uses provider for planning
 result = await agent.run("Find the capital of France")
 print(result)
 ```
@@ -286,26 +261,18 @@ To add a new provider:
 3. Add tests in `tests/unit/llm_providers/test_your_provider.py`
 4. Update this README with usage examples
 5. Export in `__init__.py`
-
-Example:
-
-```python
-from .base import Provider, LLMResponse
-
+```
 class MyProvider(Provider):
     async def generate(self, prompt, max_tokens=1000, temperature=0.7):
-        # Implementation
         pass
     
     async def stream(self, prompt, max_tokens=1000):
-        # Implementation
         yield "response chunks"
     
     async def count_tokens(self, text):
-        # Implementation
         return len(text.split())
 ```
 
 ## License
 
-Part of AI Agents reference project. See [LICENSE](../../LICENSE) for details.
+Part of AI Agents reference project. See `LICENSE` for details.

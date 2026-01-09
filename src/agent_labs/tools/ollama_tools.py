@@ -13,6 +13,7 @@ import httpx
 
 from .base import Tool
 from .contract import ToolContract, ToolResult, ExecutionStatus
+from ..config import Config
 
 
 class OllamaConnectionError(Exception):
@@ -25,26 +26,26 @@ class TextSummarizer(Tool):
     
     def __init__(
         self,
-        ollama_url: str = "http://localhost:11434",
-        model: str = "mistral:7b",
+        ollama_url: str = None,
+        model: str = None,
         max_tokens: int = 200,
-        temperature: float = 0.3,
+        temperature: float = None,
         timeout: int = 30
     ):
         """
         Initialize TextSummarizer.
         
         Args:
-            ollama_url: Ollama API endpoint
-            model: Model name (must be installed in Ollama)
+            ollama_url: Ollama API endpoint (default: from Config.OLLAMA_BASE_URL)
+            model: Model name (default: from Config.OLLAMA_MODEL)
             max_tokens: Maximum tokens in summary
-            temperature: Temperature for generation (0-1)
+            temperature: Temperature for generation (default: from Config.OLLAMA_TOOLS_TEMPERATURE)
             timeout: Request timeout in seconds
         """
-        self.ollama_url = ollama_url.rstrip("/")
-        self.model = model
+        self.ollama_url = (ollama_url or Config.OLLAMA_BASE_URL).rstrip("/")
+        self.model = model or Config.OLLAMA_MODEL
         self.max_tokens = max_tokens
-        self.temperature = temperature
+        self.temperature = temperature if temperature is not None else Config.OLLAMA_TOOLS_TEMPERATURE
         self.timeout = timeout
         
         self.contract = ToolContract(
@@ -223,13 +224,20 @@ class CodeAnalyzer(Tool):
     
     def __init__(
         self,
-        ollama_url: str = "http://localhost:11434",
-        model: str = "mistral:7b",
+        ollama_url: str = None,
+        model: str = None,
         timeout: int = 30
     ):
-        """Initialize CodeAnalyzer."""
-        self.ollama_url = ollama_url.rstrip("/")
-        self.model = model
+        """
+        Initialize CodeAnalyzer.
+        
+        Args:
+            ollama_url: Ollama API endpoint (default: from Config.OLLAMA_BASE_URL)
+            model: Model name (default: from Config.OLLAMA_MODEL)
+            timeout: Request timeout in seconds
+        """
+        self.ollama_url = (ollama_url or Config.OLLAMA_BASE_URL).rstrip("/")
+        self.model = model or Config.OLLAMA_MODEL
         self.timeout = timeout
         
         self.contract = ToolContract(

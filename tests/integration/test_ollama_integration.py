@@ -5,7 +5,7 @@ These tests require:
 - Ollama running at http://localhost:11434
 - At least one model installed (e.g., ollama pull mistral:7b)
 
-Run with: pytest tests/unit/llm_providers/test_ollama_integration.py -v
+Run with: pytest tests/integration/test_ollama_integration.py -v
 Skip with: pytest -m "not ollama"
 """
 

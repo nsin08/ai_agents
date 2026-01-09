@@ -16,7 +16,7 @@ Note: ToolRegistry is now in registry.py
 
 from abc import ABC, abstractmethod
 from typing import Any, Dict
-from .contract import ToolResult, ExecutionStatus
+from .contract import ToolResult, ExecutionStatus, ToolContract
 
 
 class Tool(ABC):
@@ -70,6 +70,29 @@ class MockTool(Tool):
         """
         self.name = name
         self.description = description
+        self.contract = ToolContract(
+            name=self.name,
+            description=self.description,
+            input_schema={
+                "type": "object",
+                "properties": {
+                    "input": {
+                        "type": "string",
+                        "description": "Input parameter (generic)"
+                    }
+                },
+                "required": []
+            },
+            output_schema={
+                "type": "object",
+                "properties": {
+                    "tool_name": {"type": "string"},
+                    "input": {"type": "object"},
+                    "status": {"type": "string"},
+                }
+            },
+            tags=["mock", "testing"],
+        )
     
     async def execute(self, **kwargs) -> ToolResult:
         """Execute mock tool - always succeeds with deterministic output.
@@ -99,16 +122,12 @@ class MockTool(Tool):
             Schema with name, description, and generic parameters
         """
         return {
-            "name": self.name,
-            "description": self.description,
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "input": {
-                        "type": "string",
-                        "description": "Input parameter (generic)"
-                    }
-                },
-                "required": []
-            }
+            "name": self.contract.name,
+            "description": self.contract.description,
+            "parameters": self.contract.input_schema,
+            "input_schema": self.contract.input_schema,
+            "output_schema": self.contract.output_schema,
+            "version": self.contract.version,
+            "tags": self.contract.tags,
+            "constraints": self.contract.constraints,
         }

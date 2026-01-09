@@ -22,7 +22,7 @@ Models available:
 """
 
 import asyncio
-from typing import AsyncIterator, Optional
+from typing import AsyncIterator
 
 from .base import Provider, LLMResponse
 from .exceptions import (
@@ -52,6 +52,8 @@ class OllamaProvider(Provider):
         base_url: str = "http://localhost:11434",
         model: str = "llama2",
         timeout: int = 60,
+        max_retries: int = 2,
+        retry_backoff: float = 0.5,
     ):
         """
         Initialize OllamaProvider.
@@ -74,19 +76,38 @@ class OllamaProvider(Provider):
         self.base_url = base_url.rstrip("/")  # Remove trailing slash
         self.model = model
         self.timeout = timeout
+        self.max_retries = max_retries
+        self.retry_backoff = retry_backoff
         self._client = None
+        self._httpx = None
         
     async def _ensure_client(self):
         """Lazy load httpx client."""
         if self._client is None:
             try:
                 import httpx
+                self._httpx = httpx
                 self._client = httpx.AsyncClient(timeout=self.timeout)
             except ImportError:
                 raise ProviderConfigError(
                     "httpx is required for OllamaProvider. "
                     "Install with: pip install httpx"
                 )
+
+    async def _post_with_retry(self, url: str, payload: dict):
+        """Post request with simple retry on transient errors."""
+        attempt = 0
+        last_error = None
+        while attempt <= self.max_retries:
+            try:
+                return await self._client.post(url, json=payload)
+            except (self._httpx.TimeoutException, self._httpx.RequestError) as e:
+                last_error = e
+                if attempt >= self.max_retries:
+                    raise
+                await asyncio.sleep(self.retry_backoff * (2 ** attempt))
+                attempt += 1
+        raise last_error  # pragma: no cover
 
     async def generate(
         self,
@@ -124,7 +145,7 @@ class OllamaProvider(Provider):
         }
         
         try:
-            response = await self._client.post(url, json=payload)
+            response = await self._post_with_retry(url, payload)
             
             if response.status_code == 404:
                 raise ModelNotFoundError(
@@ -145,7 +166,11 @@ class OllamaProvider(Provider):
             raise ProviderTimeoutError(
                 f"Ollama request timed out after {self.timeout}s"
             ) from e
-        except ConnectionError as e:
+        except self._httpx.TimeoutException as e:
+            raise ProviderTimeoutError(
+                f"Ollama request timed out after {self.timeout}s"
+            ) from e
+        except self._httpx.RequestError as e:
             raise ProviderConnectionError(
                 f"Cannot connect to Ollama at {self.base_url}. "
                 f"Make sure Ollama is running: ollama serve"
@@ -183,31 +208,42 @@ class OllamaProvider(Provider):
             }
         }
         
-        try:
-            async with self._client.stream("POST", url, json=payload) as response:
-                if response.status_code == 404:
-                    raise ModelNotFoundError(
-                        f"Model '{self.model}' not found in Ollama"
-                    )
-                
-                response.raise_for_status()
-                
-                async for line in response.aiter_lines():
-                    if line:
-                        import json
-                        data = json.loads(line)
-                        token = data.get("response", "")
-                        if token:
-                            yield token
-                            
-        except asyncio.TimeoutError as e:
-            raise ProviderTimeoutError(
-                f"Ollama streaming timed out after {self.timeout}s"
-            ) from e
-        except ConnectionError as e:
-            raise ProviderConnectionError(
-                f"Cannot connect to Ollama at {self.base_url}"
-            ) from e
+        attempt = 0
+        while attempt <= self.max_retries:
+            try:
+                async with self._client.stream("POST", url, json=payload) as response:
+                    if response.status_code == 404:
+                        raise ModelNotFoundError(
+                            f"Model '{self.model}' not found in Ollama"
+                        )
+                    
+                    response.raise_for_status()
+                    
+                    async for line in response.aiter_lines():
+                        if line:
+                            import json
+                            data = json.loads(line)
+                            token = data.get("response", "")
+                            if token:
+                                yield token
+                break
+            except asyncio.TimeoutError as e:
+                if attempt >= self.max_retries:
+                    raise ProviderTimeoutError(
+                        f"Ollama streaming timed out after {self.timeout}s"
+                    ) from e
+            except self._httpx.TimeoutException as e:
+                if attempt >= self.max_retries:
+                    raise ProviderTimeoutError(
+                        f"Ollama streaming timed out after {self.timeout}s"
+                    ) from e
+            except self._httpx.RequestError as e:
+                if attempt >= self.max_retries:
+                    raise ProviderConnectionError(
+                        f"Cannot connect to Ollama at {self.base_url}"
+                    ) from e
+            await asyncio.sleep(self.retry_backoff * (2 ** attempt))
+            attempt += 1
 
     async def count_tokens(self, text: str) -> int:
         """

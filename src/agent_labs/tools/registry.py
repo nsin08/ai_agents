@@ -11,7 +11,7 @@ import time
 from typing import Dict, List, Optional
 from .base import Tool
 from .contract import ToolResult, ExecutionStatus
-from .validators import ToolInputValidator
+from .validators import ToolInputValidator, ToolOutputValidator
 
 
 class ToolRegistry:
@@ -131,14 +131,20 @@ class ToolRegistry:
                 latency_ms=(time.perf_counter() - start_time) * 1000,
             )
         
+        execution_kwargs = kwargs
+
         # Validate inputs if requested and tool has contract
         if validate_input and hasattr(tool, 'contract'):
             schema = tool.contract.input_schema
             
-            # Try JSON schema validation
-            is_valid, validated_data, error = ToolInputValidator.validate_with_json_schema(
-                kwargs, schema
-            )
+            if hasattr(tool, "input_model"):
+                is_valid, validated_data, error = ToolInputValidator.validate_with_pydantic(
+                    kwargs, tool.input_model
+                )
+            else:
+                is_valid, validated_data, error = ToolInputValidator.validate_with_json_schema(
+                    kwargs, schema
+                )
             
             if not is_valid:
                 return ToolResult(
@@ -152,10 +158,31 @@ class ToolRegistry:
                     },
                     latency_ms=(time.perf_counter() - start_time) * 1000,
                 )
+            if validated_data is not None:
+                execution_kwargs = validated_data
         
         # Execute tool
         try:
-            result = await tool.execute(**kwargs)
+            result = await tool.execute(**execution_kwargs)
+
+            # Validate outputs if contract specifies output_schema
+            if result.success and hasattr(tool, "contract") and tool.contract.output_schema:
+                is_valid, error = ToolOutputValidator.validate_output(
+                    result.output,
+                    tool.contract.output_schema,
+                )
+                if not is_valid:
+                    return ToolResult(
+                        status=ExecutionStatus.FAILURE,
+                        output=None,
+                        error=f"Output validation failed for '{name}': {error}",
+                        metadata={
+                            "tool_name": name,
+                            "validation_error": error,
+                        },
+                        latency_ms=(time.perf_counter() - start_time) * 1000,
+                    )
+
             return result
             
         except Exception as e:

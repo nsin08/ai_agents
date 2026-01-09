@@ -1,7 +1,7 @@
 """
 Integration tests for Ollama-based tools.
 
-These tests require a running Ollama instance with mistral:7b model.
+These tests require a running Ollama instance (model configured via Config.OLLAMA_MODEL).
 
 Skip with: pytest -k "not ollama" or set SKIP_OLLAMA=true
 """
@@ -17,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 from agent_labs.tools.ollama_tools import TextSummarizer, CodeAnalyzer
 from agent_labs.tools.contract import ExecutionStatus
 from agent_labs.tools import ToolRegistry
+from agent_labs.config import Config
 
 # Skip all tests if SKIP_OLLAMA is set or Ollama not available
 SKIP_OLLAMA = os.getenv("SKIP_OLLAMA", "false").lower() == "true"
@@ -29,12 +30,9 @@ class TestTextSummarizer:
     
     @pytest.fixture
     def summarizer(self):
-        """Create TextSummarizer instance."""
+        """Create TextSummarizer instance using Config."""
         return TextSummarizer(
-            ollama_url="http://localhost:11434",
-            model="mistral:7b",
             max_tokens=200,
-            temperature=0.3,
             timeout=60
         )
     
