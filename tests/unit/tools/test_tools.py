@@ -13,7 +13,7 @@ from typing import Any, Dict, Optional
 
 # Tests will import from src.agent_labs.tools
 # Using TYPE_CHECKING to avoid circular imports during test collection
-from src.agent_labs.tools import Tool, ToolResult, ToolRegistry, MockTool
+from src.agent_labs.tools import Tool, ToolResult, ToolRegistry, MockTool, ExecutionStatus
 
 
 class TestToolResult:
@@ -21,14 +21,14 @@ class TestToolResult:
 
     def test_tool_result_success_creation(self):
         """Test creating a successful ToolResult."""
-        result = ToolResult(success=True, output="test output", error=None)
+        result = ToolResult(status=ExecutionStatus.SUCCESS, output="test output", error=None)
         assert result.success is True
         assert result.output == "test output"
         assert result.error is None
 
     def test_tool_result_failure_creation(self):
         """Test creating a failed ToolResult with error."""
-        result = ToolResult(success=False, output=None, error="Tool failed")
+        result = ToolResult(status=ExecutionStatus.FAILURE, output=None, error="Tool failed")
         assert result.success is False
         assert result.output is None
         assert result.error == "Tool failed"
@@ -36,13 +36,13 @@ class TestToolResult:
     def test_tool_result_with_complex_output(self):
         """Test ToolResult with complex output type."""
         output = {"key": "value", "count": 42, "items": [1, 2, 3]}
-        result = ToolResult(success=True, output=output, error=None)
+        result = ToolResult(status=ExecutionStatus.SUCCESS, output=output, error=None)
         assert result.output == output
         assert result.output["count"] == 42
 
     def test_tool_result_with_none_output(self):
         """Test ToolResult with None output (tool did nothing)."""
-        result = ToolResult(success=True, output=None, error=None)
+        result = ToolResult(status=ExecutionStatus.SUCCESS, output=None, error=None)
         assert result.success is True
         assert result.output is None
 
@@ -366,10 +366,11 @@ class TestToolEdgeCases:
 
     def test_tool_result_immutability_best_practice(self):
         """Test ToolResult dataclass structure."""
-        result = ToolResult(success=True, output="test", error=None)
+        result = ToolResult(status=ExecutionStatus.SUCCESS, output="test", error=None)
         
         # Verify dataclass fields
-        assert hasattr(result, 'success')
+        assert hasattr(result, 'status')
+        assert hasattr(result, 'success')  # property
         assert hasattr(result, 'output')
         assert hasattr(result, 'error')
 

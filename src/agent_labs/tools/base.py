@@ -3,34 +3,20 @@ Tools & Execution Framework - Tool abstractions and management.
 
 This module provides:
 1. Tool ABC - abstract base class for all tools
-2. ToolResult - structured result from tool execution
-3. ToolRegistry - manages registered tools and their execution
-4. MockTool - deterministic tool implementation for testing
+2. MockTool - deterministic tool implementation for testing
 
 A Tool is a callable abstraction that:
 - Has an async execute() method to perform work
 - Has a get_schema() method to describe its interface
 - Returns a ToolResult with success status and output
+
+Note: ToolResult is now in contract.py
+Note: ToolRegistry is now in registry.py
 """
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
-
-
-@dataclass
-class ToolResult:
-    """Result from executing a tool.
-    
-    Attributes:
-        success: True if tool executed successfully
-        output: Output from the tool (None if failed or no output)
-        error: Error message if tool failed (None if successful)
-    """
-    
-    success: bool
-    output: Optional[Any] = None
-    error: Optional[str] = None
+from typing import Any, Dict
+from .contract import ToolResult, ExecutionStatus
 
 
 class Tool(ABC):
@@ -101,9 +87,9 @@ class MockTool(Tool):
         }
         
         return ToolResult(
-            success=True,
+            status=ExecutionStatus.SUCCESS,
             output=output,
-            error=None
+            metadata={"tool_name": self.name},
         )
     
     def get_schema(self) -> Dict[str, Any]:
@@ -126,79 +112,3 @@ class MockTool(Tool):
                 "required": []
             }
         }
-
-
-class ToolRegistry:
-    """Registry for managing and executing tools.
-    
-    The ToolRegistry:
-    - Stores registered tools
-    - Provides tool lookup by name
-    - Executes tools by name with parameters
-    - Lists available tools
-    """
-    
-    def __init__(self):
-        """Initialize empty tool registry."""
-        self._tools: Dict[str, Tool] = {}
-    
-    def register(self, tool: Tool) -> None:
-        """Register a tool in the registry.
-        
-        Args:
-            tool: Tool instance to register (must have .name attribute)
-            
-        Raises:
-            AttributeError: If tool doesn't have a name attribute
-        """
-        if not hasattr(tool, 'name'):
-            raise AttributeError("Tool must have a 'name' attribute")
-        
-        self._tools[tool.name] = tool
-    
-    def get(self, name: str) -> Optional[Tool]:
-        """Get a registered tool by name.
-        
-        Args:
-            name: Tool name to retrieve
-            
-        Returns:
-            Tool instance if found, None otherwise
-        """
-        return self._tools.get(name)
-    
-    def list_tools(self) -> List[str]:
-        """List all registered tool names.
-        
-        Returns:
-            List of tool names in registry
-        """
-        return list(self._tools.keys())
-    
-    async def execute(self, name: str, **kwargs) -> ToolResult:
-        """Execute a tool by name with given parameters.
-        
-        Args:
-            name: Name of tool to execute
-            **kwargs: Parameters to pass to tool.execute()
-            
-        Returns:
-            ToolResult from the tool, or failed result if tool not found
-        """
-        tool = self.get(name)
-        
-        if tool is None:
-            return ToolResult(
-                success=False,
-                output=None,
-                error=f"Tool '{name}' not found in registry"
-            )
-        
-        try:
-            return await tool.execute(**kwargs)
-        except Exception as e:
-            return ToolResult(
-                success=False,
-                output=None,
-                error=f"Error executing tool '{name}': {str(e)}"
-            )
