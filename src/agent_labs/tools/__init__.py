@@ -11,6 +11,8 @@ Exports:
 - Calculator: Built-in arithmetic tool
 - WebSearch: Built-in mock web search tool
 - FileRead: Built-in sandboxed file reading tool
+- TextSummarizer: Ollama-based text summarization tool
+- CodeAnalyzer: Ollama-based code analysis tool
 """
 
 from .base import Tool, MockTool
@@ -24,6 +26,7 @@ from .validators import (
     FileReadInput,
 )
 from .builtin import Calculator, WebSearch, FileRead
+from .ollama_tools import TextSummarizer, CodeAnalyzer
 
 __all__ = [
     # Base classes
@@ -49,5 +52,9 @@ __all__ = [
     "Calculator",
     "WebSearch",
     "FileRead",
+    
+    # Ollama-based tools
+    "TextSummarizer",
+    "CodeAnalyzer",
 ]
 
