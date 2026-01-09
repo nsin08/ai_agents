@@ -26,7 +26,7 @@ By the end of Level 2, learners can:
 
 ## I1 — The Orchestrator (Control Loop Deep Dive)
 
-**Primary sources:** `../../../Agents/05_01_orchestrator_agent_controller.md`, `../../../Agents/05_00_core_components.md`  
+**Primary sources:** `../../../../Agents/05_01_orchestrator_agent_controller.md`, `../../../../Agents/05_00_core_components.md`  
 **Timebox:** 90–120 minutes
 
 ### Objectives
@@ -48,7 +48,7 @@ By the end of Level 2, learners can:
 
 ## I2 — LLM Selection & Multi-Model Routing
 
-**Primary source:** `../../../Agents/05_02_llms_and_reasoning_modes.md`  
+**Primary source:** `../../../../Agents/05_02_llms_and_reasoning_modes.md`  
 **Timebox:** 90–120 minutes
 
 ### Objectives
@@ -69,7 +69,7 @@ By the end of Level 2, learners can:
 
 ## I3 — Tools & API Integration
 
-**Primary sources:** `../../../Agents/05_03_tools_and_apis_agent.md`, `../../../Agents/09_02_tool_use_computer_control_autonomous_workflows.md`  
+**Primary sources:** `../../../../Agents/05_03_tools_and_apis_agent.md`, `../../../../Agents/09_02_tool_use_computer_control_autonomous_workflows.md`  
 **Timebox:** 120–150 minutes
 
 ### Objectives
@@ -95,9 +95,9 @@ For 2 tools in your workflow:
 
 **Primary sources:**
 
-- `../../../Agents/05_04_0_memory_and_rag.md`
-- `../../../Agents/05_04_2_memory_write_policy.md`
-- `../../../Agents/05_04_3_memory_retrieval_policy.md`
+- `../../../../Agents/05_04_0_memory_and_rag.md`
+- `../../../../Agents/05_04_2_memory_write_policy.md`
+- `../../../../Agents/05_04_3_memory_retrieval_policy.md`
 
 **Timebox:** 120–150 minutes
 
@@ -126,7 +126,7 @@ For 2 tools in your workflow:
 
 ## I5 — Context Engineering
 
-**Primary source:** `../../../Agents/05_04_1_context_engineering.md`  
+**Primary source:** `../../../../Agents/05_04_1_context_engineering.md`  
 **Timebox:** 90–120 minutes
 
 ### Objectives
@@ -148,7 +148,7 @@ For 2 tools in your workflow:
 
 ## I6 — Policies & Guardrails
 
-**Primary source:** `../../../Agents/05_05_policies_and_guardrails.md`  
+**Primary source:** `../../../../Agents/05_05_policies_and_guardrails.md`  
 **Timebox:** 90–120 minutes
 
 ### Objectives
@@ -170,7 +170,7 @@ For 2 tools in your workflow:
 
 ## I7 — Observability (Logging, Metrics, Tracing)
 
-**Primary source:** `../../../Agents/05_06_observability_logging_metrics_tracing.md`  
+**Primary source:** `../../../../Agents/05_06_observability_logging_metrics_tracing.md`  
 **Timebox:** 90–120 minutes
 
 ### Objectives
@@ -205,4 +205,3 @@ Recommended sequence:
 - Explain why tool schemas and RBAC belong in the orchestrator, not in the prompt.
 - Describe the difference between RAG and long-term memory and why mixing them is risky.
 - Name 3 signals you would use to detect regressions in an agent after a model upgrade.
-

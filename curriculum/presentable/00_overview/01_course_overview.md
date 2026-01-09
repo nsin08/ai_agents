@@ -68,10 +68,10 @@ If you want to add runnable labs later, standardize on:
 
 ## Primary Source Material (In-Repo)
 
-The curriculum content is derived from `Agents/` documents (see `appendix_source_mapping.md`).
+The curriculum content is derived from `Agents/` documents (see `../90_supporting/02_appendix_source_mapping.md`).
 
 For critical production gaps (testing/eval, security, failure modes), the pack also references:
-- `../../review/ai_agents_critical_review.md`
+- `../../../review/ai_agents_critical_review.md`
 
 ## How To Present (Instructor Notes)
 

@@ -68,4 +68,3 @@ AI Agents: Production Patterns & Safety (Level 3)
 - P06: Support agent with writes (with approvals)
 - P07: Testing harness (golden + adversarial + regression)
 - P11: Cost engineering (instrumentation + optimization)
-

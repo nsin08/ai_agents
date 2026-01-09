@@ -59,4 +59,3 @@ After tool result:
 - redact sensitive values before logging
 - attach provenance for downstream reasoning
 ```
-

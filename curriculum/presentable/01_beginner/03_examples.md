@@ -69,4 +69,3 @@ If the workflow is deterministic + stable + cheap:
 Else if it is variable + tool-heavy + needs judgment:
   consider an agent with verification and policy gates
 ```
-

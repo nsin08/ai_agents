@@ -27,4 +27,3 @@
 - **Observability:** Logs, metrics, traces, and dashboards that make agent behavior debuggable and measurable in production.
 - **Cost attribution:** Tracking cost per request/task and attributing to user/tenant/workflow.
 - **Routing:** Using different models or strategies (small/large LLMs) based on task complexity, cost, latency, and risk.
-

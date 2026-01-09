@@ -64,4 +64,3 @@ AI Agents: Domain Specialization & Scale (Level 4)
 ## Slide — Capstone
 
 - Build a domain agent or a platform component (multi-tenancy, eval, multi-agent)
-

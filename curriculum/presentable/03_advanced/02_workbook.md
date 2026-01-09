@@ -4,7 +4,7 @@
 **Estimated time:** 4–5 weeks (or 6–10 sessions instructor-led).  
 **Prereqs:** Level 2 outcomes (orchestrator + tools + memory + policies + telemetry).
 
-This level includes material synthesized from `../../review/ai_agents_critical_review.md` where primary sources are limited.
+This level includes material synthesized from `../../../review/ai_agents_critical_review.md` where primary sources are limited.
 
 ## Level Outcomes
 
@@ -31,7 +31,7 @@ Use this before any “pilot” deployment:
 
 ## A1 — Design Decision Trees
 
-**Primary sources:** `../../../Agents/06_design_decision_tree.md`, `../../../Agents/07_design_decision_tree.md`  
+**Primary sources:** `../../../../Agents/06_design_decision_tree.md`, `../../../../Agents/07_design_decision_tree.md`  
 **Timebox:** 90–120 minutes
 
 ### Objectives
@@ -51,7 +51,7 @@ Use this before any “pilot” deployment:
 
 ## A2 — Failure Modes & Recovery Patterns
 
-**Source status:** Gap (synthesized; see `../../review/ai_agents_critical_review.md`)  
+**Source status:** Gap (synthesized; see `../../../review/ai_agents_critical_review.md`)  
 **Timebox:** 120–150 minutes
 
 ### Objectives
@@ -88,7 +88,7 @@ Create a failure-mode matrix for your workflow:
 
 ## A3 — Testing & Evaluation Framework
 
-**Source status:** Gap (synthesized; see `../../review/ai_agents_critical_review.md`)  
+**Source status:** Gap (synthesized; see `../../../review/ai_agents_critical_review.md`)  
 **Timebox:** 150–180 minutes
 
 ### Objectives
@@ -123,7 +123,7 @@ Create a failure-mode matrix for your workflow:
 
 ## A4 — Security & Compliance
 
-**Source status:** Gap (synthesized; see `../../review/ai_agents_critical_review.md`)  
+**Source status:** Gap (synthesized; see `../../../review/ai_agents_critical_review.md`)  
 **Timebox:** 120–150 minutes
 
 ### Objectives
@@ -157,7 +157,7 @@ Create a failure-mode matrix for your workflow:
 
 ## A5 — Human-in-the-Loop (HITL) Patterns
 
-**Source status:** Gap (synthesized; see `../../review/ai_agents_critical_review.md`)  
+**Source status:** Gap (synthesized; see `../../../review/ai_agents_critical_review.md`)  
 **Timebox:** 90–120 minutes
 
 ### Objectives
@@ -184,7 +184,7 @@ Create a failure-mode matrix for your workflow:
 
 ## A6 — Scalability & Performance
 
-**Primary source:** `../../../Agents/08_scalability_and_performance.md`  
+**Primary source:** `../../../../Agents/08_scalability_and_performance.md`  
 **Timebox:** 90–120 minutes
 
 ### Objectives
@@ -224,4 +224,3 @@ Recommended sequence:
 - `projects/P06_support_agent_with_writes.md`
 - `projects/P07_testing_harness.md`
 - `projects/P11_cost_engineering.md` (optional but high leverage)
-

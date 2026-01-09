@@ -39,4 +39,3 @@ For each workflow, answer:
 - Guardrails: no writes, PII redaction, citations to retrieved sources
 
 Next step after Level 1: evolve into Level 2 by adding tool contracts, memory policy, and observability.
-

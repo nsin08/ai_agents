@@ -33,4 +33,3 @@ Key focus: compliance controls + evaluation gates.
 - Required: tenant isolation everywhere, per-tenant policy config, audit logs
 
 Key focus: security boundaries + observability by tenant.
-

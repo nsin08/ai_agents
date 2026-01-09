@@ -91,4 +91,3 @@ AI Agents: Foundations & Mental Models (Level 1)
 - You can define an agent precisely
 - You can decide when to use (or avoid) agents
 - You can sketch a safe architecture and pick a framework direction
-

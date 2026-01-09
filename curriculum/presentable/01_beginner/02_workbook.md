@@ -24,7 +24,7 @@ By the end of Level 1, learners can:
 
 ## B1 — Why AI Agents Now?
 
-**Primary source:** `../../../Agents/01_introduction_motivation.md`  
+**Primary source:** `../../../../Agents/01_introduction_motivation.md`  
 **Timebox:** 60–90 minutes
 
 ### Objectives
@@ -55,7 +55,7 @@ By the end of Level 1, learners can:
 
 ## B2 — What Is an AI Agent? (Core Definition)
 
-**Primary source:** `../../../Agents/02_what_is_an_ai_agent.md`  
+**Primary source:** `../../../../Agents/02_what_is_an_ai_agent.md`  
 **Timebox:** 60–90 minutes
 
 ### Objectives
@@ -85,7 +85,7 @@ By the end of Level 1, learners can:
 
 ## B3 — What Problems Do Agents Solve?
 
-**Primary source:** `../../../Agents/03_what_problems_do_agents_solve.md`  
+**Primary source:** `../../../../Agents/03_what_problems_do_agents_solve.md`  
 **Timebox:** 60–90 minutes
 
 ### Objectives
@@ -112,7 +112,7 @@ For one workflow from B1:
 
 ## B4 — High-Level Architecture (The 6 Pillars)
 
-**Primary source:** `../../../Agents/04_high_level_architecture.md`  
+**Primary source:** `../../../../Agents/04_high_level_architecture.md`  
 **Timebox:** 90–120 minutes
 
 ### Objectives
@@ -143,7 +143,7 @@ For one workflow from B1:
 
 ## B5 — Evolution of Agent Systems (History & Context)
 
-**Primary source:** `../../../Agents/09_00_current_trends_and_patterns.md`  
+**Primary source:** `../../../../Agents/09_00_current_trends_and_patterns.md`  
 **Timebox:** 60–90 minutes
 
 ### Objectives
@@ -165,9 +165,9 @@ For one workflow from B1:
 
 **Primary sources:**
 
-- `../../../Agents/05_01_1_langchain.md`
-- `../../../Agents/05_01_3_langraph.md`
-- `../../../Agents/09_01_agent_frameworks_and_multi_agent_systems.md`
+- `../../../../Agents/05_01_1_langchain.md`
+- `../../../../Agents/05_01_3_langraph.md`
+- `../../../../Agents/09_01_agent_frameworks_and_multi_agent_systems.md`
 
 **Timebox:** 60–90 minutes
 
@@ -208,4 +208,3 @@ Do these in order:
 - Explain, in 3 sentences, why “agents are distributed systems.”
 - Give two examples of workflows that should NOT be implemented as agents and why.
 - What are the minimum components you need for a safe “read-only” agent MVP?
-

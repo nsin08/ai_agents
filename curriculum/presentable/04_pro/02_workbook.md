@@ -25,7 +25,7 @@ By the end of Level 4, learners can:
 
 ## P1 — Case Study Deep Dive: Customer Support
 
-**Primary sources:** `../../../Agents/12_01_customer_support_agent_architecture.md`, `../../../Agents/09_04_case_study_customer_support_agent.md`  
+**Primary sources:** `../../../../Agents/12_01_customer_support_agent_architecture.md`, `../../../../Agents/09_04_case_study_customer_support_agent.md`  
 **Timebox:** 90–120 minutes
 
 ### Objectives
@@ -42,7 +42,7 @@ By the end of Level 4, learners can:
 
 ## P2 — Case Study Deep Dive: Coding Agent
 
-**Primary source:** `../../../Agents/12_04_coding_agent_architecture.md`  
+**Primary source:** `../../../../Agents/12_04_coding_agent_architecture.md`  
 **Timebox:** 90–120 minutes
 
 ### Objectives
@@ -59,7 +59,7 @@ By the end of Level 4, learners can:
 
 ## P3 — Case Study Deep Dive: Medical Agent
 
-**Primary source:** `../../../Agents/12_05_medical_agent_architecture.md`  
+**Primary source:** `../../../../Agents/12_05_medical_agent_architecture.md`  
 **Timebox:** 90–120 minutes
 
 ### Objectives
@@ -76,7 +76,7 @@ By the end of Level 4, learners can:
 
 ## P4 — Case Study Deep Dive: DevOps Troubleshooting
 
-**Primary source:** `../../../Agents/12_06_ops_troubleshooting_agent_architecture.md`  
+**Primary source:** `../../../../Agents/12_06_ops_troubleshooting_agent_architecture.md`  
 **Timebox:** 90–120 minutes
 
 ### Objectives
@@ -93,7 +93,7 @@ By the end of Level 4, learners can:
 
 ## P5 — Deployment Models & Operations
 
-**Primary source:** `../../../Agents/11_self_managed_vs_agent_as_a_service.md`  
+**Primary source:** `../../../../Agents/11_self_managed_vs_agent_as_a_service.md`  
 **Timebox:** 120–150 minutes
 
 ### Objectives
@@ -112,7 +112,7 @@ By the end of Level 4, learners can:
 
 ## P6 — Future Directions & Emerging Patterns
 
-**Primary sources:** `../../../Agents/10_conclusion_future_directions.md`, `../../../Agents/09_03_retrieval_tools_planning_modern_stack.md`, `../../../Agents/09_01_agent_frameworks_and_multi_agent_systems.md`  
+**Primary sources:** `../../../../Agents/10_conclusion_future_directions.md`, `../../../../Agents/09_03_retrieval_tools_planning_modern_stack.md`, `../../../../Agents/09_01_agent_frameworks_and_multi_agent_systems.md`  
 **Timebox:** 60–90 minutes
 
 ### Objectives
@@ -137,4 +137,3 @@ Choose one:
 - `projects/P09_domain_production_agent.md`
 - `projects/P10_evaluation_platform.md`
 - `projects/P12_multi_agent_system.md`
-

@@ -21,4 +21,3 @@ Use these to practice “domain + operations” design.
 
 - Requires: staged actions (suggest → approve → execute), rollback, circuit breakers
 - Telemetry must support post-incident analysis (“why did it do that?”)
-

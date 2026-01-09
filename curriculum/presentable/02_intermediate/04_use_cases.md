@@ -34,4 +34,3 @@ Key design focus: retrieval policy + context packing under token constraints.
 - Guardrails: confirmation gates, PII redaction, audit logs
 
 Key design focus: idempotency + rollback strategy for writes.
-
