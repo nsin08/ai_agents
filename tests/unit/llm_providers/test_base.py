@@ -9,7 +9,7 @@ Test approach: TDD (test-driven development)
 """
 
 import pytest
-from agent_labs.llm_providers import MockProvider, LLMResponse, Provider
+from src.agent_labs.llm_providers import MockProvider, LLMResponse, Provider
 
 
 @pytest.mark.asyncio
