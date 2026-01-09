@@ -9,8 +9,14 @@ Test approach: TDD (test-driven development)
 """
 
 import pytest
-from agent_labs.llm_providers import MockProvider
-from agent_labs.orchestrator import Agent, AgentState, AgentContext
+from src.agent_labs.llm_providers import MockProvider
+from src.agent_labs.orchestrator import (
+    Agent,
+    AgentState,
+    AgentContext,
+    VerificationResult,
+    StateTransitionError,
+)
 
 
 @pytest.mark.asyncio
@@ -123,14 +129,15 @@ class TestAgent:
         assert "Test observation" in context.history[0][1]
 
     @pytest.mark.asyncio
-    async def test_agent_verify_returns_bool(self, agent):
-        """Test that _verify returns boolean."""
+    async def test_agent_verify_returns_verification_result(self, agent):
+        """Test that _verify returns VerificationResult."""
         context = AgentContext(goal="Test verification")
         result = "Some result"
 
-        is_verified = await agent._verify(context, result)
+        verification = await agent._verify(context, result)
 
-        assert isinstance(is_verified, bool)
+        assert isinstance(verification, VerificationResult)
+        assert isinstance(verification.is_complete, bool)
 
     @pytest.mark.asyncio
     async def test_agent_refine_updates_history(self, agent):
@@ -138,9 +145,10 @@ class TestAgent:
         context = AgentContext(goal="Test refinement")
         context.turn_count = 1
         result = "Some result"
+        feedback = "Keep trying"
 
         initial_len = len(context.history)
-        await agent._refine(context, result)
+        await agent._refine(context, result, feedback)
 
         # History should be updated
         assert len(context.history) > initial_len
@@ -219,3 +227,268 @@ class TestAgentContext:
 
         context.turn_count = 5
         assert context.turn_count == 5
+
+
+@pytest.mark.asyncio
+class TestAgentVerificationAndStateTransitions:
+    """Test verification logic and state transitions."""
+
+    @pytest.fixture
+    def provider(self):
+        """Create mock provider for tests."""
+        return MockProvider()
+
+    @pytest.mark.asyncio
+    async def test_agent_with_custom_verifier_that_passes(self, provider):
+        """Test agent with custom verifier that returns success."""
+        verification_calls = []
+        
+        def custom_verifier(context, result):
+            verification_calls.append((context.goal, result))
+            # Always succeed on first call
+            return VerificationResult(
+                is_complete=True,
+                reason="Goal achieved",
+                confidence=1.0
+            )
+        
+        agent = Agent(provider, verifier=custom_verifier)
+        result = await agent.run("Test goal", max_turns=5)
+        
+        # Should complete on first turn
+        assert len(verification_calls) == 1
+        assert result is not None
+
+    @pytest.mark.asyncio
+    async def test_agent_with_custom_verifier_that_fails_then_succeeds(self, provider):
+        """Test agent with verifier that fails first, then succeeds."""
+        call_count = [0]
+        
+        def custom_verifier(context, result):
+            call_count[0] += 1
+            # Fail first 2 times, succeed on 3rd
+            if call_count[0] < 3:
+                return VerificationResult(
+                    is_complete=False,
+                    reason="Not yet complete",
+                    feedback="Keep trying"
+                )
+            return VerificationResult(
+                is_complete=True,
+                reason="Goal achieved",
+                confidence=1.0
+            )
+        
+        agent = Agent(provider, verifier=custom_verifier)
+        result = await agent.run("Test goal", max_turns=5)
+        
+        # Should take 3 turns
+        assert call_count[0] == 3
+        assert result is not None
+
+    @pytest.mark.asyncio
+    async def test_agent_reaches_max_turns_without_completion(self, provider):
+        """Test that agent reaches max_turns when verification keeps failing."""
+        def always_fail_verifier(context, result):
+            return VerificationResult(
+                is_complete=False,
+                reason="Never complete",
+                feedback="Try again"
+            )
+        
+        agent = Agent(provider, verifier=always_fail_verifier)
+        result = await agent.run("Test goal", max_turns=3)
+        
+        # Should reach max turns
+        assert result is not None
+        # Result should indicate incompletion or be the last action result
+
+    @pytest.mark.asyncio
+    async def test_agent_state_transitions_are_valid(self, provider):
+        """Test that agent follows valid state transition path."""
+        state_history = []
+        
+        def track_state_change(old_state, new_state):
+            state_history.append((old_state, new_state))
+        
+        def quick_success_verifier(context, result):
+            return VerificationResult(is_complete=True, reason="Done")
+        
+        agent = Agent(
+            provider,
+            verifier=quick_success_verifier,
+            on_state_change=track_state_change
+        )
+        
+        await agent.run("Test", max_turns=3)
+        
+        # Verify state transition sequence
+        assert len(state_history) > 0
+        
+        # Expected flow for successful first turn:
+        # OBSERVING -> PLANNING -> ACTING -> VERIFYING -> DONE
+        expected_transitions = [
+            (AgentState.OBSERVING, AgentState.PLANNING),
+            (AgentState.PLANNING, AgentState.ACTING),
+            (AgentState.ACTING, AgentState.VERIFYING),
+            (AgentState.VERIFYING, AgentState.DONE),
+        ]
+        
+        # First 4 transitions should match expected
+        for i, (expected_from, expected_to) in enumerate(expected_transitions):
+            assert state_history[i] == (expected_from, expected_to)
+
+    @pytest.mark.asyncio
+    async def test_agent_refine_path_when_verification_fails(self, provider):
+        """Test that agent goes through refine state when verification fails."""
+        state_history = []
+        
+        def track_state_change(old_state, new_state):
+            state_history.append((old_state, new_state))
+        
+        call_count = [0]
+        def fail_once_verifier(context, result):
+            call_count[0] += 1
+            if call_count[0] == 1:
+                return VerificationResult(is_complete=False, reason="Not done")
+            return VerificationResult(is_complete=True, reason="Done")
+        
+        agent = Agent(
+            provider,
+            verifier=fail_once_verifier,
+            on_state_change=track_state_change
+        )
+        
+        await agent.run("Test", max_turns=3)
+        
+        # Should have REFINING state in transitions
+        refining_transitions = [
+            (from_st, to_st) for from_st, to_st in state_history
+            if from_st == AgentState.VERIFYING and to_st == AgentState.REFINING
+        ]
+        assert len(refining_transitions) >= 1
+        
+        # Should also have REFINING -> OBSERVING (loop back)
+        loop_transitions = [
+            (from_st, to_st) for from_st, to_st in state_history
+            if from_st == AgentState.REFINING and to_st == AgentState.OBSERVING
+        ]
+        assert len(loop_transitions) >= 1
+
+    @pytest.mark.asyncio
+    async def test_agent_with_custom_tool_executor(self, provider):
+        """Test agent with custom tool executor."""
+        tool_calls = []
+        
+        def custom_tool_executor(plan: str) -> str:
+            tool_calls.append(plan)
+            return f"Custom result for: {plan}"
+        
+        def quick_success_verifier(context, result):
+            return VerificationResult(is_complete=True, reason="Done")
+        
+        agent = Agent(
+            provider,
+            tool_executor=custom_tool_executor,
+            verifier=quick_success_verifier
+        )
+        
+        result = await agent.run("Test", max_turns=2)
+        
+        # Tool should have been called
+        assert len(tool_calls) >= 1
+        assert "Custom result" in result
+
+    @pytest.mark.asyncio
+    async def test_agent_default_verifier_uses_llm(self, provider):
+        """Test that default verifier uses LLM to check goal completion."""
+        # Default verifier should call provider.generate to verify
+        agent = Agent(provider)  # No custom verifier
+        
+        # Run agent - default verifier will use LLM
+        result = await agent.run("Simple task", max_turns=2)
+        
+        # Should complete (MockProvider returns reasonable responses)
+        assert result is not None
+        assert len(result) > 0
+
+    @pytest.mark.asyncio
+    async def test_agent_max_turns_results_in_failed_state(self, provider):
+        """Test that reaching max_turns transitions to FAILED state."""
+        final_state = [None]
+        
+        def track_state_change(old_state, new_state):
+            final_state[0] = new_state
+        
+        def always_fail_verifier(context, result):
+            return VerificationResult(is_complete=False, reason="Never done")
+        
+        agent = Agent(
+            provider,
+            verifier=always_fail_verifier,
+            on_state_change=track_state_change
+        )
+        
+        await agent.run("Test", max_turns=2)
+        
+        # Final state should be FAILED
+        assert final_state[0] == AgentState.FAILED
+
+    def test_context_add_history_method(self):
+        """Test AgentContext.add_history method."""
+        context = AgentContext(goal="Test")
+        
+        context.add_history("user", "Hello")
+        context.add_history("assistant", "Hi")
+        
+        assert len(context.history) == 2
+        assert context.history[0] == ("user", "Hello")
+        assert context.history[1] == ("assistant", "Hi")
+
+    def test_context_get_recent_history(self):
+        """Test AgentContext.get_recent_history method."""
+        context = AgentContext(goal="Test")
+        
+        for i in range(5):
+            context.add_history("user", f"Message {i}")
+        
+        recent = context.get_recent_history(n=2)
+        assert len(recent) == 2
+        assert recent[0] == ("user", "Message 3")
+        assert recent[1] == ("user", "Message 4")
+
+    def test_context_format_history(self):
+        """Test AgentContext.format_history method."""
+        context = AgentContext(goal="Test")
+        
+        context.add_history("user", "Hello")
+        context.add_history("assistant", "Hi there")
+        
+        formatted = context.format_history()
+        assert "user: Hello" in formatted
+        assert "assistant: Hi there" in formatted
+
+    def test_context_metadata_operations(self):
+        """Test AgentContext metadata add/get."""
+        context = AgentContext(goal="Test")
+        
+        context.add_metadata("request_id", "req-123")
+        context.add_metadata("tokens", 100)
+        
+        assert context.get_metadata("request_id") == "req-123"
+        assert context.get_metadata("tokens") == 100
+        assert context.get_metadata("missing", "default") == "default"
+
+    def test_verification_result_creation(self):
+        """Test VerificationResult data class."""
+        result = VerificationResult(
+            is_complete=True,
+            confidence=0.95,
+            reason="Goal met",
+            feedback="Good job"
+        )
+        
+        assert result.is_complete is True
+        assert result.confidence == 0.95
+        assert result.reason == "Goal met"
+        assert result.feedback == "Good job"
