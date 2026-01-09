@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional, List, Tuple
 
-from agent_labs.llm_providers import Provider, LLMResponse
+from ..llm_providers import Provider, LLMResponse
 
 
 class AgentState(Enum):
