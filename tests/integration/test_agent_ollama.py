@@ -35,7 +35,7 @@ async def test_agent_with_ollama_simple_math(ollama_provider):
     # Should get an answer (may not be exactly "42" but should have a number)
     assert result is not None
     assert len(result) > 0
-    print(f"\n✅ Math test - Result: {result}")
+    print(f"\n[OK] Math test - Result: {result}")
 
 
 @pytest.mark.asyncio
@@ -71,7 +71,7 @@ async def test_agent_with_ollama_custom_verifier(ollama_provider):
     # Verify the custom verifier was called
     assert len(verification_calls) > 0
     assert result is not None
-    print(f"\n✅ Custom verifier test - Result: {result[:100]}")
+    print(f"\n[OK] Custom verifier test - Result: {result[:100]}")
     print(f"   Verifier called {len(verification_calls)} time(s)")
 
 
@@ -94,7 +94,7 @@ async def test_agent_with_ollama_state_transitions(ollama_provider):
     assert len(states_visited) > 0
     assert result is not None
 
-    print(f"\n✅ State transitions test - Result: {result[:100]}")
+    print(f"\n[OK] State transitions test - Result: {result[:100]}")
     print(f"   State transitions: {states_visited}")
 
 
@@ -122,7 +122,7 @@ async def test_agent_with_ollama_max_turns(ollama_provider):
     assert call_count[0] == 2
     assert result is not None  # Should still return the last result
 
-    print(f"\n✅ Max turns test - Result: {result[:100]}...")
+    print(f"\n[OK] Max turns test - Result: {result[:100]}...")
     print(f"   Verifier called {call_count[0]} times (expected 2)")
 
 
@@ -138,7 +138,7 @@ async def test_agent_with_ollama_basic_reasoning(ollama_provider):
     assert result is not None
     assert len(result) > 0
 
-    print(f"\n✅ Basic reasoning test - Result: {result[:100]}")
+    print(f"\n[OK] Basic reasoning test - Result: {result[:100]}")
 
 
 @pytest.mark.asyncio
@@ -153,7 +153,7 @@ async def test_agent_with_ollama_simple_task(ollama_provider):
     assert result is not None
     assert len(result) > 0
 
-    print(f"\n✅ Simple task test - Result: {result[:100]}")
+    print(f"\n[OK] Simple task test - Result: {result[:100]}")
 
 
 if __name__ == "__main__":

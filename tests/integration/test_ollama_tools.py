@@ -139,8 +139,8 @@ class TestTextSummarizer:
         assert result.status == ExecutionStatus.SUCCESS
         assert "model" in result.metadata
         assert "temperature" in result.metadata
-        assert result.metadata["model"] == "mistral:7b"
-        assert result.metadata["temperature"] == 0.3
+        assert result.metadata["model"] == Config.OLLAMA_MODEL
+        assert result.metadata["temperature"] == Config.OLLAMA_TOOLS_TEMPERATURE
     
     def test_summarizer_schema(self, summarizer):
         """Test tool schema structure."""
