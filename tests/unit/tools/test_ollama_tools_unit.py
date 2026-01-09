@@ -198,9 +198,11 @@ class TestCodeAnalyzerUnit:
         
         for analysis_type in valid_types:
             result = await analyzer.execute(code=code, analysis_type=analysis_type)
-            # Validation should pass, execution may fail if Ollama not available
-            if result.status != ExecutionStatus.INVALID_INPUT:
+            # If execution fails (not validation error), skip the test
+            if result.status == ExecutionStatus.FAILURE:
                 pytest.skip("Ollama not running")
+            # Validation should pass - assert no INVALID_INPUT errors
+            assert result.status != ExecutionStatus.INVALID_INPUT, f"Type {analysis_type} should be valid"
     
     def test_analyzer_schema_structure(self, analyzer):
         """Test CodeAnalyzer schema is correct."""
