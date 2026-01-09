@@ -1,0 +1,34 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//AI Agents Project//Week 1 Kickoff//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:phase1-kickoff-2026-01-13@ai-agents
+DTSTAMP:20260109T000000Z
+DTSTART:20260113T190000Z
+DTEND:20260113T200000Z
+SUMMARY:Phase 1 Week 1 Kickoff - AI Agents Project
+DESCRIPTION:Phase 1 kickoff meeting for AI Agents project. All team members required to attend.\n\nAttendees:\n- Architect (lead)\n- Dev 1 (Labs 0-3)\n- Dev 2 (Labs 4-8)\n- Curriculum Lead\n- Project Manager\n- CODEOWNER\n\nAGENDA:\n1. Vision & Overview (5 min)\n2. Build Strategy (15 min)\n3. Process & Governance (10 min)\n4. Week 1-2 Focus (10 min)\n5. Team Expectations (10 min)\n6. Q&A (10 min)\n\nPRE-KICKOFF READING (Required):\n- .context/architect_review_phase_1_build_strategy.md\n- .context/phase_1_dependency_build_matrix.md\n- .github/copilot-instructions.md\n\nPRE-KICKOFF TASKS:\n- Architect: Prepare Story 1.1 design (Provider interface sketch)\n- Dev 1: Review Stories 2.0-2.3 acceptance criteria\n- Dev 2: Review Stories 2.4-2.8 acceptance criteria\n- Curriculum: Assign chapter writers to team\n\nREPOSITORY:\nhttps://github.com/nsin08/ai_agents\n\nMEETING MATERIALS:\n- week_1_kickoff_meeting_agenda.md (full agenda + checklists)\n- architect_review_phase_1_build_strategy.md (build strategy)\n- phase_1_dependency_build_matrix.md (dependency graph)\n\nACTION ITEMS FROM KICKOFF:\n- Architect: Start Story 1.1 same day (create feature/story-1-1/llm-providers branch)\n- Dev teams: Set up local dev environment\n- All: Daily standups at 9 AM (15 min, blocking-issue focused)\n- All: Friday sync at 4 PM (30 min, weekly progress review)\n\nCRITICAL SUCCESS FACTORS:\n- Story 1.1 merged by EOD Day 2 (Wednesday)\n- Story 1.2 merged by EOD Day 4 (Thursday)\n- All core modules merged by EOD Week 2 (Friday)\n- >95% test coverage on all core modules\n- Lab 0 ready for development start Week 2\n\nNOTE: This is a mandatory synchronous meeting. All team members must attend. If you have a conflict, notify PM immediately.\n
+LOCATION:Virtual/Zoom (link to be shared)\nSTATUS:CONFIRMED
+SEQUENCE:0
+ATTACH;FILENAME=week_1_kickoff_meeting_agenda.md:https://github.com/nsin08/ai_agents/blob/main/.context/week_1_kickoff_meeting_agenda.md
+ATTENDEE;CN=Architect;ROLE=REQ-PARTICIPANT:mailto:architect@ai-agents.local
+ATTENDEE;CN=Dev 1;ROLE=REQ-PARTICIPANT:mailto:dev1@ai-agents.local
+ATTENDEE;CN=Dev 2;ROLE=REQ-PARTICIPANT:mailto:dev2@ai-agents.local
+ATTENDEE;CN=Curriculum Lead;ROLE=REQ-PARTICIPANT:mailto:curriculum@ai-agents.local
+ATTENDEE;CN=Project Manager;ROLE=REQ-PARTICIPANT:mailto:pm@ai-agents.local
+ATTENDEE;CN=CODEOWNER;ROLE=REQ-PARTICIPANT:mailto:codeowner@ai-agents.local
+ORGANIZER;CN=Project Manager:mailto:pm@ai-agents.local
+BEGIN:VALARM
+TRIGGER:-PT24H
+ACTION:DISPLAY
+DESCRIPTION:Week 1 Kickoff meeting reminder - prepare pre-read materials
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:Week 1 Kickoff meeting in 1 hour - be ready to join video call
+END:VALARM
+END:VEVENT
+END:VCALENDAR
