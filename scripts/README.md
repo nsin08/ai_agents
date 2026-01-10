@@ -1,6 +1,6 @@
 ﻿# Interactive Agent Scripts
 
-Three interactive scripts for experimenting with AI agents from `src/agent_labs`.
+Four interactive scripts for experimenting with AI agents from `src/agent_labs`.
 
 Note: These are test scripts for agent behavior and learning workflows.
 
@@ -13,7 +13,10 @@ python scripts/quick_test.py "What is Python?"
 # Option 2: Interactive REPL (best for exploration)
 python scripts/interactive_agent.py
 
-# Option 3: Learning scenarios
+# Option 3: Production-grade with observability, context & safety
+python scripts/advanced_interactive_agent.py
+
+# Option 4: Learning scenarios
 python scripts/explore.py quickstart
 ```
 
@@ -24,7 +27,8 @@ python scripts/explore.py quickstart
 | Script | Purpose | Best For |
 |--------|---------|----------|
 | **quick_test.py** | Single-prompt testing | Fast verification, CI/CD, one-liners |
-| **interactive_agent.py** | Full REPL interface | Deep exploration, conversations, debugging |
+| **interactive_agent.py** | Full REPL interface with tools | Deep exploration, conversations, debugging |
+| **advanced_interactive_agent.py** | REPL with observability, context & safety | Production patterns, monitoring, safety guardrails |
 | **explore.py** | Predefined scenarios | Structured learning, teaching, demos |
 
 ---
@@ -204,7 +208,191 @@ Goodbye!
 
 ---
 
-## 3. explore.py - Predefined Scenarios
+## 3. advanced_interactive_agent.py - Production-Grade REPL
+
+**Start REPL with Observability:**
+```bash
+python scripts/advanced_interactive_agent.py
+```
+
+A comprehensive interactive agent playground featuring production-grade monitoring and safety constraints. Demonstrates how to add observability, context management, and safety guardrails to AI agent applications.
+
+### Observability Features
+
+**Metrics Tracking:**
+```bash
+> /metrics
+[Shows: Total tokens used, average latency, error count, tool calls]
+
+Session Metrics:
+  Requests:              5
+  Total Tokens:          1,250
+  Total Latency:         3,245.3ms
+  Avg Latency/Request:   649.1ms
+```
+
+**Execution Tracing:**
+```bash
+> /trace
+[Shows detailed trace of last execution with timestamps and status]
+
+Last Execution Trace:
+  Timestamp: 2026-01-10T14:32:45.123456
+  Input Length: 42 chars
+  Latency: 523.4ms
+  Response Length: 287 chars
+  Status: ✓ Success
+```
+
+### Context Management Features
+
+**Adaptive Context Window:**
+```bash
+> /context 5
+✓ Context window set to 5 messages
+
+> /context_info
+[Shows context saturation and recommendations]
+
+SATURATION: 45% ✓ Healthy
+  [██████░░░░░░░░░░░░░░░░░░░░░]
+
+Context usage is healthy
+```
+
+**Features:**
+- Configurable message window size (1-100 messages)
+- Saturation monitoring with visual indicator
+- Token estimation for context window
+- Auto-recommendation to summarize when context gets full (>80%)
+
+### Safety & Guardrails
+
+**Safety Status:**
+```bash
+> /safety
+[Shows all safety settings and current usage]
+
+INPUT VALIDATION:
+  Max Length: 2000 chars (Injection Detection: Enabled)
+
+TOKEN BUDGETING:
+  Budget:     4000 tokens
+  Used:       1250
+  Remaining:  2750
+  Usage:      31.3%
+```
+
+**Safety Features:**
+- Input validation: Length checking, prompt injection detection, encoding validation
+- Tool rate limiting: Max 5 tool calls per minute
+- Token budgeting: Session token limit with warnings at 80%
+- Pre-execution safety checks with clear feedback
+
+**Configure Safety Limits:**
+```bash
+> /limits SET max_input_length 1000
+✓ Max input length set to 1000
+
+> /limits SET tool_rate_limit 10
+✓ Tool rate limit set to 10/minute
+
+> /cost_budget 8000
+✓ Token budget set to 8000
+```
+
+### Complete Command Reference
+
+| Command | Example | Effect |
+|---------|---------|--------|
+| Chat | `> What is AI?` | Run agent with prompt |
+| `/help` | `> /help` | Show help menu |
+| `/config` | `> /config` | Display full configuration |
+| `/metrics` | `> /metrics` | Show session statistics |
+| `/trace` | `> /trace` | Show last execution trace |
+| `/context SIZE` | `> /context 10` | Set context window |
+| `/context_info` | `> /context_info` | Show context usage |
+| `/safety` | `> /safety` | Display safety settings |
+| `/limits SET K V` | `> /limits SET max_input_length 1500` | Configure limits |
+| `/cost_budget N` | `> /cost_budget 5000` | Set token budget |
+| `/provider TYPE` | `> /provider ollama` | Switch provider |
+| `/model NAME` | `> /model mistral` | Set model |
+| `/max_turns N` | `> /max_turns 5` | Set reasoning turns |
+| `/history` | `> /history` | View conversation history |
+| `/reset` | `> /reset` | Clear all history |
+| `/exit` | `> /exit` | Quit |
+
+### Example Session: Full Features
+
+```bash
+$ python scripts/advanced_interactive_agent.py
+
+╔════════════════════════════════════════════════════════════════╗
+║    Advanced Interactive Agent - Observability & Safety         ║
+╚════════════════════════════════════════════════════════════════╝
+
+> /config
+[Shows: Provider=mock, Model=mistral:7b, Context=10msg, Safety=enabled]
+
+> /context 15
+✓ Context window set to 15 messages
+
+> What is machine learning?
+⏳ Agent thinking...
+✓ Complete (324ms)
+
+[Agent provides detailed response about ML]
+
+> /metrics
+Session Metrics:
+  Requests:              1
+  Total Tokens:          425
+  Avg Latency:           324.1ms
+  
+Last Execution:
+  Tokens: 425 | Latency: 324.0ms | Tools: 0 | Errors: 0
+
+> /context_info
+SATURATION: 13% ✓ Healthy
+  [████░░░░░░░░░░░░░░░░░░░░░░░░]
+
+Total Messages: 2
+Active (in window): 2
+Window Size: 15
+
+> /safety
+INPUT VALIDATION:
+  Max Length: 2000 chars
+  Injection Detection: Enabled
+  
+TOKEN BUDGETING:
+  Budget: 4000 | Used: 425 | Remaining: 3575 | Usage: 10.6%
+
+> /exit
+Goodbye!
+```
+
+**Features:**
+- Full observability into agent behavior
+- Smart context management with saturation monitoring
+- Comprehensive safety guardrails
+- Token budgeting and cost tracking
+- Rate limiting and injection detection
+
+**Pros:**
+- Production-grade monitoring and debugging
+- Clear visibility into resource usage
+- Safety constraints prevent runaway execution
+- Excellent for understanding agent internals
+
+**Cons:**
+- More overhead than basic agent
+- Requires understanding of all safety settings
+- Better suited for advanced users/educational settings
+
+---
+
+## 4. explore.py - Predefined Scenarios
 
 **Usage:**
 ```bash
