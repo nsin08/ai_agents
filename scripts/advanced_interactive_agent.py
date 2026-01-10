@@ -545,9 +545,8 @@ TOKEN BUDGETING:
         try:
             print("\n⏳ Agent thinking...")
             response = await self.agent.run(
-                initial_message=context,
-                max_iterations=self.max_turns,
-                verbose=True
+                goal=context,
+                max_turns=self.max_turns
             )
 
             # Calculate metrics
