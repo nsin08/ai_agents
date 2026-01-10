@@ -442,43 +442,68 @@ TOOL COMMANDS:
 TOOL REGISTRY:
 """
         # Add registered tools
-        if self.tool_registry and self.tool_registry.tools:
-            for name, tool in self.tool_registry.tools.items():
-                desc = getattr(tool, '__doc__', '').strip()
-                tools_text += f"\n  • {name:20} {desc}"
+        if self.tool_registry:
+            tool_names = self.tool_registry.list_tools()
+            if tool_names:
+                for name in tool_names:
+                    tool = self.tool_registry.get(name)
+                    desc = getattr(tool, '__doc__', '').strip().split('\n')[0] if tool else ''
+                    tools_text += f"\n  • {name:20} {desc}"
+            else:
+                tools_text += "\n  (No tools registered)"
         else:
-            tools_text += "\n  (No tools registered)"
+            tools_text += "\n  (Tool registry not initialized)"
         
         tools_text += "\n"
         print(tools_text)
 
     def run_tool_summarize(self, text: str):
         """Execute text summarizer tool."""
-        if not self.tool_registry or "text_summarizer" not in self.tool_registry.tools:
+        if not self.tool_registry:
+            print("✗ Tool registry not available")
+            return
+        
+        tool = self.tool_registry.get("text_summarizer")
+        if not tool:
             print("✗ Text summarizer tool not available")
             return
         
         print("⏳ Summarizing...")
         try:
-            tool = self.tool_registry.tools["text_summarizer"]
-            result = tool.run(text)
-            print(f"\n{result}\n")
-            print(f"✓ Summarization complete")
+            # Ensure we have an event loop
+            loop = self.loop or asyncio.new_event_loop()
+            # Run async tool execution
+            result = loop.run_until_complete(tool.execute(text=text))
+            if result.success:
+                print(f"\n{result.output.get('summary', 'No summary')}\n")
+                print(f"✓ Summarization complete")
+            else:
+                print(f"✗ Summarization failed: {result.error}")
         except Exception as e:
             print(f"✗ Error: {e}")
 
     def run_tool_analyze(self, code: str):
         """Execute code analyzer tool."""
-        if not self.tool_registry or "code_analyzer" not in self.tool_registry.tools:
+        if not self.tool_registry:
+            print("✗ Tool registry not available")
+            return
+        
+        tool = self.tool_registry.get("code_analyzer")
+        if not tool:
             print("✗ Code analyzer tool not available")
             return
         
         print("⏳ Analyzing code...")
         try:
-            tool = self.tool_registry.tools["code_analyzer"]
-            result = tool.run(code)
-            print(f"\n{result}\n")
-            print(f"✓ Analysis complete")
+            # Ensure we have an event loop
+            loop = self.loop or asyncio.new_event_loop()
+            # Run async tool execution
+            result = loop.run_until_complete(tool.execute(code=code))
+            if result.success:
+                print(f"\n{result.output.get('analysis', 'No analysis')}\n")
+                print(f"✓ Analysis complete")
+            else:
+                print(f"✗ Analysis failed: {result.error}")
         except Exception as e:
             print(f"✗ Error: {e}")
 
