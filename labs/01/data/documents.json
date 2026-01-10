@@ -1,0 +1,20 @@
+[
+  {
+    "id": "doc_001",
+    "title": "RAG Overview",
+    "content": "Retrieval-Augmented Generation combines retrieval with generation to ground responses in external knowledge.",
+    "tags": ["rag", "overview"]
+  },
+  {
+    "id": "doc_002",
+    "title": "Vector Search",
+    "content": "Vector search uses embeddings to find semantically similar documents based on cosine similarity.",
+    "tags": ["vector", "search"]
+  },
+  {
+    "id": "doc_003",
+    "title": "Prompt Grounding",
+    "content": "Grounding adds retrieved documents to the prompt to improve factual accuracy.",
+    "tags": ["prompt", "grounding"]
+  }
+]
