@@ -73,6 +73,9 @@ python scripts/interactive_agent.py
 | `/provider TYPE` | `> /provider ollama` | Switch to mock or ollama |
 | `/model NAME` | `> /model mistral` | Set model (for ollama) |
 | `/max_turns N` | `> /max_turns 5` | Set reasoning iterations (1-10) |
+| `/tools` | `> /tools` | List available tools and usage |
+| `/summarize TEXT` | `> /summarize Long text here...` | Summarize text (min 50 chars) |
+| `/analyze CODE` | `> /analyze def foo(): pass` | Analyze code quality/security/performance |
 | `/history` | `> /history` | Show conversation history |
 | `/exit` | `> /exit` | Quit |
 
@@ -100,8 +103,103 @@ Yes, your name is Neeraj.
  Goodbye!
 ```
 
-**Features:** Conversation memory (context injection), provider switching, full history tracking, real-time feedback  
-**Pros:** Full conversation history, command-driven interface, memory across turns  
+**Features:** Conversation memory (context injection), provider switching, full history tracking, real-time feedback, integrated tool support  
+**Pros:** Full conversation history, command-driven interface, memory across turns, real tools for text and code analysis  
+**Cons:** Requires interactive terminal, OllamaProvider needs Ollama running
+
+---
+
+### Tool Integration
+
+The interactive agent now includes real tools for practical tasks:
+
+#### 1. Text Summarizer Tool
+
+Summarize long text passages (minimum 50 characters):
+
+```bash
+python scripts/interactive_agent.py
+> /tools
+[Shows available tools and usage]
+
+> /summarize The quick brown fox jumps over the lazy dog. This is a longer sentence to make it over 50 characters minimum.
+Tool executing: TextSummarizer...
+Summary: Fast fox leaps over lazy dog.
+```
+
+**Use Cases:**
+- Compress long documents
+- Extract key points from articles
+- Summarize meeting notes
+- Condense long descriptions
+
+#### 2. Code Analyzer Tool
+
+Analyze Python code for quality, security, or performance issues:
+
+```bash
+> /analyze def slow_function(items):
+>     for i in range(len(items)):
+>         for j in range(len(items)):
+>             if items[i] == items[j]:
+>                 pass
+> /analyze CODE quality
+
+Tool executing: CodeAnalyzer...
+Analysis Results:
+- Nested loop complexity: O(n²) - inefficient for large lists
+- Suggestion: Use set for O(n) lookup
+- Performance: 🔴 Poor - optimize loops
+```
+
+**Analysis Types:**
+- `quality` - Code style, readability, best practices
+- `security` - Potential vulnerabilities, safe practices
+- `performance` - Algorithmic complexity, optimization opportunities
+
+**Use Cases:**
+- Review code before commit
+- Identify performance bottlenecks
+- Security audit of user input handling
+- Learn optimization patterns
+
+#### Example Tool Session
+
+```bash
+> /provider ollama
+Switched to ollama provider
+
+> /model mistral
+Changed model to: mistral
+
+> /tools
+Available Tools:
+  - text_summarizer: Summarize long text passages
+  - code_analyzer: Analyze code for quality/security/performance
+
+> /summarize Artificial intelligence is transforming industries. Machine learning enables computers to learn from data. Deep learning uses neural networks with multiple layers. NLP processes human language. AI applications span healthcare, finance, and robotics.
+Tool executing: TextSummarizer...
+Summary: AI transforms industries through ML and DL, enabling language processing across healthcare, finance, and robotics.
+
+> /analyze def process_data(data, threshold=10):
+>     result = []
+>     for item in data:
+>         if item > threshold:
+>             result.append(item * 2)
+>     return result
+Tool executing: CodeAnalyzer...
+Code Analysis (quality):
+- Readability: ✅ Good - clear logic
+- Style: ✅ Follows conventions
+- Performance: ✅ O(n) - efficient
+
+> /exit
+Goodbye!
+```
+
+---
+
+**Pros:** Full conversation history, command-driven interface, memory across turns, integrated tools  
 **Cons:** Requires interactive terminal, OllamaProvider needs Ollama running
 
 ---
@@ -220,6 +318,8 @@ python scripts/interactive_agent.py
 
 ### Using Ollama (Optional for Real LLM)
 
+> **Recommended Model:** `mistral:7b` - Fast, high-quality reasoning, optimized for Labs 1+
+
 1. **Install Ollama**: https://ollama.ai
 2. **Start Ollama server**: 
    ```bash
@@ -227,16 +327,25 @@ python scripts/interactive_agent.py
    ```
 3. **Pull a model** (one-time, ~4GB each):
    ```bash
-   ollama pull llama2
-   ollama pull mistral
+   ollama pull mistral      # Recommended (fast, high quality)
+   ollama pull llama2       # Alternative (larger, slower)
    ```
 4. **Use in scripts**:
    ```bash
    python scripts/interactive_agent.py
    > /provider ollama
-   > /model mistral
+   > /model mistral         # Use recommended model
    > Your prompt here
    ```
+
+**Model Comparison:**
+
+| Model | Speed | Quality | Size | Best For |
+|-------|-------|---------|------|----------|
+| MockProvider (default) | Instant | N/A | None | Rapid testing, CI/CD |
+| **mistral:7b** | ⚡ Fast | ⭐⭐⭐⭐ | 4GB | **Lab 1+ (Recommended)** |
+| llama2:7b | Moderate | ⭐⭐⭐ | 4GB | Learning, comparison |
+| llama2:13b | Slow | ⭐⭐⭐⭐ | 7GB | Complex reasoning |
 
 ### Environment Variables
 

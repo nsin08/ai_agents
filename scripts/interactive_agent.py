@@ -45,6 +45,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 from agent_labs.orchestrator import Agent, AgentState
 from agent_labs.llm_providers import MockProvider, OllamaProvider
 from agent_labs.memory import MemoryManager, ShortTermMemory, LongTermMemory
+from agent_labs.tools import ToolRegistry, TextSummarizer, CodeAnalyzer
 
 
 class InteractiveAgent:
@@ -53,10 +54,20 @@ class InteractiveAgent:
     def __init__(self):
         self.agent: Optional[Agent] = None
         self.provider_type = "mock"
-        self.model_name = "llama2"
+        self.model_name = "mistral:7b"
         self.max_turns = 3
         self.conversation_history = []
+        self.tool_registry = ToolRegistry()
+        self._init_tools()
         self._init_agent()
+
+    def _init_tools(self):
+        """Initialize available tools."""
+        try:
+            self.tool_registry.register(TextSummarizer())
+            self.tool_registry.register(CodeAnalyzer())
+        except Exception as e:
+            print(f"⚠ Warning: Could not initialize all tools: {e}")
 
     def _init_agent(self):
         """Initialize agent with current configuration."""
@@ -91,8 +102,11 @@ COMMANDS:
   /config            Display current agent configuration
   /reset             Clear conversation history and agent state
   /provider TYPE     Switch provider: 'mock' or 'ollama'
-  //model NAME        Set model name (e.g., 'llama2', 'mistral')
+  /model NAME        Set model name (e.g., 'llama2', 'mistral')
   /max_turns N       Set maximum turns for agent response (1-10)
+  /tools             List available tools and their usage
+  /summarize TEXT    Summarize given text (min 50 chars)
+  /analyze CODE      Analyze code for quality/security/performance
   /history           Show full conversation history
   /exit              Exit the playground
 
@@ -120,6 +134,7 @@ NOTES:
 
     def show_config(self):
         """Display current configuration."""
+        tools_available = ', '.join(self.tool_registry.list_tools())
         config_text = f"""
 ╔════════════════════════════════════════════════════════════════╗
 ║                  Agent Configuration                           ║
@@ -129,9 +144,34 @@ Provider:           {self.provider_type.upper()}
 Model:              {self.model_name}
 Max Turns:          {self.max_turns}
 Agent Status:       {'✓ Ready' if self.agent else '✗ Not initialized'}
+Available Tools:    {tools_available}
 History Size:       {len(self.conversation_history)} messages
         """
         print(config_text)
+
+    def show_tools(self):
+        """Display available tools and usage."""
+        tools_text = """
+╔════════════════════════════════════════════════════════════════╗
+║                    Available Tools                             ║
+╚════════════════════════════════════════════════════════════════╝
+
+1. TEXT SUMMARIZER
+   Command: /summarize TEXT
+   Purpose: Summarize long text using LLM
+   Example: /summarize This is a long article about machine learning...
+   Min Length: 50 characters
+
+2. CODE ANALYZER
+   Command: /analyze CODE [type:quality|security|performance]
+   Purpose: Analyze code for issues and improvements
+   Example: /analyze def foo(x): return x+1 type:quality
+   Analysis Types: quality, security, performance
+   Min Length: 10 characters
+
+Use these tools to experiment with agent-tool interaction patterns!
+        """
+        print(tools_text)
 
     def show_history(self):
         """Display conversation history."""
@@ -180,6 +220,69 @@ History Size:       {len(self.conversation_history)} messages
         context += "Your answer (be direct, concise, and helpful):"
         
         return context
+
+    async def execute_summarize(self, text: str):
+        """Execute text summarization tool."""
+        try:
+            if len(text) < 50:
+                print("✗ Text must be at least 50 characters")
+                return
+            
+            print("\n⏳ Summarizing...")
+            result = await self.tool_registry.execute(
+                "text_summarizer",
+                text=text,
+                max_length=100
+            )
+            
+            if result.success:
+                print("\n╔════════════════════════════════════════════════════════════════╗")
+                print("║                      Summary Result                             ║")
+                print("╚════════════════════════════════════════════════════════════════╝\n")
+                print(f"Summary ({result.output['word_count']} words):")
+                print(result.output['summary'])
+                print()
+                self.conversation_history.append(("system", f"[Summarized text: {result.output['word_count']} words]"))
+            else:
+                print(f"✗ Summarization failed: {result.error}")
+        except Exception as e:
+            print(f"✗ Error: {e}")
+
+    async def execute_analyze(self, code: str, analysis_type: str = "quality"):
+        """Execute code analysis tool."""
+        try:
+            if len(code) < 10:
+                print("✗ Code must be at least 10 characters")
+                return
+            
+            if analysis_type not in ["quality", "security", "performance", "documentation"]:
+                print(f"✗ Unknown analysis type: {analysis_type}. Use quality|security|performance|documentation")
+                return
+            
+            print(f"\n⏳ Analyzing code ({analysis_type})...")
+            result = await self.tool_registry.execute(
+                "code_analyzer",
+                code=code,
+                analysis_type=analysis_type,
+                language="python"
+            )
+            
+            if result.success:
+                print("\n╔════════════════════════════════════════════════════════════════╗")
+                print(f"║                  Code {analysis_type.upper()} Analysis                           ║")
+                print("╚════════════════════════════════════════════════════════════════╝\n")
+                print(result.output['analysis'])
+                print(f"\nIssues Found: {result.output['issues_found']}")
+                if result.output['suggestions']:
+                    print("\nSuggestions:")
+                    for i, suggestion in enumerate(result.output['suggestions'][:5], 1):
+                        print(f"  {i}. {suggestion}")
+                print()
+                self.conversation_history.append(("system", f"[Analyzed code: {result.output['issues_found']} issues]"))
+            else:
+                print(f"✗ Analysis failed: {result.error}")
+        except Exception as e:
+            print(f"✗ Error: {e}")
 
     async def run_agent(self, prompt: str):
         """Run agent with given prompt."""
@@ -233,6 +336,10 @@ History Size:       {len(self.conversation_history)} messages
             self.reset()
             return True
 
+        elif cmd == "/tools":
+            self.show_tools()
+            return True
+
         elif cmd == "/history":
             self.show_history()
             return True
@@ -240,6 +347,30 @@ History Size:       {len(self.conversation_history)} messages
         elif cmd == "/exit":
             print("\n👋 Goodbye!")
             sys.exit(0)
+
+        elif cmd.startswith("/summarize "):
+            text = command[11:].strip()
+            if text:
+                asyncio.create_task(self.execute_summarize(text))
+            else:
+                print("✗ Usage: /summarize TEXT")
+            return True
+        
+        elif cmd.startswith("/analyze "):
+            args = command[9:].strip()
+            code = args
+            analysis_type = "quality"
+            
+            if "type:" in args:
+                parts = args.split("type:")
+                code = parts[0].strip()
+                analysis_type = parts[1].strip().split()[0]
+            
+            if code:
+                asyncio.create_task(self.execute_analyze(code, analysis_type))
+            else:
+                print("✗ Usage: /analyze CODE [type:quality|security|performance]")
+            return True
 
         elif cmd.startswith("/provider "):
             provider_type = cmd.split(" ", 1)[1].strip().lower()
