@@ -257,6 +257,7 @@ class AdvancedInteractiveAgent:
         self.provider_type = "mock"
         self.model_name = "mistral:7b"
         self.max_turns = 3
+        self.loop = None  # Persistent event loop for Windows compatibility
         
         # Observability
         self.session_metrics = SessionMetrics()
@@ -618,7 +619,20 @@ TOKEN BUDGETING:
         return context
 
     def run(self):
-        """Main REPL loop."""
+        """Main REPL loop with persistent event loop."""
+        # Create and set persistent event loop to avoid "Event loop is closed" errors
+        self.loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self.loop)
+        
+        try:
+            self._run_repl()
+        finally:
+            # Clean up event loop
+            if self.loop and not self.loop.is_closed():
+                self.loop.close()
+    
+    def _run_repl(self):
+        """Internal REPL loop using persistent event loop."""
         print("""
 ╔════════════════════════════════════════════════════════════════╗
 ║    Advanced Interactive Agent - Observability & Safety         ║
@@ -705,11 +719,22 @@ TOKEN BUDGETING:
                     except (IndexError, ValueError):
                         print("✗ Usage: /max_turns NUM")
                 else:
-                    # Regular prompt - run agent
-                    asyncio.run(self.run_async(prompt))
+                    # Regular prompt - run agent using persistent event loop
+                    try:
+                        self.loop.run_until_complete(self.run_async(prompt))
+                    except Exception as e:
+                        print(f"✗ Error in async execution: {e}")
+                        # Try to recover the event loop if it got closed
+                        if self.loop.is_closed():
+                            self.loop = asyncio.new_event_loop()
+                            asyncio.set_event_loop(self.loop)
                     
             except KeyboardInterrupt:
                 print("\n\nInterrupted. Type /exit to quit")
+            except EOFError:
+                # Gracefully handle EOF (piped input ended)
+                print("\nGoodbye!")
+                break
             except Exception as e:
                 print(f"✗ Error: {e}")
 
