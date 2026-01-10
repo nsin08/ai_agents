@@ -319,6 +319,11 @@ OBSERVABILITY:
   /metrics               Show session statistics (tokens, latency, etc)
   /trace                 Show detailed trace of last execution
   
+TOOLS:
+  /tools                 Show available tools
+  /summarize TEXT        Summarize long text passages
+  /analyze CODE          Analyze code for quality/security/performance
+  
 CONTEXT MANAGEMENT:
   /context SIZE          Set context window size (default: 10)
   /context_info          Show current context usage and recommendations
@@ -422,6 +427,60 @@ LAST EXECUTION:
 
 """
         print(trace_text)
+
+    def show_tools(self):
+        """Display available tools."""
+        tools_text = """
+╔════════════════════════════════════════════════════════════════╗
+║               Available Tools                                  ║
+╚════════════════════════════════════════════════════════════════╝
+
+TOOL COMMANDS:
+  /summarize TEXT     Summarize long text passages
+  /analyze CODE       Analyze code for quality, security, performance
+
+TOOL REGISTRY:
+"""
+        # Add registered tools
+        if self.tool_registry and self.tool_registry.tools:
+            for name, tool in self.tool_registry.tools.items():
+                desc = getattr(tool, '__doc__', '').strip()
+                tools_text += f"\n  • {name:20} {desc}"
+        else:
+            tools_text += "\n  (No tools registered)"
+        
+        tools_text += "\n"
+        print(tools_text)
+
+    def run_tool_summarize(self, text: str):
+        """Execute text summarizer tool."""
+        if not self.tool_registry or "text_summarizer" not in self.tool_registry.tools:
+            print("✗ Text summarizer tool not available")
+            return
+        
+        print("⏳ Summarizing...")
+        try:
+            tool = self.tool_registry.tools["text_summarizer"]
+            result = tool.run(text)
+            print(f"\n{result}\n")
+            print(f"✓ Summarization complete")
+        except Exception as e:
+            print(f"✗ Error: {e}")
+
+    def run_tool_analyze(self, code: str):
+        """Execute code analyzer tool."""
+        if not self.tool_registry or "code_analyzer" not in self.tool_registry.tools:
+            print("✗ Code analyzer tool not available")
+            return
+        
+        print("⏳ Analyzing code...")
+        try:
+            tool = self.tool_registry.tools["code_analyzer"]
+            result = tool.run(code)
+            print(f"\n{result}\n")
+            print(f"✓ Analysis complete")
+        except Exception as e:
+            print(f"✗ Error: {e}")
 
     def show_context_info(self):
         """Display context usage information."""
@@ -659,6 +718,14 @@ TOKEN BUDGETING:
                     self.show_metrics()
                 elif prompt == "/trace":
                     self.show_trace()
+                elif prompt == "/tools":
+                    self.show_tools()
+                elif prompt.startswith("/summarize "):
+                    text = prompt.split(" ", 1)[1].strip()
+                    self.run_tool_summarize(text)
+                elif prompt.startswith("/analyze "):
+                    code = prompt.split(" ", 1)[1].strip()
+                    self.run_tool_analyze(code)
                 elif prompt == "/context_info":
                     self.show_context_info()
                 elif prompt == "/safety":
