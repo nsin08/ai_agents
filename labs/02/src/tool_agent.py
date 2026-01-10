@@ -26,19 +26,29 @@ def build_registry() -> ToolRegistry:
 
 async def run_tool_sequence(registry: ToolRegistry) -> Dict[str, object]:
     results = {}
+    print(f"Discovered tools: {registry.list_tools()}")
+
     calc = await registry.execute("calculator", operation="add", a=2, b=3)
-    results["calculator"] = calc.output
+    print("Tool call: calculator(operation=add, a=2, b=3)")
+    print(f"Tool result: {calc.output if calc.success else calc.error}")
+    results["calculator"] = calc.output if calc.success else {"error": calc.error}
+
     weather = await registry.execute("weather_lookup", city="Berlin")
-    results["weather"] = weather.output
+    print("Tool call: weather_lookup(city=Berlin)")
+    print(f"Tool result: {weather.output if weather.success else weather.error}")
+    results["weather"] = weather.output if weather.success else {"error": weather.error}
+
     files = await registry.execute("file_ops", path="labs/02")
-    results["files"] = files.output
+    print("Tool call: file_ops(path=labs/02)")
+    print(f"Tool result: {files.output if files.success else files.error}")
+    results["files"] = files.output if files.success else {"error": files.error}
     return results
 
 
 async def main() -> None:
     registry = build_registry()
     results = await run_tool_sequence(registry)
-    print(results)
+    print(f"Final response: {results}")
 
 
 if __name__ == "__main__":

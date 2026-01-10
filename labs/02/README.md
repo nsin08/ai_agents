@@ -59,28 +59,34 @@ labs/02/
 ## Example Trace (Tool Calls)
 
 ```
-ToolRegistry: calculator(operation=add, a=2, b=3) -> 5
-ToolRegistry: weather_lookup(city=Berlin) -> {temp_c: 25, condition: sunny}
-ToolRegistry: file_ops(path=labs/02) -> {files: [...]}
+Discovered tools: ['calculator', 'weather_lookup', 'file_ops']
+Tool call: calculator(operation=add, a=2, b=3)
+Tool result: 5
+Tool call: weather_lookup(city=Berlin)
+Tool result: {'city': 'Berlin', 'temp_c': 25, 'condition': 'sunny'}
+Tool call: file_ops(path=labs/02)
+Tool result: {'path': 'labs/02', 'files': ['README.md', 'data.txt']}
+Final response: {'calculator': 5, 'weather': {'city': 'Berlin', 'temp_c': 25, 'condition': 'sunny'}, 'files': {'path': 'labs/02', 'files': ['README.md', 'data.txt']}}
 ```
 
 ## Quick Start (under 5 minutes)
 
 ```bash
-python -m labs.02.src.tool_agent
-pytest labs/02/tests/test_tool_agent.py -v
-```
-
-If you see `ModuleNotFoundError: No module named 'src'`, run with:
-
-```bash
 $env:PYTHONPATH='.'; python labs/02/src/tool_agent.py
+pytest labs/02/tests/test_tool_agent.py -v
 ```
 
 ## Example Execution Trace
 
 ```
-{'calculator': 5, 'weather': {'city': 'Berlin', 'temp_c': 25, 'condition': 'sunny'}, 'files': {'path': 'labs/02', 'files': ['README.md', 'data.txt']}}
+Discovered tools: ['calculator', 'weather_lookup', 'file_ops']
+Tool call: calculator(operation=add, a=2, b=3)
+Tool result: 5
+Tool call: weather_lookup(city=Berlin)
+Tool result: {'city': 'Berlin', 'temp_c': 25, 'condition': 'sunny'}
+Tool call: file_ops(path=labs/02)
+Tool result: {'path': 'labs/02', 'files': ['README.md', 'data.txt']}
+Final response: {'calculator': 5, 'weather': {'city': 'Berlin', 'temp_c': 25, 'condition': 'sunny'}, 'files': {'path': 'labs/02', 'files': ['README.md', 'data.txt']}}
 ```
 
 ## Tool Contract Specification
