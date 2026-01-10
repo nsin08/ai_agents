@@ -3,7 +3,7 @@
 **Framework:** space_framework (SDLC Governance Control Plane)  
 **Framework Repository:** https://github.com/nsin08/space_framework  
 **Purpose:** [ONE_LINE_PROJECT_DESCRIPTION]  
-**Last Updated:** 2026-01-09
+**Last Updated:** 2026-01-10
 
 ---
 
@@ -118,8 +118,8 @@ When working as an AI agent on this project:
 ### ✅ What You CAN Do
 - Read/create issues following framework templates
 - Implement code within assigned Story scope
-- Push to feature branches: `feature/{story-#}/*` or `fix/{issue-#}/*`
-- Open PRs linking to Stories: "Resolves #{story-#}"
+- Create branches from `develop`: `feature/{story-#}/*` or `fix/{issue-#}/*`
+- Open PRs back to `develop` linking to Stories: "Resolves #{story-#}"
 - Run tests and provide evidence in PRs
 - Request reviews (never self-approve)
 - Write files per Rule 11 (tests in `tests/`, context in `.context/`)
@@ -135,15 +135,16 @@ When working as an AI agent on this project:
 ### 🎯 Critical Workflow
 1. Load framework context: `@space_framework` or reference GitHub repo
 2. Read Story in `state:ready`
-3. Create branch: `feature/{story-#}/{descriptor}`
+3. Create branch from `develop`: `git checkout develop && git pull origin develop && git checkout -b feature/{story-#}/{descriptor}`
 4. Implement within Story acceptance criteria
 5. Push commits with "fixes #{story-#}" or "feat(story-#): description"
-6. Open PR with evidence (tests pass, screenshots, metrics)
+6. Open PR to `develop` (not main) with evidence (tests pass, screenshots, metrics)
 7. Request reviewers
 8. Wait for approval + CI pass
-9. CODEOWNER merges
+9. CODEOWNER merges to `develop`
+10. Main is synced from develop when ready for release
 
-**Never skip states. Never self-merge. Always provide evidence.**
+**Never skip states. Never self-merge. Always provide evidence. All feature branches merge to develop.**
 
 ---
 
@@ -191,6 +192,27 @@ Required path: In Progress → In Review (PR required) → Done
 
 Next: Open PR linking to this Story.
 ```
+
+---
+
+## Git Workflow - Branch Strategy
+
+### Branch Naming
+- **Feature branches**: `feature/{story-#}/{descriptor}` (e.g., `feature/12-lab-1-rag-fundamentals`)
+- **Fix branches**: `fix/{issue-#}/{descriptor}` (e.g., `fix/15-memory-leak`)
+- **Release**: `release/{version}` (e.g., `release/0.1.0`)
+
+### Merge Strategy
+- **Feature branches** → `develop` (via PR, CODEOWNER merges)
+- **Develop** → `main` (when ready for release, CODEOWNER merges)
+- **Never merge** feature branches directly to `main`
+- **Always use squash merge** for clean commit history
+
+### Base Branch Rules
+- **Create from**: Always branch from latest `develop` (`git checkout develop && git pull origin develop`)
+- **Submit PR to**: `develop` (base branch in PR)
+- **Develop** is release candidate after weekly gate approval
+- **Main** is stable release version
 
 ---
 
