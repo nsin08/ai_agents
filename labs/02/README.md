@@ -103,6 +103,16 @@ A valid tool must:
 - Missing tool: registry returns `NOT_FOUND`
 - Validation error: registry returns `INVALID_INPUT`
 
+### Error Handling Example (simulated failure)
+
+If a tool fails (e.g., divide by zero), the runner surfaces the error instead of crashing:
+
+```
+Tool call: calculator(operation=divide, a=1, b=0)
+Tool result: Division by zero
+Final response: {'calculator': {'error': 'Division by zero'}, 'weather': {'city': 'Berlin', 'temp_c': 25, 'condition': 'sunny'}, 'files': {'path': 'labs/02', 'files': ['README.md', 'data.txt']}}
+```
+
 ## Notes
 
 - Uses mock tools only (no external APIs).
