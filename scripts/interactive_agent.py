@@ -53,7 +53,7 @@ class InteractiveAgent:
 
     def __init__(self):
         self.agent: Optional[Agent] = None
-        self.provider_type = "mock"
+        self.provider_type = "ollama"
         self.model_name = "mistral:7b"
         self.max_turns = 3
         self.conversation_history = []

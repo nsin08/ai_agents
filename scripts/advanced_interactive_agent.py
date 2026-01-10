@@ -254,8 +254,8 @@ class AdvancedInteractiveAgent:
 
     def __init__(self):
         self.agent: Optional[Agent] = None
-        self.provider_type = "mock"
-        self.model_name = "mistral:7b"
+        self.provider_type = "ollama"
+        self.model_name = "llama2"
         self.max_turns = 3
         self.loop = None  # Persistent event loop for Windows compatibility
         
@@ -576,7 +576,9 @@ TOKEN BUDGETING:
             response_text = str(response)
             self.context_manager.add_message("assistant", response_text)
 
-            print(f"\n✓ Complete ({elapsed_ms:.0f}ms)")
+            # Display response
+            print(f"\n{response_text}\n")
+            print(f"✓ Complete ({elapsed_ms:.0f}ms)")
             return response_text
 
         except Exception as e:
