@@ -1,6 +1,6 @@
 ﻿# Interactive Agent Scripts
 
-Three interactive scripts for experimenting with AI agents from `src/agent_labs`.
+Four interactive scripts for experimenting with AI agents from `src/agent_labs`.
 
 Note: These are test scripts for agent behavior and learning workflows.
 
@@ -13,7 +13,10 @@ python scripts/quick_test.py "What is Python?"
 # Option 2: Interactive REPL (best for exploration)
 python scripts/interactive_agent.py
 
-# Option 3: Learning scenarios
+# Option 3: Production-grade with observability, context & safety
+python scripts/advanced_interactive_agent.py
+
+# Option 4: Learning scenarios
 python scripts/explore.py quickstart
 ```
 
@@ -24,7 +27,8 @@ python scripts/explore.py quickstart
 | Script | Purpose | Best For |
 |--------|---------|----------|
 | **quick_test.py** | Single-prompt testing | Fast verification, CI/CD, one-liners |
-| **interactive_agent.py** | Full REPL interface | Deep exploration, conversations, debugging |
+| **interactive_agent.py** | Full REPL interface with tools | Deep exploration, conversations, debugging |
+| **advanced_interactive_agent.py** | REPL with observability, context & safety | Production patterns, monitoring, safety guardrails |
 | **explore.py** | Predefined scenarios | Structured learning, teaching, demos |
 
 ---
@@ -73,6 +77,9 @@ python scripts/interactive_agent.py
 | `/provider TYPE` | `> /provider ollama` | Switch to mock or ollama |
 | `/model NAME` | `> /model mistral` | Set model (for ollama) |
 | `/max_turns N` | `> /max_turns 5` | Set reasoning iterations (1-10) |
+| `/tools` | `> /tools` | List available tools and usage |
+| `/summarize TEXT` | `> /summarize Long text here...` | Summarize text (min 50 chars) |
+| `/analyze CODE` | `> /analyze def foo(): pass` | Analyze code quality/security/performance |
 | `/history` | `> /history` | Show conversation history |
 | `/exit` | `> /exit` | Quit |
 
@@ -100,13 +107,292 @@ Yes, your name is Neeraj.
  Goodbye!
 ```
 
-**Features:** Conversation memory (context injection), provider switching, full history tracking, real-time feedback  
-**Pros:** Full conversation history, command-driven interface, memory across turns  
+**Features:** Conversation memory (context injection), provider switching, full history tracking, real-time feedback, integrated tool support  
+**Pros:** Full conversation history, command-driven interface, memory across turns, real tools for text and code analysis  
 **Cons:** Requires interactive terminal, OllamaProvider needs Ollama running
 
 ---
 
-## 3. explore.py - Predefined Scenarios
+### Tool Integration
+
+The interactive agent now includes real tools for practical tasks:
+
+#### 1. Text Summarizer Tool
+
+Summarize long text passages (minimum 50 characters):
+
+```bash
+python scripts/interactive_agent.py
+> /tools
+[Shows available tools and usage]
+
+> /summarize The quick brown fox jumps over the lazy dog. This is a longer sentence to make it over 50 characters minimum.
+Tool executing: TextSummarizer...
+Summary: Fast fox leaps over lazy dog.
+```
+
+**Use Cases:**
+- Compress long documents
+- Extract key points from articles
+- Summarize meeting notes
+- Condense long descriptions
+
+#### 2. Code Analyzer Tool
+
+Analyze Python code for quality, security, or performance issues:
+
+```bash
+> /analyze def slow_function(items):
+>     for i in range(len(items)):
+>         for j in range(len(items)):
+>             if items[i] == items[j]:
+>                 pass
+> /analyze CODE quality
+
+Tool executing: CodeAnalyzer...
+Analysis Results:
+- Nested loop complexity: O(n²) - inefficient for large lists
+- Suggestion: Use set for O(n) lookup
+- Performance: 🔴 Poor - optimize loops
+```
+
+**Analysis Types:**
+- `quality` - Code style, readability, best practices
+- `security` - Potential vulnerabilities, safe practices
+- `performance` - Algorithmic complexity, optimization opportunities
+
+**Use Cases:**
+- Review code before commit
+- Identify performance bottlenecks
+- Security audit of user input handling
+- Learn optimization patterns
+
+#### Example Tool Session
+
+```bash
+> /provider ollama
+Switched to ollama provider
+
+> /model mistral
+Changed model to: mistral
+
+> /tools
+Available Tools:
+  - text_summarizer: Summarize long text passages
+  - code_analyzer: Analyze code for quality/security/performance
+
+> /summarize Artificial intelligence is transforming industries. Machine learning enables computers to learn from data. Deep learning uses neural networks with multiple layers. NLP processes human language. AI applications span healthcare, finance, and robotics.
+Tool executing: TextSummarizer...
+Summary: AI transforms industries through ML and DL, enabling language processing across healthcare, finance, and robotics.
+
+> /analyze def process_data(data, threshold=10):
+>     result = []
+>     for item in data:
+>         if item > threshold:
+>             result.append(item * 2)
+>     return result
+Tool executing: CodeAnalyzer...
+Code Analysis (quality):
+- Readability: ✅ Good - clear logic
+- Style: ✅ Follows conventions
+- Performance: ✅ O(n) - efficient
+
+> /exit
+Goodbye!
+```
+
+---
+
+**Pros:** Full conversation history, command-driven interface, memory across turns, integrated tools  
+**Cons:** Requires interactive terminal, OllamaProvider needs Ollama running
+
+---
+
+## 3. advanced_interactive_agent.py - Production-Grade REPL
+
+**Start REPL with Observability:**
+```bash
+python scripts/advanced_interactive_agent.py
+```
+
+A comprehensive interactive agent playground featuring production-grade monitoring and safety constraints. Demonstrates how to add observability, context management, and safety guardrails to AI agent applications.
+
+### Observability Features
+
+**Metrics Tracking:**
+```bash
+> /metrics
+[Shows: Total tokens used, average latency, error count, tool calls]
+
+Session Metrics:
+  Requests:              5
+  Total Tokens:          1,250
+  Total Latency:         3,245.3ms
+  Avg Latency/Request:   649.1ms
+```
+
+**Execution Tracing:**
+```bash
+> /trace
+[Shows detailed trace of last execution with timestamps and status]
+
+Last Execution Trace:
+  Timestamp: 2026-01-10T14:32:45.123456
+  Input Length: 42 chars
+  Latency: 523.4ms
+  Response Length: 287 chars
+  Status: ✓ Success
+```
+
+### Context Management Features
+
+**Adaptive Context Window:**
+```bash
+> /context 5
+✓ Context window set to 5 messages
+
+> /context_info
+[Shows context saturation and recommendations]
+
+SATURATION: 45% ✓ Healthy
+  [██████░░░░░░░░░░░░░░░░░░░░░]
+
+Context usage is healthy
+```
+
+**Features:**
+- Configurable message window size (1-100 messages)
+- Saturation monitoring with visual indicator
+- Token estimation for context window
+- Auto-recommendation to summarize when context gets full (>80%)
+
+### Safety & Guardrails
+
+**Safety Status:**
+```bash
+> /safety
+[Shows all safety settings and current usage]
+
+INPUT VALIDATION:
+  Max Length: 2000 chars (Injection Detection: Enabled)
+
+TOKEN BUDGETING:
+  Budget:     4000 tokens
+  Used:       1250
+  Remaining:  2750
+  Usage:      31.3%
+```
+
+**Safety Features:**
+- Input validation: Length checking, prompt injection detection, encoding validation
+- Tool rate limiting: Max 5 tool calls per minute
+- Token budgeting: Session token limit with warnings at 80%
+- Pre-execution safety checks with clear feedback
+
+**Configure Safety Limits:**
+```bash
+> /limits SET max_input_length 1000
+✓ Max input length set to 1000
+
+> /limits SET tool_rate_limit 10
+✓ Tool rate limit set to 10/minute
+
+> /cost_budget 8000
+✓ Token budget set to 8000
+```
+
+### Complete Command Reference
+
+| Command | Example | Effect |
+|---------|---------|--------|
+| Chat | `> What is AI?` | Run agent with prompt |
+| `/help` | `> /help` | Show help menu |
+| `/config` | `> /config` | Display full configuration |
+| `/metrics` | `> /metrics` | Show session statistics |
+| `/trace` | `> /trace` | Show last execution trace |
+| `/context SIZE` | `> /context 10` | Set context window |
+| `/context_info` | `> /context_info` | Show context usage |
+| `/safety` | `> /safety` | Display safety settings |
+| `/limits SET K V` | `> /limits SET max_input_length 1500` | Configure limits |
+| `/cost_budget N` | `> /cost_budget 5000` | Set token budget |
+| `/provider TYPE` | `> /provider ollama` | Switch provider |
+| `/model NAME` | `> /model mistral` | Set model |
+| `/max_turns N` | `> /max_turns 5` | Set reasoning turns |
+| `/history` | `> /history` | View conversation history |
+| `/reset` | `> /reset` | Clear all history |
+| `/exit` | `> /exit` | Quit |
+
+### Example Session: Full Features
+
+```bash
+$ python scripts/advanced_interactive_agent.py
+
+╔════════════════════════════════════════════════════════════════╗
+║    Advanced Interactive Agent - Observability & Safety         ║
+╚════════════════════════════════════════════════════════════════╝
+
+> /config
+[Shows: Provider=mock, Model=mistral:7b, Context=10msg, Safety=enabled]
+
+> /context 15
+✓ Context window set to 15 messages
+
+> What is machine learning?
+⏳ Agent thinking...
+✓ Complete (324ms)
+
+[Agent provides detailed response about ML]
+
+> /metrics
+Session Metrics:
+  Requests:              1
+  Total Tokens:          425
+  Avg Latency:           324.1ms
+  
+Last Execution:
+  Tokens: 425 | Latency: 324.0ms | Tools: 0 | Errors: 0
+
+> /context_info
+SATURATION: 13% ✓ Healthy
+  [████░░░░░░░░░░░░░░░░░░░░░░░░]
+
+Total Messages: 2
+Active (in window): 2
+Window Size: 15
+
+> /safety
+INPUT VALIDATION:
+  Max Length: 2000 chars
+  Injection Detection: Enabled
+  
+TOKEN BUDGETING:
+  Budget: 4000 | Used: 425 | Remaining: 3575 | Usage: 10.6%
+
+> /exit
+Goodbye!
+```
+
+**Features:**
+- Full observability into agent behavior
+- Smart context management with saturation monitoring
+- Comprehensive safety guardrails
+- Token budgeting and cost tracking
+- Rate limiting and injection detection
+
+**Pros:**
+- Production-grade monitoring and debugging
+- Clear visibility into resource usage
+- Safety constraints prevent runaway execution
+- Excellent for understanding agent internals
+
+**Cons:**
+- More overhead than basic agent
+- Requires understanding of all safety settings
+- Better suited for advanced users/educational settings
+
+---
+
+## 4. explore.py - Predefined Scenarios
 
 **Usage:**
 ```bash
@@ -220,6 +506,8 @@ python scripts/interactive_agent.py
 
 ### Using Ollama (Optional for Real LLM)
 
+> **Recommended Model:** `mistral:7b` - Fast, high-quality reasoning, optimized for Labs 1+
+
 1. **Install Ollama**: https://ollama.ai
 2. **Start Ollama server**: 
    ```bash
@@ -227,16 +515,25 @@ python scripts/interactive_agent.py
    ```
 3. **Pull a model** (one-time, ~4GB each):
    ```bash
-   ollama pull llama2
-   ollama pull mistral
+   ollama pull mistral      # Recommended (fast, high quality)
+   ollama pull llama2       # Alternative (larger, slower)
    ```
 4. **Use in scripts**:
    ```bash
    python scripts/interactive_agent.py
    > /provider ollama
-   > /model mistral
+   > /model mistral         # Use recommended model
    > Your prompt here
    ```
+
+**Model Comparison:**
+
+| Model | Speed | Quality | Size | Best For |
+|-------|-------|---------|------|----------|
+| MockProvider (default) | Instant | N/A | None | Rapid testing, CI/CD |
+| **mistral:7b** | ⚡ Fast | ⭐⭐⭐⭐ | 4GB | **Lab 1+ (Recommended)** |
+| llama2:7b | Moderate | ⭐⭐⭐ | 4GB | Learning, comparison |
+| llama2:13b | Slow | ⭐⭐⭐⭐ | 7GB | Complex reasoning |
 
 ### Environment Variables
 
