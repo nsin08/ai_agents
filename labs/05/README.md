@@ -20,6 +20,13 @@ After completing this lab, you will be able to:
 
 ## Lab Structure
 
+The lab implementation lives in `labs/05/src/`. When running snippets locally, point `PYTHONPATH` at that folder.
+
+PowerShell:
+```bash
+$env:PYTHONPATH='labs/05/src'; python -c "from context_agent import ContextAgent; print(ContextAgent().model)"
+```
+
 ### Module 1: Prompt Templates (1-2 hours)
 
 Learn how templates provide structure and consistency:
@@ -35,8 +42,8 @@ Learn how templates provide structure and consistency:
 **Core API**:
 
 ```python
-from src.context_agent import ContextAgent
-from src.prompt_templates import get_template, list_templates
+from context_agent import ContextAgent
+from prompt_templates import get_template, list_templates
 
 # Initialize agent
 agent = ContextAgent(model="gpt-3.5-turbo", max_tokens=8000)
@@ -68,7 +75,7 @@ Prevent context overflow with smart token budgeting:
 **Core API**:
 
 ```python
-from src.context_agent import ContextAgent
+from context_agent import ContextAgent
 
 agent = ContextAgent(max_tokens=8000)
 
@@ -106,7 +113,7 @@ Guide agent behavior with in-context examples:
 **Core API**:
 
 ```python
-from src.context_agent import ContextAgent
+from context_agent import ContextAgent
 
 agent = ContextAgent()
 
@@ -131,8 +138,8 @@ categories = agent.get_example_categories()
 ### 1. Explore Templates
 
 ```python
-from src.context_agent import ContextAgent
-from src.prompt_templates import list_templates, get_template
+from context_agent import ContextAgent
+from prompt_templates import list_templates, get_template
 
 # See all templates
 templates = list_templates()

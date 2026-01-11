@@ -54,8 +54,8 @@ You will build a custom template for a Code Review Assistant that:
 Create `exercise_2_custom_template.py`:
 
 ```python
-from src.context_agent import ContextAgent
-from src.prompt_templates import PromptTemplates
+from context_agent import ContextAgent
+from prompt_templates import PromptTemplates
 
 # Create custom template
 code_review_template = """\
@@ -212,7 +212,7 @@ Create `exercise_2_validation.md` documenting:
 Compare your custom template with the built-in code review template:
 
 ```python
-from src.prompt_templates import get_template
+from prompt_templates import get_template
 
 builtin_template = get_template("code_review")
 ```

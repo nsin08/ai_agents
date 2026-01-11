@@ -34,7 +34,7 @@ You will build a system that:
 Create `exercise_3_token_budgets.py`:
 
 ```python
-from src.context_agent import ContextAgent
+from context_agent import ContextAgent
 
 # Initialize agent for an 8K token model
 agent = ContextAgent(model="gpt-3.5-turbo", max_tokens=8000)
@@ -87,7 +87,7 @@ for name, doc in documents.items():
 Create `exercise_3_truncation.py`:
 
 ```python
-from src.context_agent import ContextAgent
+from context_agent import ContextAgent
 
 agent = ContextAgent(max_tokens=8000)
 
@@ -131,7 +131,7 @@ print(f"Last 100 chars:     ...{truncated[-100:]}")
 Create `exercise_3_chunking.py`:
 
 ```python
-from src.context_agent import ContextAgent
+from context_agent import ContextAgent
 
 agent = ContextAgent(max_tokens=8000)
 
@@ -250,8 +250,8 @@ Compare truncation vs chunking approaches:
 Create `exercise_3_workflow.py` - Complete workflow:
 
 ```python
-from src.context_agent import ContextAgent
-from src.prompt_templates import get_template
+from context_agent import ContextAgent
+from prompt_templates import get_template
 
 # Initialize agent
 agent = ContextAgent(max_tokens=8000)

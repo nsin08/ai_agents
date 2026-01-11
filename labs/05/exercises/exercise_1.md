@@ -18,8 +18,8 @@ Prompt templates are like function prototypes for agent behavior. They define th
 Create a Python script `exercise_1_solution.py`:
 
 ```python
-from src.context_agent import ContextAgent
-from src.prompt_templates import get_template
+from context_agent import ContextAgent
+from prompt_templates import get_template
 
 # Initialize agent
 agent = ContextAgent()
