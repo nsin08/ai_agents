@@ -1,0 +1,98 @@
+{
+  "sentiment_analysis": [
+    {
+      "text": "This product is amazing! Best purchase ever.",
+      "label": "POSITIVE"
+    },
+    {
+      "text": "Terrible experience. Would not recommend.",
+      "label": "NEGATIVE"
+    },
+    {
+      "text": "The item arrived on time.",
+      "label": "NEUTRAL"
+    },
+    {
+      "text": "I love this so much!",
+      "label": "POSITIVE"
+    },
+    {
+      "text": "Waste of money.",
+      "label": "NEGATIVE"
+    }
+  ],
+  "code_classification": [
+    {
+      "code": "def add(a, b):\n    return a + b",
+      "type": "function"
+    },
+    {
+      "code": "class User:\n    def __init__(self, name):\n        self.name = name",
+      "type": "class"
+    },
+    {
+      "code": "x = 42",
+      "type": "variable"
+    },
+    {
+      "code": "for i in range(10):\n    print(i)",
+      "type": "control_flow"
+    }
+  ],
+  "task_classification": [
+    {
+      "task": "Sort this list of numbers in ascending order",
+      "category": "sorting"
+    },
+    {
+      "task": "Find the maximum value in this array",
+      "category": "search"
+    },
+    {
+      "task": "Reverse this string",
+      "category": "string_manipulation"
+    },
+    {
+      "task": "Count occurrences of each word",
+      "category": "counting"
+    },
+    {
+      "task": "Calculate the average of these numbers",
+      "category": "math"
+    }
+  ],
+  "entity_types": [
+    {
+      "text": "Apple is a technology company founded by Steve Jobs in California.",
+      "organization": "Apple",
+      "person": "Steve Jobs",
+      "location": "California",
+      "industry": "technology"
+    },
+    {
+      "text": "Dr. Sarah Johnson works at MIT in Boston.",
+      "title": "Dr.",
+      "person": "Sarah Johnson",
+      "organization": "MIT",
+      "location": "Boston"
+    }
+  ],
+  "bug_severity": [
+    {
+      "description": "Application crashes on startup",
+      "severity": "CRITICAL"
+    },
+    {
+      "description": "Button label has typo",
+      "severity": "MINOR"
+    },
+    {
+      "description": "Performance degrades with large datasets",
+      "severity": "HIGH"
+    },
+    {
+      "description": "Color scheme doesn't match brand guidelines",
+      "severity": "LOW"
+    }
+  ]
+}
