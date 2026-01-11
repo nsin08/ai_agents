@@ -3,12 +3,17 @@
 """
 Exploration Notebook - Script-Based Agent Interaction
 
-Perfect for learning and documentation. Loads agents and runs predefined scenarios.
+Perfect for learning and documentation. Loads agents and runs predefined scenarios
+with real LLM providers (Ollama by default, cloud providers coming soon).
 
 Usage:
-    python scripts/explore.py              # Run default scenarios
+    python scripts/explore.py              # Run default scenarios with Ollama
     python scripts/explore.py --custom      # Run custom scenario
     python scripts/explore.py --list        # List available scenarios
+    
+Prerequisites:
+    - Ollama installed and running: ollama serve
+    - Model downloaded: ollama pull llama2
 """
 
 import sys
@@ -28,7 +33,7 @@ from typing import List, Optional
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from agent_labs.orchestrator import Agent
-from agent_labs.llm_providers import MockProvider, OllamaProvider
+from agent_labs.llm_providers import MockProvider, OllamaProvider, CloudProvider
 
 
 @dataclass
@@ -37,7 +42,7 @@ class Scenario:
 
     name: str
     description: str
-    provider: str  # "mock" or "ollama"
+    provider: str  # "ollama", "cloud", or "mock"
     model: str
     max_turns: int
     prompts: List[str]
@@ -49,8 +54,8 @@ class ExplorationNotebook:
     SCENARIOS = {
         "quickstart": Scenario(
             name="Quick Start",
-            description="Simple introductory prompts with MockProvider",
-            provider="mock",
+            description="Simple introductory prompts with Ollama",
+            provider="ollama",
             model="llama2",
             max_turns=3,
             prompts=[
@@ -60,9 +65,10 @@ class ExplorationNotebook:
             ],
         ),
         "reasoning": Scenario(
+            
             name="Reasoning & Logic",
             description="Test agent's reasoning capabilities",
-            provider="mock",
+            provider="ollama",
             model="llama2",
             max_turns=5,
             prompts=[
@@ -74,7 +80,7 @@ class ExplorationNotebook:
         "storytelling": Scenario(
             name="Creative Storytelling",
             description="Agent creates stories and narratives",
-            provider="mock",
+            provider="ollama",
             model="llama2",
             max_turns=5,
             prompts=[
@@ -86,7 +92,7 @@ class ExplorationNotebook:
         "teaching": Scenario(
             name="Teaching & Explanation",
             description="Agent explains complex topics",
-            provider="mock",
+            provider="ollama",
             model="llama2",
             max_turns=5,
             prompts=[
@@ -97,9 +103,9 @@ class ExplorationNotebook:
         ),
     }
 
-    OLLAMA_SCENARIOS = {
+    ADVANCED_SCENARIOS = {
         "advanced": Scenario(
-            name="Advanced Reasoning (OllamaProvider)",
+            name="Advanced Reasoning",
             description="Complex reasoning with real LLM",
             provider="ollama",
             model="llama2",
@@ -110,10 +116,37 @@ class ExplorationNotebook:
                 "How would you build a recommendation system?",
             ],
         ),
+        "mock": Scenario(
+            name="Mock Testing",
+            description="Fast deterministic testing with MockProvider",
+            provider="mock",
+            model="mock",
+            max_turns=3,
+            prompts=[
+                "Test prompt 1",
+                "Test prompt 2",
+                "Test prompt 3",
+            ],
+        ),
+    }
+    
+    # Future cloud provider scenarios (requires implementation in cloud.py)
+    CLOUD_SCENARIOS = {
+        "cloud": Scenario(
+            name="Cloud Provider",
+            description="[Coming Soon] Use cloud LLM providers (OpenAI, Anthropic, etc.)",
+            provider="cloud",
+            model="gpt-4",
+            max_turns=5,
+            prompts=[
+                "Explain quantum computing",
+                "Write a poem about AI",
+            ],
+        ),
     }
 
     def __init__(self):
-        self.all_scenarios = {**self.SCENARIOS, **self.OLLAMA_SCENARIOS}
+        self.all_scenarios = {**self.SCENARIOS, **self.ADVANCED_SCENARIOS, **self.CLOUD_SCENARIOS}
 
     def list_scenarios(self):
         """List all available scenarios."""
@@ -155,6 +188,15 @@ class ExplorationNotebook:
                 model=scenario.model,
                 base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
             )
+        elif scenario.provider == "cloud":
+            # Cloud provider requires implementation in cloud.py
+            print("⚠️  CloudProvider is not yet implemented.")
+            print("    To use cloud providers (OpenAI, Anthropic, etc.):")
+            print("    1. Implement the CloudProvider class in src/agent_labs/llm_providers/cloud.py")
+            print("    2. Add API key configuration")
+            print("    3. Run this scenario again")
+            print("\n    For now, use 'ollama' provider scenarios.\n")
+            return
         else:
             print(f"✗ Unknown provider: {scenario.provider}")
             return
@@ -192,23 +234,34 @@ class ExplorationNotebook:
 ╚════════════════════════════════════════════════════════════════╝
 
 USAGE:
-  python scripts/explore.py              # Run default (quickstart)
+  python scripts/explore.py              # Run default (quickstart with Ollama)
   python scripts/explore.py SCENARIO      # Run specific scenario
   python scripts/explore.py --list        # List all scenarios
   python scripts/explore.py --help        # Show this help
 
 AVAILABLE SCENARIOS:
-  quickstart   - Simple introductory prompts (fast)
-  reasoning    - Test logical reasoning
-  storytelling - Creative story generation
-  teaching     - Complex topic explanations
-  advanced     - Advanced reasoning (requires Ollama)
+  quickstart   - Simple introductory prompts (Ollama)
+  reasoning    - Test logical reasoning (Ollama)
+  storytelling - Creative story generation (Ollama)
+  teaching     - Complex topic explanations (Ollama)
+  advanced     - Advanced reasoning tasks (Ollama)
+  mock         - Fast testing with MockProvider
+  cloud        - [Coming Soon] Cloud provider integration
+
+PREREQUISITES:
+  For Ollama scenarios (default):
+    1. Install Ollama: https://ollama.ai/download
+    2. Start server: ollama serve
+    3. Pull model: ollama pull llama2
+  
+  For Cloud scenarios (future):
+    Implementation required in cloud.py
 
 EXAMPLES:
-  python scripts/explore.py quickstart
+  python scripts/explore.py quickstart    # Default: uses Ollama + llama2
   python scripts/explore.py reasoning
   python scripts/explore.py teaching
-  python scripts/explore.py advanced     # Requires: ollama serve + ollama pull llama2
+  python scripts/explore.py mock          # Fast testing without LLM
 
 WHAT TO EXPECT:
   Each scenario runs multiple prompts through the agent.
