@@ -1,0 +1,26 @@
+{
+  "name": "development_permissive",
+  "environment": "development",
+  "description": "Permissive guardrails for development and testing",
+  
+  "token_limits": {
+    "max_tokens_per_request": 4000,
+    "max_tokens_per_session": 50000,
+    "cost_limit_usd": 10.0
+  },
+  
+  "tool_constraints": {
+    "allowed_tools": null,
+    "blocked_tools": []
+  },
+  
+  "output_filtering": {
+    "block_pii": false,
+    "block_profanity": false,
+    "max_output_length": 5000
+  },
+  
+  "timing": {
+    "max_response_time_sec": 10.0
+  }
+}
