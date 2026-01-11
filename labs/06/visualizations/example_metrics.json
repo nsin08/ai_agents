@@ -1,0 +1,13 @@
+{
+  "turns": 1,
+  "llm_calls": 1,
+  "tool_calls": 1,
+  "tokens_used": 24,
+  "total_time_ms": 8.0,
+  "component_breakdown": {
+    "llm_time_ms": 3.0,
+    "tool_time_ms": 2.0,
+    "other_ms": 3.0
+  },
+  "bottleneck": "llm_time_ms"
+}

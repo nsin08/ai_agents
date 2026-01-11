@@ -1,0 +1,14 @@
+{
+  "session_id": "demo-session",
+  "query": "Use a tool to add 2 and 3",
+  "trace": [
+    {"time_ms": 0, "event": "agent_started"},
+    {"time_ms": 0, "event": "turn_started", "turn": 1},
+    {"time_ms": 1, "event": "llm_request_sent", "turn": 1},
+    {"time_ms": 3, "event": "llm_response_received", "turn": 1, "tokens": 24},
+    {"time_ms": 4, "event": "tool_call_initiated", "tool": "calculator"},
+    {"time_ms": 6, "event": "tool_call_completed", "tool": "calculator", "result": 5},
+    {"time_ms": 7, "event": "turn_completed", "turn": 1},
+    {"time_ms": 8, "event": "agent_completed", "success": true}
+  ]
+}
