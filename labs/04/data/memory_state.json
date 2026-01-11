@@ -1,0 +1,115 @@
+{
+  "max_short_term": 10,
+  "short_term": [
+    {
+      "content": "I like hiking",
+      "timestamp": "2026-01-11T05:26:51.547257",
+      "metadata": {
+        "role": "user",
+        "type": "conversation"
+      },
+      "embedding": null
+    },
+    {
+      "content": "Hiking is a great activity! I'll remember that.",
+      "timestamp": "2026-01-11T05:26:51.547266",
+      "metadata": {
+        "role": "assistant",
+        "type": "conversation"
+      },
+      "embedding": null
+    },
+    {
+      "content": "Recommend weekend activities",
+      "timestamp": "2026-01-11T05:26:51.547274",
+      "metadata": {
+        "role": "user",
+        "type": "conversation"
+      },
+      "embedding": null
+    },
+    {
+      "content": "For weekend activities in Seattle, considering your love for hiking, I'd recommend trails like Mount Si or Discovery Park!",
+      "timestamp": "2026-01-11T05:26:51.547310",
+      "metadata": {
+        "role": "assistant",
+        "type": "conversation"
+      },
+      "embedding": null
+    },
+    {
+      "content": "Remember: I'm vegetarian",
+      "timestamp": "2026-01-11T05:26:51.547312",
+      "metadata": {
+        "role": "user",
+        "type": "conversation"
+      },
+      "embedding": null
+    },
+    {
+      "content": "I've noted that you're vegetarian. I'll keep that in mind!",
+      "timestamp": "2026-01-11T05:26:51.547318",
+      "metadata": {
+        "role": "assistant",
+        "type": "conversation"
+      },
+      "embedding": null
+    },
+    {
+      "content": "Suggest a restaurant",
+      "timestamp": "2026-01-11T05:26:51.547325",
+      "metadata": {
+        "role": "user",
+        "type": "conversation"
+      },
+      "embedding": null
+    },
+    {
+      "content": "For vegetarian options in Seattle, I'd recommend Plum Bistro or Cafe Flora. Both have excellent plant-based menus!",
+      "timestamp": "2026-01-11T05:26:51.547356",
+      "metadata": {
+        "role": "assistant",
+        "type": "conversation"
+      },
+      "embedding": null
+    },
+    {
+      "content": "What do you know about me?",
+      "timestamp": "2026-01-11T05:26:51.547359",
+      "metadata": {
+        "role": "user",
+        "type": "conversation"
+      },
+      "embedding": null
+    },
+    {
+      "content": "I know several things about you based on our conversation.",
+      "timestamp": "2026-01-11T05:26:51.547371",
+      "metadata": {
+        "role": "assistant",
+        "type": "conversation"
+      },
+      "embedding": null
+    }
+  ],
+  "long_term": [
+    {
+      "content": "User lives in Seattle",
+      "confidence": 1.0,
+      "timestamp": "2026-01-11T05:26:51.547196",
+      "metadata": {}
+    },
+    {
+      "content": "User enjoys hiking",
+      "confidence": 1.0,
+      "timestamp": "2026-01-11T05:26:51.547260",
+      "metadata": {}
+    },
+    {
+      "content": "User is vegetarian",
+      "confidence": 1.0,
+      "timestamp": "2026-01-11T05:26:51.547314",
+      "metadata": {}
+    }
+  ]
+}
