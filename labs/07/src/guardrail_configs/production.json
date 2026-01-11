@@ -1,0 +1,34 @@
+{
+  "name": "production_strict",
+  "environment": "production",
+  "description": "Strict guardrails for production systems",
+  
+  "token_limits": {
+    "max_tokens_per_request": 1000,
+    "max_tokens_per_session": 10000,
+    "cost_limit_usd": 1.0
+  },
+  
+  "tool_constraints": {
+    "allowed_tools": [
+      "get_weather",
+      "calculate",
+      "search_knowledge_base"
+    ],
+    "blocked_tools": [
+      "send_email",
+      "delete_data",
+      "execute_code"
+    ]
+  },
+  
+  "output_filtering": {
+    "block_pii": true,
+    "block_profanity": true,
+    "max_output_length": 500
+  },
+  
+  "timing": {
+    "max_response_time_sec": 3.0
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "customer_support",
+  "environment": "production",
+  "description": "Guardrails optimized for customer support agent",
+  
+  "token_limits": {
+    "max_tokens_per_request": 2000,
+    "max_tokens_per_session": 15000,
+    "cost_limit_usd": 2.0
+  },
+  
+  "tool_constraints": {
+    "allowed_tools": [
+      "search_kb",
+      "create_ticket",
+      "get_customer_info",
+      "escalate_to_human"
+    ],
+    "blocked_tools": [
+      "send_email",
+      "refund_payment",
+      "delete_account"
+    ]
+  },
+  
+  "output_filtering": {
+    "block_pii": true,
+    "block_profanity": true,
+    "max_output_length": 1000
+  },
+  
+  "timing": {
+    "max_response_time_sec": 5.0
+  }
+}
