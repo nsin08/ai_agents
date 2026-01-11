@@ -13,7 +13,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from src.agent_labs.memory import MemoryItem, ShortTermMemory, LongTermMemory
+from src.agent_labs.memory import LongTermMemory, MemoryItem, ShortTermMemory
 
 
 @dataclass
@@ -66,24 +66,24 @@ class RetrievalTrace:
     def __str__(self) -> str:
         """Format trace for display."""
         lines = [
-            f"\n=== Memory Retrieval Trace ===",
+            "\n=== Memory Retrieval Trace ===",
             f"Query: {self.query}",
             f"Retrieval time: {self.retrieval_time_ms:.2f}ms",
             f"\nShort-term memory ({len(self.short_term_items)} items):",
         ]
         for item in self.short_term_items:
             lines.append(f"  - {item.content[:80]}...")
-        
+
         lines.append(f"\nLong-term memory ({len(self.long_term_items)} items):")
         for item in self.long_term_items:
             confidence = item.metadata.get("confidence", 1.0)
             lines.append(f"  - {item.content[:80]}... (confidence: {confidence:.2f})")
-        
+
         if self.relevance_scores:
             lines.append("\nRelevance scores:")
             for content, score in self.relevance_scores.items():
                 lines.append(f"  - {content[:50]}...: {score:.3f}")
-        
+
         lines.append("=" * 30)
         return "\n".join(lines)
 
@@ -99,7 +99,7 @@ class MemoryAgent:
         """
         if max_short_term <= 0:
             raise ValueError("max_short_term must be positive")
-        
+
         self.short_term = ShortTermMemory(max_items=max_short_term)
         self.long_term = LongTermMemory()
         self.max_short_term = max_short_term
@@ -127,7 +127,7 @@ class MemoryAgent:
         """
         if not 0.0 <= confidence <= 1.0:
             raise ValueError("Confidence must be between 0.0 and 1.0")
-        
+
         fact = Fact(content=content, confidence=confidence)
         item = fact.to_memory_item()
         storage_key = key or content[:32]
@@ -144,10 +144,10 @@ class MemoryAgent:
             List of relevant memory items
         """
         start_time = time.time()
-        
+
         # Split query into terms for matching
         query_terms = set(query.lower().split())
-        
+
         # Retrieve from short-term memory - check each item for relevance
         short_term_all = self.short_term.retrieve()
         short_term_items = []
@@ -155,7 +155,7 @@ class MemoryAgent:
             content_terms = set(item.content.lower().split())
             if query_terms & content_terms:  # If any query term matches
                 short_term_items.append(item)
-        
+
         # Retrieve from long-term memory - check each fact for relevance
         long_term_all = self.long_term.retrieve()
         long_term_items = []
@@ -163,22 +163,22 @@ class MemoryAgent:
             content_terms = set(item.content.lower().split())
             if query_terms & content_terms:  # If any query term matches
                 long_term_items.append(item)
-        
+
         # Limit long-term results
         long_term_items = long_term_items[:5]
-        
+
         retrieval_time_ms = (time.time() - start_time) * 1000
-        
+
         # Calculate simple relevance scores based on query term matches
         relevance_scores = {}
-        
+
         all_items = short_term_items + long_term_items
         for item in all_items:
             content_terms = set(item.content.lower().split())
             matches = len(query_terms & content_terms)
             if matches > 0:
                 relevance_scores[item.content] = matches / len(query_terms)
-        
+
         if include_trace:
             trace = RetrievalTrace(
                 query=query,
@@ -188,7 +188,7 @@ class MemoryAgent:
                 relevance_scores=relevance_scores,
             )
             print(trace)
-        
+
         return all_items
 
     def get_all_facts(self) -> List[Fact]:
@@ -221,10 +221,12 @@ class MemoryAgent:
         history = []
         for item in items:
             if item.metadata.get("type") == "conversation":
-                history.append({
-                    "role": item.metadata.get("role", "unknown"),
-                    "content": item.content,
-                })
+                history.append(
+                    {
+                        "role": item.metadata.get("role", "unknown"),
+                        "content": item.content,
+                    }
+                )
         return history
 
     def save_to_json(self, path: str) -> None:
@@ -235,14 +237,10 @@ class MemoryAgent:
         """
         data = {
             "max_short_term": self.max_short_term,
-            "short_term": [
-                item.to_dict() for item in self.short_term.retrieve()
-            ],
-            "long_term": [
-                fact.to_dict() for fact in self.get_all_facts()
-            ],
+            "short_term": [item.to_dict() for item in self.short_term.retrieve()],
+            "long_term": [fact.to_dict() for fact in self.get_all_facts()],
         }
-        
+
         Path(path).parent.mkdir(parents=True, exist_ok=True)
         with open(path, "w") as f:
             json.dump(data, f, indent=2)
@@ -259,9 +257,9 @@ class MemoryAgent:
         """
         with open(path, "r") as f:
             data = json.load(f)
-        
+
         agent = cls(max_short_term=data.get("max_short_term", 10))
-        
+
         # Restore short-term memory
         for item_data in data.get("short_term", []):
             item = MemoryItem(
@@ -270,7 +268,7 @@ class MemoryAgent:
                 metadata=item_data.get("metadata", {}),
             )
             agent.short_term.store(item)
-        
+
         # Restore long-term memory
         for fact_data in data.get("long_term", []):
             fact = Fact.from_dict(fact_data)
@@ -278,7 +276,7 @@ class MemoryAgent:
                 fact.to_memory_item(),
                 key=fact.content[:32],
             )
-        
+
         return agent
 
     def clear(self) -> None:
@@ -294,7 +292,7 @@ class MemoryAgent:
         """
         short_items = self.short_term.retrieve()
         long_items = self.long_term.retrieve()
-        
+
         return {
             "short_term_count": len(short_items),
             "short_term_max": self.max_short_term,
