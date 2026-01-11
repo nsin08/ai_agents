@@ -131,6 +131,8 @@ class MemoryAgent:
         fact = Fact(content=content, confidence=confidence)
         item = fact.to_memory_item()
         storage_key = key or content[:32]
+        # Persist the chosen key in metadata so it survives save/load cycles.
+        item.metadata["key"] = storage_key
         self.long_term.store(item, key=storage_key)
 
     def retrieve(self, query: str, include_trace: bool = False) -> List[MemoryItem]:
@@ -266,16 +268,18 @@ class MemoryAgent:
                 content=item_data["content"],
                 timestamp=datetime.fromisoformat(item_data["timestamp"]),
                 metadata=item_data.get("metadata", {}),
+                embedding=item_data.get("embedding"),
             )
             agent.short_term.store(item)
 
         # Restore long-term memory
         for fact_data in data.get("long_term", []):
             fact = Fact.from_dict(fact_data)
-            agent.long_term.store(
-                fact.to_memory_item(),
-                key=fact.content[:32],
-            )
+            item = fact.to_memory_item()
+            storage_key = fact.metadata.get("key") or fact.content[:32]
+            # Keep key in metadata for future saves.
+            item.metadata["key"] = storage_key
+            agent.long_term.store(item, key=storage_key)
 
         return agent
 

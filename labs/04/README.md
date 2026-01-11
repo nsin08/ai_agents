@@ -70,20 +70,20 @@ labs/04/
 ### Run the Multi-Turn Example
 
 ```bash
-cd /home/runner/work/ai_agents/ai_agents
-PYTHONPATH=. python labs/04/src/multi_turn_example.py
+# From repo root
+$env:PYTHONPATH='.'; python labs/04/src/multi_turn_example.py
 ```
 
 ### Run Tests
 
 ```bash
-PYTHONPATH=. python -m pytest labs/04/tests/test_memory_agent.py -v
+$env:PYTHONPATH='.'; pytest labs/04/tests/test_memory_agent.py -v --capture=tee-sys
 ```
 
 ### Run Tests with Coverage
 
 ```bash
-PYTHONPATH=. python -m pytest labs/04/tests/test_memory_agent.py --cov=labs/04/src --cov-report=term-missing
+$env:PYTHONPATH='.'; pytest labs/04/tests/test_memory_agent.py --cov=labs/04/src --cov-report=term-missing
 ```
 
 ## Multi-Turn Conversation Trace

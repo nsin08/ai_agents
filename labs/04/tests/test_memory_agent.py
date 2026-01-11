@@ -13,6 +13,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).parents[1] / "src"))
 from memory_agent import Fact, MemoryAgent, RetrievalTrace  # noqa: E402
+from src.agent_labs.memory.base import MemoryItem  # noqa: E402
 
 
 class TestMemoryAgent:
@@ -248,6 +249,46 @@ class TestMemoryAgent:
 
         finally:
             # Clean up
+            Path(temp_path).unlink(missing_ok=True)
+
+    def test_memory_persistence_preserves_keys(self):
+        """Ensure long-term keys survive save/load cycles."""
+        agent = MemoryAgent(max_short_term=3)
+        agent.add_fact("User lives in Seattle", confidence=1.0, key="location")
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            temp_path = f.name
+
+        try:
+            agent.save_to_json(temp_path)
+            loaded_agent = MemoryAgent.load_from_json(temp_path)
+            restored = loaded_agent.long_term.get("location")
+            assert restored is not None
+            assert "Seattle" in restored.content
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
+
+    def test_short_term_embedding_persisted_on_load(self):
+        """Ensure embeddings in short-term memory are persisted and restored."""
+        agent = MemoryAgent(max_short_term=2)
+        agent.short_term.store(
+            MemoryItem(
+                content="embedding item",
+                metadata={"role": "user", "type": "conversation"},
+                embedding=[0.1, 0.2, 0.3],
+            )
+        )
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            temp_path = f.name
+
+        try:
+            agent.save_to_json(temp_path)
+            loaded_agent = MemoryAgent.load_from_json(temp_path)
+            restored = loaded_agent.short_term.retrieve()
+            assert restored
+            assert restored[0].embedding == [0.1, 0.2, 0.3]
+        finally:
             Path(temp_path).unlink(missing_ok=True)
 
     def test_memory_persistence_json_format(self):
