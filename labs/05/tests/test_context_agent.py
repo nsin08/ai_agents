@@ -10,13 +10,20 @@ Tests cover:
 - Edge cases and error handling
 """
 
+import sys
+from pathlib import Path
+
 import pytest
-from src.context_agent import ContextAgent, TokenBudget
-from src.prompt_templates import (
+
+LAB_SRC = Path(__file__).resolve().parents[1] / "src"
+sys.path.insert(0, str(LAB_SRC))
+
+from context_agent import ContextAgent, TokenBudget  # noqa: E402
+from prompt_templates import (  # noqa: E402
     PromptTemplates,
     get_template,
     list_templates,
-    build_few_shot_template
+    build_few_shot_template,
 )
 
 
