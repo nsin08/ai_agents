@@ -1,9 +1,9 @@
-# Copilot Instructions: [PROJECT_NAME]
+# Copilot Instructions: AI Agents
 
 **Framework:** space_framework (SDLC Governance Control Plane)  
 **Framework Repository:** https://github.com/nsin08/space_framework  
-**Purpose:** [ONE_LINE_PROJECT_DESCRIPTION]  
-**Last Updated:** 2026-01-10
+**Purpose:** Comprehensive AI agent learning platform with knowledge base, curriculum, and hands-on labs  
+**Last Updated:** 2026-01-11
 
 ---
 
@@ -64,37 +64,59 @@ When you need governance context, load these from https://github.com/nsin08/spac
 
 ## Project-Specific Context
 
-**Project Name:** [PROJECT_NAME]  
-**Repository:** [GITHUB_ORG]/[REPO_NAME]  
-**Tech Stack:** [LANGUAGES/FRAMEWORKS]
+**Project Name:** AI Agents  
+**Repository:** nsin08/ai_agents  
+**Tech Stack:** Python 3.11+, pytest, LangChain, LangGraph, Pydantic
 
 ### Build/Test Commands
 ```bash
-# Build
-[BUILD_COMMAND]
+# Build (no build step required for Python)
+python -m pip install -e .
 
 # Test
-[TEST_COMMAND]
+pytest tests/
+
+# Test with coverage
+pytest tests/ --cov=src --cov-report=term-missing
+
+# Test specific markers
+pytest tests/ -m "not ollama"  # Skip tests requiring Ollama
+pytest tests/unit/              # Run only unit tests
+pytest tests/integration/       # Run only integration tests
 
 # Lint
-[LINT_COMMAND]
+ruff check src/ tests/
+black --check src/ tests/
+mypy src/
 
-# Run
-[RUN_COMMAND]
+# Format
+black src/ tests/
+ruff check --fix src/ tests/
+
+# Run interactive scripts
+python scripts/interactive_agent.py
+python scripts/explore.py
 ```
 
 ### Architecture Overview
-[2-3 SENTENCE ARCHITECTURE SUMMARY]
+Monorepo with three integrated layers: (1) production-oriented reference knowledge base (Agents/), (2) modular learning curriculum for multiple skill levels (curriculum/), and (3) framework-agnostic shared core with progressive lab modules (src/agent_labs/ + labs/00-08/). All labs support both mock mode (deterministic, CI-friendly) and real LLM mode (Ollama/cloud) for practical learning.
 
 Key components:
-- [COMPONENT_1]: [PURPOSE]
-- [COMPONENT_2]: [PURPOSE]
-- [COMPONENT_3]: [PURPOSE]
+- **Shared Core (src/agent_labs/)**: Framework-agnostic agent system with LLM providers, orchestrator, tools, memory, context engineering, observability, evaluation, and safety modules
+- **Labs (labs/00-08/)**: Progressive hands-on exercises from setup through multi-agent systems, each with runnable code, tests, and exercises
+- **Curriculum (curriculum/)**: Multi-level learning materials (beginner → intermediate → advanced → pro) with chapters, case studies, and projects
 
 ### Key Files
-- [FILE_PATH_1]: [PURPOSE]
-- [FILE_PATH_2]: [PURPOSE]
-- [FILE_PATH_3]: [PURPOSE]
+- `src/agent_labs/llm_providers/`: LLM provider adapters (MockProvider, OllamaProvider, CloudProvider)
+- `src/agent_labs/orchestrator/`: Agent orchestration engine (Agent, AgentContext, states)
+- `src/agent_labs/tools/`: Tool contracts, schemas, and validation framework
+- `src/agent_labs/memory/`: Memory systems (ConversationMemory, RAGMemory)
+- `src/agent_labs/safety/`: Safety validators and guardrails
+- `src/agent_labs/observability/`: Logging, tracing, and metrics
+- `pyproject.toml`: Project configuration and dependencies
+- `pytest.ini`: Test configuration with markers (ollama, integration, unit)
+- `README.md`: Main repository documentation and overview
+- `labs/*/README.md`: Lab guides with exercises and learning objectives
 
 ### File Organization (per Rule 11)
 - **Application code:** `src/`, `lib/`, `app/` (standard project structure)
@@ -104,10 +126,38 @@ Key components:
 - **CI/CD:** `.github/workflows/`
 
 ### Dependencies
-[LIST_KEY_DEPENDENCIES_WITH_VERSIONS]
+**Core:**
+- Python >= 3.11
+- setuptools >= 65.0
+
+**Development:**
+- pytest >= 7.0 (testing framework)
+- pytest-asyncio >= 0.21 (async test support)
+- pytest-cov >= 4.0 (coverage reporting)
+- mypy >= 1.0 (type checking)
+- black >= 23.0 (code formatting)
+- ruff >= 0.1 (linting)
+
+**Runtime (installed per lab):**
+- LangChain (agent orchestration)
+- LangGraph (agent state machines)
+- Pydantic (data validation)
+- Various lab-specific dependencies
 
 ### Environment Variables
-[LIST_REQUIRED_ENV_VARS_AND_PURPOSE]
+**LLM Provider Configuration:**
+- `LLM_PROVIDER`: Provider type (mock, ollama, openai, anthropic, etc.)
+- `LLM_MODEL`: Model name to use (e.g., "llama3.2", "gpt-4", etc.)
+- `LLM_BASE_URL`: Base URL for LLM API (e.g., "http://localhost:11434" for Ollama)
+
+**API Keys (when using cloud providers):**
+- `OPENAI_API_KEY`: OpenAI API key
+- `ANTHROPIC_API_KEY`: Anthropic API key
+- Other provider-specific keys as needed
+
+**Testing:**
+- Use `LLM_PROVIDER=mock` for deterministic testing (default in CI)
+- Use `LLM_PROVIDER=ollama` for local development with real LLM
 
 ---
 
