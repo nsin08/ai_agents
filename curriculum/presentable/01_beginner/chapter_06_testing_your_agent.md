@@ -58,12 +58,13 @@ def test_calculator_add():
 **Fast**: Medium (may use MockProvider)
 
 ```python
-def test_agent_with_tools():
-    agent = AgentOrchestrator(
-        llm_provider=MockProvider(),
+@pytest.mark.asyncio
+async def test_agent_with_tools():
+    agent = Agent(
+        provider=MockProvider(),
         tools=[CalculatorTool()]
     )
-    response = agent.run("What's 2+2?")
+    response = await agent.run("What's 2+2?", max_turns=1)
     assert "4" in response
 ```
 
@@ -73,12 +74,13 @@ def test_agent_with_tools():
 **Fast**: No (real API calls)
 
 ```python
-def test_real_agent_workflow():
-    agent = AgentOrchestrator(
-        llm_provider=OpenAIProvider(api_key="..."),
+@pytest.mark.asyncio
+async def test_real_agent_workflow():
+    agent = Agent(
+        provider=OpenAIProvider(api_key="..."),
         tools=[WeatherTool(), CalendarTool()]
     )
-    response = agent.run("Book me a flight to Paris next Friday")
+    response = await agent.run("Book me a flight to Paris next Friday", max_turns=1)
     assert "booking confirmed" in response.lower()
 ```
 
@@ -101,33 +103,36 @@ Create `labs/00/tests/test_my_agent.py`:
 Unit tests for agent components
 """
 import pytest
-from agent_labs.orchestrator import AgentOrchestrator
-from agent_labs.llm_providers import MockProvider
-from agent_labs.memory import ConversationMemory
+import asyncio
+from src.agent_labs.orchestrator import Agent
+from src.agent_labs.llm_providers import MockProvider
+from src.agent_labs.memory import ConversationMemory
 
 def test_agent_initialization():
     """Test agent can be created"""
     provider = MockProvider()
-    agent = AgentOrchestrator(llm_provider=provider)
+    agent = Agent(provider=provider)
     assert agent is not None
-    assert agent.llm_provider == provider
+    assert agent.provider == provider
 
-def test_agent_responds():
+@pytest.mark.asyncio
+async def test_agent_responds():
     """Test agent generates responses"""
     provider = MockProvider()
-    agent = AgentOrchestrator(llm_provider=provider)
-    response = agent.run("Hello")
+    agent = Agent(provider=provider)
+    response = await agent.run("Hello", max_turns=1)
     assert response is not None
     assert len(response) > 0
 
-def test_agent_with_memory():
+@pytest.mark.asyncio
+async def test_agent_with_memory():
     """Test agent remembers conversation"""
     provider = MockProvider()
     memory = ConversationMemory(max_turns=5)
-    agent = AgentOrchestrator(llm_provider=provider, memory=memory)
+    agent = Agent(provider=provider, memory=memory)
     
-    agent.run("My name is Sarah")
-    agent.run("What's my name?")
+    await agent.run("My name is Sarah", max_turns=1)
+    await agent.run("What's my name?", max_turns=1)
     
     history = memory.get_history()
     assert len(history) == 4  # 2 user + 2 agent messages
@@ -188,18 +193,19 @@ class MockProvider:
 ### Using MockProvider in Tests
 
 ```python
-def test_calculator_tool_usage():
+@pytest.mark.asyncio
+async def test_calculator_tool_usage():
     # Set up mock with expected behavior
     mock = MockProvider(responses={
         "Calculate 5 + 3": "The answer is 8"
     })
     
-    agent = AgentOrchestrator(
-        llm_provider=mock,
+    agent = Agent(
+        provider=mock,
         tools=[CalculatorTool()]
     )
     
-    response = agent.run("Calculate 5 + 3")
+    response = await agent.run("Calculate 5 + 3", max_turns=1)
     
     assert "8" in response
     assert mock.call_count == 1  # Verify LLM was called once
@@ -345,13 +351,13 @@ def test_rag_agent_workflow():
         "Employees get 15 vacation days annually."
     })
     
-    agent = AgentOrchestrator(
-        llm_provider=mock,
+    agent = Agent(
+        provider=mock,
         tools=[retriever]
     )
     
     # Test query
-    response = agent.run("How many vacation days?")
+    response = await agent.run("How many vacation days?", max_turns=1)
     assert "15" in response
     assert "vacation" in response.lower()
 ```
@@ -359,20 +365,21 @@ def test_rag_agent_workflow():
 ### Test Multi-Tool Workflows
 
 ```python
-def test_agent_uses_multiple_tools():
+@pytest.mark.asyncio
+async def test_agent_uses_multiple_tools():
     """Test agent chains tools together"""
     mock = MockProvider()
     calc = CalculatorTool()
     weather = WeatherTool()
     
-    agent = AgentOrchestrator(
-        llm_provider=mock,
+    agent = Agent(
+        provider=mock,
         tools=[calc, weather]
     )
     
     # Agent should be able to use either tool
-    calc_response = agent.run("What's 5 + 5?")
-    weather_response = agent.run("Weather in Paris?")
+    calc_response = await agent.run("What's 5 + 5?", max_turns=1)
+    weather_response = await agent.run("Weather in Paris?", max_turns=1)
     
     assert calc_response is not None
     assert weather_response is not None

@@ -3,7 +3,7 @@
 **Level**: Beginner  
 **Duration**: 30-45 minutes  
 **Prerequisites**: None (complete beginners welcome!)  
-**Lab**: [Lab 0 - Environment Setup](../../../../labs/00/README.md)
+**Lab**: [Lab 0 - Environment Setup](../../../labs/00/README.md)
 
 ---
 
@@ -402,6 +402,146 @@ Test your understanding (answers at the end):
 - 7-8: Good! Review the sections you missed.
 - 5-6: Re-read the chapter and try the exercises again.
 - <5: No worries! This is new. Re-read carefully and ask for help.
+
+---
+
+## 11. Advanced Troubleshooting & Best Practices
+
+### Dependency Conflicts
+**Symptom**: Package installation fails with version conflicts  
+**Example Error**: `ERROR: Cannot install X because Y requires Z<2.0`
+
+**Solution Strategy**:
+```bash
+# 1. Check what's currently installed
+uv pip list
+
+# 2. Uninstall conflicting package
+uv pip uninstall <package-name>
+
+# 3. Clear cache and reinstall
+uv cache clean
+uv pip install -r labs/00/requirements.txt
+
+# 4. If persistent, recreate virtual environment
+deactivate
+rm -rf .venv
+uv venv
+source .venv/bin/activate  # or .venv\Scripts\activate on Windows
+uv pip install -r labs/00/requirements.txt
+```
+
+### Performance Optimization Tips
+**Use uv instead of pip** for 10-100x faster installation:
+```bash
+# Slow (traditional):
+pip install -r requirements.txt  # ~45 seconds
+
+# Fast (uv):
+uv pip install -r requirements.txt  # ~2 seconds
+```
+
+**Pre-compile Python files** to speed up agent startup:
+```bash
+python -m compileall src/agent_labs
+```
+
+**Run tests in parallel** when you have many:
+```bash
+pytest -n auto  # Uses all CPU cores
+```
+
+### IDE Configuration (VS Code)
+Make your editor agent-friendly:
+
+**Install these extensions**:
+- Python (Microsoft) - IntelliSense and debugging
+- Pylance - Type checking and better auto-complete
+- Python Test Explorer - Visual test running
+
+**Configure settings.json**:
+```json
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "python.testing.pytestEnabled": true,
+  "python.testing.pytestArgs": ["-v"],
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": false,
+  "python.linting.flake8Enabled": true,
+  "editor.formatOnSave": true,
+  "python.formatting.provider": "black"
+}
+```
+
+### Environment Variables for LLMs
+When you switch from MockProvider to real LLMs, you'll need API keys. **Never hardcode them** in your code!
+
+**Best practice - use `.env` files**:
+```bash
+# Create .env file in project root
+echo "OPENAI_API_KEY=sk-..." > .env
+echo "ANTHROPIC_API_KEY=sk-ant-..." >> .env
+
+# Add to .gitignore so keys don't leak
+echo ".env" >> .gitignore
+```
+
+**Load in your code**:
+```python
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+api_key = os.getenv("OPENAI_API_KEY")
+```
+
+### Cross-Platform Compatibility
+**Path handling**:
+```python
+# Bad (breaks on Windows):
+path = "labs/00/data/file.txt"
+
+# Good (works everywhere):
+from pathlib import Path
+path = Path("labs") / "00" / "data" / "file.txt"
+```
+
+**Activation commands vary**:
+| Platform | Activation Command |
+|----------|-------------------|
+| **Linux/Mac** | `source .venv/bin/activate` |
+| **Windows (CMD)** | `.venv\Scripts\activate` |
+| **Windows (PowerShell)** | `.venv\Scripts\Activate.ps1` |
+| **Fish shell** | `source .venv/bin/activate.fish` |
+
+**PowerShell execution policy issue**:
+```powershell
+# If activation fails on Windows PowerShell:
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+### Common Beginner Mistakes
+❌ **Running tests from inside labs/** - Always run from project root  
+❌ **Forgetting to activate venv** - You'll install packages globally  
+❌ **Using Python 3.9 or older** - Some features require 3.11+  
+❌ **Hardcoding API keys** - Use environment variables instead  
+❌ **Not reading error messages** - They tell you exactly what's wrong!
+
+### Performance Benchmarks
+Here's what you should expect on a modern laptop:
+
+| Operation | Expected Time |
+|-----------|--------------|
+| `uv venv` creation | ~1 second |
+| Install 20 packages with uv | ~3-5 seconds |
+| Run hello_agent.py | <0.5 seconds |
+| Run 10 unit tests | ~0.2 seconds |
+| First agent response (MockProvider) | <0.1 seconds |
+
+If your times are significantly slower, check:
+- Is your disk full?
+- Is antivirus scanning every file?
+- Are you on a slow network connection?
 
 ---
 

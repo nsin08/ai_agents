@@ -3,7 +3,7 @@
 **Level**: Beginner  
 **Duration**: 30-45 minutes  
 **Prerequisites**: [Chapter 1 - Environment Setup](./chapter_01_environment_setup.md)  
-**Lab**: [Lab 0 - Environment Setup](../../../../labs/00/README.md)
+**Lab**: [Lab 0 - Environment Setup](../../../labs/00/README.md)
 
 ---
 
@@ -84,14 +84,19 @@ Still not an agent—just a lookup table. It can't handle anything new.
 
 ### Level 3: LLM-Powered Agent (Real Intelligence!)
 ```python
-from agent_labs.orchestrator import AgentOrchestrator
-from agent_labs.llm_providers import MockProvider
+import asyncio
+from src.agent_labs.orchestrator import Agent
+from src.agent_labs.llm_providers import MockProvider
 
-provider = MockProvider()
-agent = AgentOrchestrator(llm_provider=provider)
+async def main():
+    provider = MockProvider()
+    agent = Agent(provider=provider)
+    
+    response = await agent.run("What's the weather?", max_turns=1)
+    print(response)
 
-response = agent.run("What's the weather?")
-print(response)
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
 **Now it's an agent** because:
@@ -112,28 +117,26 @@ Create a new file: `labs/00/exercises/my_first_agent.py`
 """
 My First Agent - A simple conversational agent
 """
-from agent_labs.orchestrator import AgentOrchestrator
-from agent_labs.llm_providers import MockProvider
+import asyncio
+from src.agent_labs.orchestrator import Agent
+from src.agent_labs.llm_providers import MockProvider
 
-def main():
+async def main():
     # Create the provider (where responses come from)
     provider = MockProvider()
     
     # Create the agent
-    agent = AgentOrchestrator(
-        llm_provider=provider,
-        agent_name="MyFirstAgent"
-    )
+    agent = Agent(provider=provider)
     
     # Single interaction
     user_message = "Hello, can you help me?"
-    response = agent.run(user_message)
+    response = await agent.run(user_message, max_turns=1)
     
     print(f"User: {user_message}")
     print(f"Agent: {response}")
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
 ```
 
 **Run it**:
@@ -154,9 +157,13 @@ MockProvider just echoes—not very smart, but perfect for testing structure.
 Let's make it interactive:
 
 ```python
-def main():
+import asyncio
+from src.agent_labs.orchestrator import Agent
+from src.agent_labs.llm_providers import MockProvider
+
+async def main():
     provider = MockProvider()
-    agent = AgentOrchestrator(llm_provider=provider)
+    agent = Agent(provider=provider)
     
     print("Agent: Hello! I'm your AI assistant. Type 'quit' to exit.")
     
@@ -167,11 +174,11 @@ def main():
             print("Agent: Goodbye!")
             break
         
-        response = agent.run(user_input)
+        response = await agent.run(user_input, max_turns=1)
         print(f"Agent: {response}")
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
 ```
 
 **Try it**:
@@ -190,14 +197,17 @@ Still echoing, but now it's a real conversation loop!
 Agents need to remember what you've said:
 
 ```python
-from agent_labs.memory import ConversationMemory
+import asyncio
+from src.agent_labs.orchestrator import Agent
+from src.agent_labs.llm_providers import MockProvider
+from src.agent_labs.memory import ConversationMemory
 
-def main():
+async def main():
     provider = MockProvider()
     memory = ConversationMemory(max_turns=5)  # Remember last 5 exchanges
     
-    agent = AgentOrchestrator(
-        llm_provider=provider,
+    agent = Agent(
+        provider=provider,
         memory=memory
     )
     
@@ -213,11 +223,11 @@ def main():
                 print(f"  {turn['role']}: {turn['content']}")
             break
         
-        response = agent.run(user_input)
+        response = await agent.run(user_input, max_turns=1)
         print(f"Agent: {response}")
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
 ```
 
 **Key concepts**:
@@ -339,13 +349,14 @@ provider = OllamaProvider(model="llama2", base_url="http://localhost:11434")
 Modify your agent to have a personality:
 
 ```python
-from agent_labs.orchestrator import AgentOrchestrator
-from agent_labs.llm_providers import MockProvider
+import asyncio
+from src.agent_labs.orchestrator import Agent
+from src.agent_labs.llm_providers import MockProvider
 
-def main():
+async def main():
     provider = MockProvider()
-    agent = AgentOrchestrator(
-        llm_provider=provider,
+    agent = Agent(
+        provider=provider,
         system_prompt="You are a friendly pirate assistant. Always respond like a pirate!"
     )
     
@@ -353,11 +364,11 @@ def main():
         user_input = input("You: ")
         if user_input.lower() == 'quit':
             break
-        response = agent.run(user_input)
+        response = await agent.run(user_input, max_turns=1)
         print(f"Agent: {response}")
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
 ```
 
 **Try it**: With MockProvider, you won't see pirate language (it just echoes), but the structure is ready for a real LLM provider.
@@ -367,10 +378,15 @@ if __name__ == "__main__":
 Add a counter to see how many messages have been exchanged:
 
 ```python
-def main():
+import asyncio
+from src.agent_labs.orchestrator import Agent
+from src.agent_labs.llm_providers import MockProvider
+from src.agent_labs.memory import ConversationMemory
+
+async def main():
     provider = MockProvider()
     memory = ConversationMemory(max_turns=10)
-    agent = AgentOrchestrator(llm_provider=provider, memory=memory)
+    agent = Agent(provider=provider, memory=memory)
     
     turn_count = 0
     
@@ -380,12 +396,12 @@ def main():
             print(f"Total turns: {turn_count}")
             break
         
-        response = agent.run(user_input)
+        response = await agent.run(user_input, max_turns=1)
         turn_count += 1
         print(f"Agent ({turn_count} turns): {response}")
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
 ```
 
 ### Exercise 3: Inspect Memory
@@ -393,24 +409,29 @@ if __name__ == "__main__":
 After each turn, print what's in memory:
 
 ```python
-def main():
+import asyncio
+from src.agent_labs.orchestrator import Agent
+from src.agent_labs.llm_providers import MockProvider
+from src.agent_labs.memory import ConversationMemory
+
+async def main():
     provider = MockProvider()
     memory = ConversationMemory(max_turns=3)
-    agent = AgentOrchestrator(llm_provider=provider, memory=memory)
+    agent = Agent(provider=provider, memory=memory)
     
     while True:
         user_input = input("You: ")
         if user_input.lower() == 'quit':
             break
         
-        response = agent.run(user_input)
+        response = await agent.run(user_input, max_turns=1)
         print(f"Agent: {response}")
         
         # Show memory
         print("[Memory]:", memory.get_history())
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
 ```
 
 ---
@@ -420,11 +441,11 @@ if __name__ == "__main__":
 ### Pitfall 1: Forgetting to Pass Memory
 ```python
 # Wrong: Agent won't remember anything
-agent = AgentOrchestrator(llm_provider=provider)
+agent = Agent(provider=provider)
 
 # Right: Agent has memory
 memory = ConversationMemory(max_turns=5)
-agent = AgentOrchestrator(llm_provider=provider, memory=memory)
+agent = Agent(provider=provider, memory=memory)
 ```
 
 ### Pitfall 2: Memory Overflow
@@ -575,7 +596,7 @@ Test your understanding:
 
 ## Further Reading
 
-- [Lab 0 - Environment Setup](../../../../labs/00/README.md)
+- [Lab 0 - Environment Setup](../../../labs/00/README.md)
 - [AgentOrchestrator Source Code](../../../../src/agent_labs/orchestrator/)
 - [Memory Module Documentation](../../../../src/agent_labs/memory/)
 - [LLM Provider Comparison](https://docs.anthropic.com/claude/docs/intro-to-claude)

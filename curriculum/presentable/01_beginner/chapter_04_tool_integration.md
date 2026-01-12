@@ -3,7 +3,7 @@
 **Level**: Beginner  
 **Duration**: 30-45 minutes  
 **Prerequisites**: [Chapter 3 - RAG Fundamentals](./chapter_03_rag_fundamentals.md)  
-**Lab**: [Lab 2 - Tool Integration](../../../../labs/02/README.md)
+**Lab**: [Lab 2 - Tool Integration](../../../labs/02/README.md)
 
 ---
 
@@ -408,7 +408,7 @@ except requests.RequestException as e:
 
 ✅ **You've completed**: Building and integrating tools  
 🎯 **Next chapter**: [Chapter 5 - Memory and Context](./chapter_05_memory_and_context.md)  
-🔬 **Next lab**: [Lab 4 - Memory Management](../../../../labs/04/README.md)
+🔬 **Next lab**: [Lab 4 - Memory Management](../../../labs/04/README.md)
 
 ### Skills Unlocked
 - ✅ Create agent tools from scratch
@@ -497,7 +497,7 @@ In the next chapter, you'll:
 
 ## Further Reading
 
-- [Lab 2 - Tool Integration (Full Implementation)](../../../../labs/02/README.md)
+- [Lab 2 - Tool Integration (Full Implementation)](../../../labs/02/README.md)
 - [LangChain Tools Documentation](https://python.langchain.com/docs/modules/agents/tools/)
 - [Function Calling with OpenAI](https://platform.openai.com/docs/guides/function-calling)
 

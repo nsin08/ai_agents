@@ -3,7 +3,7 @@
 **Level**: Beginner  
 **Duration**: 30-45 minutes  
 **Prerequisites**: [Chapter 2 - Your First Agent](./chapter_02_your_first_agent.md)  
-**Lab**: [Lab 1 - RAG Fundamentals](../../../../labs/01/README.md)
+**Lab**: [Lab 1 - RAG Fundamentals](../../../labs/01/README.md)
 
 ---
 
@@ -381,7 +381,7 @@ DO NOT make up information.
 
 ✅ **You've completed**: Building a RAG-powered agent  
 🎯 **Next chapter**: [Chapter 4 - Tool Integration](./chapter_04_tool_integration.md)  
-🔬 **Next lab**: [Lab 2 - Tool Integration](../../../../labs/02/README.md)
+🔬 **Next lab**: [Lab 2 - Tool Integration](../../../labs/02/README.md)
 
 ### Skills Unlocked
 - ✅ Understand RAG architecture
@@ -470,7 +470,7 @@ In the next chapter, you'll:
 
 ## Further Reading
 
-- [Lab 1 - RAG Fundamentals (Full Implementation)](../../../../labs/01/README.md)
+- [Lab 1 - RAG Fundamentals (Full Implementation)](../../../labs/01/README.md)
 - [Vector Databases Explained](https://www.pinecone.io/learn/vector-database/)
 - [OpenAI Embeddings Guide](https://platform.openai.com/docs/guides/embeddings)
 - [RAG Research Paper](https://arxiv.org/abs/2005.11401)

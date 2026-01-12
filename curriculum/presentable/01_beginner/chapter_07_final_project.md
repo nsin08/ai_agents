@@ -564,6 +564,215 @@ Agent: Goodbye!
 
 ---
 
+## 6.1. Hands-On Exercises
+
+### Exercise 1: Add Error Recovery
+
+**Goal**: Make your agent resilient to failures
+
+**Requirements**:
+1. Wrap tool executions in try/except blocks
+2. Add retry logic for failed operations (max 3 retries)
+3. Log all errors with timestamps
+4. Return user-friendly error messages
+
+**Implementation Hints**:
+```python
+class ErrorHandlingAgent:
+    def __init__(self, max_retries=3):
+        self.max_retries = max_retries
+        self.error_log = []
+    
+    async def execute_with_retry(self, tool, input_data):
+        """Execute tool with automatic retry"""
+        for attempt in range(self.max_retries):
+            try:
+                result = await tool.execute(input_data)
+                return result
+            except Exception as e:
+                self.error_log.append({
+                    "timestamp": datetime.now(),
+                    "tool": tool.name,
+                    "error": str(e),
+                    "attempt": attempt + 1
+                })
+                if attempt == self.max_retries - 1:
+                    return f"Sorry, I couldn't complete that action after {self.max_retries} attempts."
+                await asyncio.sleep(2 ** attempt)  # Exponential backoff
+```
+
+**Test Your Solution**:
+- Simulate tool failures (raise exceptions)
+- Verify retry logic executes 3 times
+- Confirm error messages are user-friendly
+- Check error log contains all attempts
+
+**Acceptance Criteria**:
+- ✅ Agent recovers from transient errors
+- ✅ User never sees stack traces
+- ✅ All errors logged for debugging
+
+---
+
+### Exercise 2: Add Conversation Export
+
+**Goal**: Allow users to export chat history
+
+**Requirements**:
+1. Export conversation to JSON format
+2. Export conversation to Markdown format
+3. Include metadata (timestamps, token counts)
+4. Add "export" command to conversation loop
+
+**Implementation Hints**:
+```python
+import json
+from datetime import datetime
+
+class ConversationExporter:
+    def __init__(self, memory):
+        self.memory = memory
+    
+    def export_json(self, filename="conversation.json"):
+        """Export conversation as JSON"""
+        history = self.memory.get_history()
+        export_data = {
+            "exported_at": datetime.now().isoformat(),
+            "total_turns": len(history) // 2,
+            "messages": history
+        }
+        with open(filename, 'w') as f:
+            json.dump(export_data, f, indent=2)
+        return filename
+    
+    def export_markdown(self, filename="conversation.md"):
+        """Export conversation as Markdown"""
+        history = self.memory.get_history()
+        with open(filename, 'w') as f:
+            f.write(f"# Conversation Export\\n")
+            f.write(f"**Exported**: {datetime.now()}\\n\\n")
+            for msg in history:
+                role = msg['role'].capitalize()
+                content = msg['content']
+                f.write(f"## {role}\\n{content}\\n\\n")
+        return filename
+```
+
+**Integration**:
+```python
+# In your main conversation loop:
+if user_input.lower().startswith('export'):
+    format_type = user_input.split()[-1]  # "json" or "markdown"
+    exporter = ConversationExporter(memory)
+    if format_type == "json":
+        file = exporter.export_json()
+    else:
+        file = exporter.export_markdown()
+    print(f"Agent: Conversation exported to {file}\\n")
+    continue
+```
+
+**Test Your Solution**:
+- Have 5+ turn conversation
+- Export as JSON and verify structure
+- Export as Markdown and verify formatting
+- Confirm timestamps are correct
+
+**Acceptance Criteria**:
+- ✅ JSON export includes all messages
+- ✅ Markdown export is human-readable
+- ✅ Metadata (timestamps, turn count) present
+
+---
+
+### Exercise 3: Implement Usage Analytics
+
+**Goal**: Track agent performance metrics
+
+**Requirements**:
+1. Count total conversations and turns
+2. Track average response time
+3. Log tool usage frequency
+4. Generate daily summary report
+
+**Implementation Hints**:
+```python
+import time
+from collections import defaultdict
+from datetime import datetime
+
+class AgentAnalytics:
+    def __init__(self):
+        self.total_conversations = 0
+        self.total_turns = 0
+        self.response_times = []
+        self.tool_usage = defaultdict(int)
+        self.start_time = datetime.now()
+    
+    async def track_turn(self, user_input, agent_response, tools_used):
+        """Track a single conversation turn"""
+        start = time.time()
+        self.total_turns += 1
+        
+        # Simulate processing
+        await asyncio.sleep(0.1)
+        
+        elapsed = time.time() - start
+        self.response_times.append(elapsed)
+        
+        for tool in tools_used:
+            self.tool_usage[tool] += 1
+    
+    def generate_report(self):
+        """Generate analytics report"""
+        avg_response = sum(self.response_times) / len(self.response_times) if self.response_times else 0
+        uptime = datetime.now() - self.start_time
+        
+        report = f\"\"\"
+=== Agent Analytics Report ===
+Uptime: {uptime}
+Total Conversations: {self.total_conversations}
+Total Turns: {self.total_turns}
+Average Response Time: {avg_response:.2f}s
+
+Tool Usage:
+\"\"\"
+        for tool, count in sorted(self.tool_usage.items(), key=lambda x: x[1], reverse=True):
+            report += f"  {tool}: {count} uses\\n"
+        
+        return report
+```
+
+**Integration**:
+```python
+# Initialize analytics
+analytics = AgentAnalytics()
+
+# In conversation loop:
+tools_used = []  # Track which tools were called
+response = await agent.run(user_input, max_turns=1)
+await analytics.track_turn(user_input, response, tools_used)
+
+# Add "stats" command:
+if user_input.lower() == 'stats':
+    print(analytics.generate_report())
+    continue
+```
+
+**Test Your Solution**:
+- Run 10+ conversation turns
+- Use multiple tools
+- Check "stats" command output
+- Verify metrics are accurate
+
+**Acceptance Criteria**:
+- ✅ Turn count matches actual conversations
+- ✅ Response times logged correctly
+- ✅ Tool usage ranked by frequency
+- ✅ Report formatted clearly
+
+---
+
 ## 7. What You've Accomplished
 
 ### Skills Demonstrated
@@ -671,10 +880,36 @@ You've mastered:
    - ⚠️ Mostly → Review chapter summaries
    - ❌ No → Re-read relevant chapters
 
+6. **Can you diagram the full agent architecture?**
+   - ✅ Yes (orchestrator, tools, memory, LLM) → Excellent understanding
+   - ⚠️ Partially (missing connections) → Review Chapter 2 & 4
+   - ❌ No → Revisit high-level architecture diagrams
+
+7. **Does your agent handle errors gracefully?**
+   - ✅ Yes (try/except, user-friendly messages) → Production-ready
+   - ⚠️ Sometimes (some crashes) → Add more error handling
+   - ❌ No (shows stack traces) → Implement error recovery (Exercise 1)
+
+8. **Is your code well-tested and maintainable?**
+   - ✅ Yes (unit + integration tests, 80%+ coverage) → Professional quality
+   - ⚠️ Partially (some tests missing) → Add more test cases
+   - ❌ No (no tests) → Review Chapter 6 and write tests
+
+9. **Can you integrate a new tool in under 15 minutes?**
+   - ✅ Yes (define schema, implement execute()) → Mastered tool pattern
+   - ⚠️ Needs reference docs → Review Chapter 4 Tool Contract
+   - ❌ No → Practice with Exercise 2 or add weather tool
+
+10. **Do you understand when to use RAG vs. fine-tuning?**
+    - ✅ Yes (RAG for dynamic docs, fine-tuning for behavior) → Advanced understanding
+    - ⚠️ Partially (know RAG basics) → Read Chapter 3 "When to Use RAG"
+    - ❌ No → Research RAG vs fine-tuning tradeoffs
+
 ### If You Scored:
-- **5/5 ✅**: Beginner level mastered! Move to Intermediate.
-- **3-4/5 ⚠️**: Good progress! Address weak areas.
-- **<3/5 ❌**: Review chapters and rebuild components.
+- **9-10/10 ✅**: Beginner level mastered! Move to Intermediate immediately.
+- **7-8/10 ⚠️**: Strong foundation! Address 1-2 weak areas then advance.
+- **5-6/10 ⚠️**: Good progress! Complete exercises and rebuild weak components.
+- **<5/10 ❌**: Review all chapters systematically and rebuild project step-by-step.
 
 ---
 
