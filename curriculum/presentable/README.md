@@ -30,6 +30,16 @@ This folder contains a presentation-ready curriculum built from the rough draft 
   - `04_pro/02_workbook.md`
   - `04_pro/03_examples.md`
   - `04_pro/04_use_cases.md`
+  - `04_pro/chapter_01_advanced_frameworks.md`
+  - `04_pro/chapter_02_reasoning_architectures.md`
+  - `04_pro/chapter_03_agentic_design_patterns.md`
+  - `04_pro/chapter_04_research_frontiers.md`
+  - `04_pro/research_paper_analysis.md`
+  - `04_pro/future_trends_analysis.md`
+  - `04_pro/advanced_patterns_library.md`
+  - `04_pro/benchmark_evaluation_framework.md`
+  - `04_pro/advanced_implementation_guide.md`
+  - `04_pro/papers/README.md`
 - Projects (12 total)
   - `projects/README.md`
   - `projects/P01_faq_bot_with_rag.md`

@@ -1,139 +1,180 @@
-# Level 4 Workbook — Domain Specialization & Scale (P1–P6)
+# Level 4 Workbook: Pro (Frameworks, Reasoning Architectures, and Research Frontiers)
 
-**Goal:** Apply patterns to real domains, choose deployment models, and design for platform-scale operation.  
-**Estimated time:** 6–8 weeks (or 8–12 sessions instructor-led).  
-**Prereqs:** Level 3 outcomes (testing/eval, security, HITL, scalability fundamentals).
+This workbook is the learner handout for the Pro level. It aligns to the slide deck `01_slides.md` and the four Pro chapters.
 
-## Level Outcomes
+## Audience profile (who this is for)
 
-By the end of Level 4, learners can:
+Target learners:
+- Expert developers and staff+ engineers building agent systems
+- Architects designing production workflows with tools, memory, and governance
+- Researchers/innovators translating papers into usable systems
 
-- Analyze reference architectures and extract reusable patterns
-- Design domain-specialized agents with correct safety posture
-- Choose an appropriate deployment model (self-managed vs agent-as-a-service)
-- Plan operations: versioning, rollbacks, SLOs, monitoring, cost controls
-- Design multi-agent and platform patterns where they add real value
+Assumed background:
+- Comfortable with Python and reading code
+- Familiar with agent fundamentals (tools, memory, RAG, safety, observability)
+- Able to reason about system design trade-offs (latency, cost, reliability, security)
 
-## Deliverables (Evidence)
+## Goal
 
-- Architecture review doc for a chosen domain (components + data flows + risks)
-- Deployment decision record (ADR-style): self-managed vs hosted, with tradeoffs
-- Operations plan: telemetry, SLOs, incident response, model/tool versioning, rollback
-- Capstone demo plan (choose a project from `projects/`)
+Build the ability to design and ship cutting-edge agent workflows with:
+- explicit control flow (graphs/state machines)
+- measurable reasoning architectures (search + constraints)
+- robust tool boundaries (contracts, validation, policy)
+- evaluation-driven iteration (benchmarks, CI gates, canaries)
 
----
+## Learning outcomes
 
-## P1 — Case Study Deep Dive: Customer Support
+By the end of Level 4, you can:
+- Choose an orchestration framework based on operational outcomes (testability, observability, safety).
+- Implement a reasoning harness (candidates + scoring + selection) with budgets and verification.
+- Design multi-agent workflows with role boundaries and artifact contracts.
+- Run research-to-production experiments with metrics, ablations, and rollback plans.
+- Build an internal evaluation suite that prevents regressions.
 
-**Primary sources:** `../../../../Agents/12_01_customer_support_agent_architecture.md`, `../../../../Agents/09_04_case_study_customer_support_agent.md`  
-**Timebox:** 90–120 minutes
+## Core materials (read in this order)
 
-### Objectives
+1. Slides: `01_slides.md`
+2. Chapter 01: `chapter_01_advanced_frameworks.md`
+3. Chapter 02: `chapter_02_reasoning_architectures.md`
+4. Chapter 03: `chapter_03_agentic_design_patterns.md`
+5. Chapter 04: `chapter_04_research_frontiers.md`
 
-- Identify components needed for a production support agent (triage, retrieval, tools, safety)
-- Understand escalation paths and HITL integration
+Supporting reference pack:
+- Papers index: `papers/README.md`
+- Research synthesis: `research_paper_analysis.md`
+- Future trends: `future_trends_analysis.md`
+- Patterns: `advanced_patterns_library.md`
+- Evaluation: `benchmark_evaluation_framework.md`
+- Implementation: `advanced_implementation_guide.md`
 
-### Exercises
+## Module plan (4 modules, 1 per chapter)
 
-- Map the reference architecture to your organization’s support stack.
-- Define what “read-only MVP” looks like vs “assisted write” vs “autonomous resolution.”
+Each module includes objectives, reading, deliverables, and evidence to collect.
 
----
+### Module 1: Advanced frameworks and workflow runtimes
 
-## P2 — Case Study Deep Dive: Coding Agent
+Reading:
+- `chapter_01_advanced_frameworks.md`
 
-**Primary source:** `../../../../Agents/12_04_coding_agent_architecture.md`  
-**Timebox:** 90–120 minutes
+Objectives:
+- Translate a workflow into explicit states and transitions.
+- Add interrupts (approvals) and resumability design.
+- Define a trace schema for debugging and audit.
 
-### Objectives
+Hands-on:
+- Draft a workflow graph for a high-risk use case (write requires approval).
+- Identify state fields, invariants, and stop conditions.
 
-- Understand developer-tool integrations, safety boundaries, and evaluation signals
-- Recognize why coding agents need strong verification (tests, lint, type checks)
+Deliverables:
+- Workflow diagram + state definition
+- Trace schema (fields you will log)
+- Safety tier decision (read-only vs write-with-approval)
 
-### Exercises
+Evidence:
+- A small transition test plan (what transitions are allowed/blocked)
+- Example trace for one run (even if mocked)
 
-- List the toolchain you would integrate (repo read, tests, formatter, PR creation).
-- Define “allowed writes” and required approvals for code changes.
+### Module 2: Reasoning architectures and verification
 
----
+Reading:
+- `chapter_02_reasoning_architectures.md`
 
-## P3 — Case Study Deep Dive: Medical Agent
+Objectives:
+- Implement a reasoning harness: generate -> score -> select -> verify.
+- Add retrieval gating and citation discipline for knowledge tasks.
+- Define budgets and escalation rules for uncertainty.
 
-**Primary source:** `../../../../Agents/12_05_medical_agent_architecture.md`  
-**Timebox:** 90–120 minutes
+Hands-on:
+- Choose 1 workflow and define:
+  - candidates to generate
+  - deterministic constraints
+  - scoring function
+  - budgets and thresholds
 
-### Objectives
+Deliverables:
+- Candidate schema + scoring rubric
+- Retrieval gating rules (none/light/deep)
+- Verification plan (deterministic first)
 
-- Understand compliance and safety constraints in regulated domains
-- Design for auditability, privacy, and conservative behavior
+Evidence:
+- A benchmark plan for 20 cases (golden set)
+- Stability test plan (rerun the same case N times)
 
-### Exercises
+### Module 3: Agentic design patterns (tools + collaboration)
 
-- Define data-access boundaries and logging constraints.
-- Write a “safe response policy” (what the agent must refuse or escalate).
+Reading:
+- `chapter_03_agentic_design_patterns.md`
 
----
+Objectives:
+- Harden tool boundaries with contracts, validation, and authorization.
+- Decide when multi-agent collaboration is justified.
+- Add a verifier stage that can block invalid outputs.
 
-## P4 — Case Study Deep Dive: DevOps Troubleshooting
+Hands-on:
+- Build a tool pipeline design:
+  - discover -> validate -> authorize -> execute -> validate -> record
+- If multi-agent:
+  - define roles and artifact contracts
 
-**Primary source:** `../../../../Agents/12_06_ops_troubleshooting_agent_architecture.md`  
-**Timebox:** 90–120 minutes
+Deliverables:
+- Tool contract checklist for your tool set
+- Error handling plan (retry, fallback, degrade, escalate)
+- Multi-agent role definitions (if used)
 
-### Objectives
+Evidence:
+- Metrics you will track (invalid tool calls, recovery rate, cost per success)
 
-- Understand operational troubleshooting workflows and tool-heavy reasoning
-- Design for partial success and safe mitigations
+### Module 4: Research frontiers and adoption discipline
 
-### Exercises
+Reading:
+- `chapter_04_research_frontiers.md`
 
-- Define safe mitigation tiers (read-only diagnosis → suggested actions → approved writes).
-- Identify failure modes that could worsen incidents and how to prevent them.
+Objectives:
+- Translate a paper mechanism into a bounded experiment.
+- Build an adoption pipeline that is evaluation-driven.
+- Identify platform investments with durable leverage.
 
----
+Hands-on:
+- Pick one paper from `papers/` and write an adopt-vs-monitor memo.
+- Define success metrics, ablations, and rollback plan.
 
-## P5 — Deployment Models & Operations
+Deliverables:
+- Experiment plan (1-2 pages)
+- Benchmark impact estimate (expected delta and cost)
+- "Adopt selectively" routing plan (where it applies and where it does not)
 
-**Primary source:** `../../../../Agents/11_self_managed_vs_agent_as_a_service.md`  
-**Timebox:** 120–150 minutes
+Evidence:
+- A reproducible artifact list (traces, benchmark results, version ids)
 
-### Objectives
+## Capstone projects (pick 1-2)
 
-- Choose between self-managed and agent-as-a-service models
-- Understand operational responsibilities (SLOs, cost, governance, security)
+1. Workflow-as-code (graph runtime)
+   - Build a state-machine workflow with interrupts and approvals.
+2. Reasoning harness (ToT-inspired)
+   - Implement candidate generation + scoring only for high-risk decisions.
+3. Evaluation platform slice
+   - Build a benchmark runner + CI gate + scorecard report.
+4. Safety runtime slice
+   - Build policy gates + allowlists + audit logs for tool execution.
 
-### Exercises
+## Assessment rubric (how you know you are "pro")
 
-- Write a deployment decision record (ADR-style) with:
-  - constraints, risks, compliance needs
-  - cost and latency expectations
-  - ownership model (who is on call, who approves changes)
+A pro-grade submission includes:
+- Traceability: clear traces and version ids for model/prompt/policy/tool
+- Safety: explicit approvals and enforcement for high-risk actions
+- Evaluation: benchmark evidence (offline + regression set)
+- Reliability: retries/fallbacks/budgets designed and tested
+- Cost awareness: cost per success tracked and bounded
 
----
+## Notes on models and frameworks (pragmatic, vendor-agnostic)
 
-## P6 — Future Directions & Emerging Patterns
+This curriculum references:
+- LangGraph as a graph/state-machine example
+- modern model APIs (structured output, tool calling)
 
-**Primary sources:** `../../../../Agents/10_conclusion_future_directions.md`, `../../../../Agents/09_03_retrieval_tools_planning_modern_stack.md`, `../../../../Agents/09_01_agent_frameworks_and_multi_agent_systems.md`  
-**Timebox:** 60–90 minutes
+Your implementation should remain configurable:
+- local models (Ollama) for learning and iteration
+- hosted models for stronger capability when required
 
-### Objectives
+The pro move is not which model you pick. The pro move is how you measure and control the system.
 
-- Recognize emerging patterns (better tool runtimes, eval platforms, multi-agent collaboration)
-- Decide what to adopt now vs monitor
-
-### Exercises
-
-- Pick one emerging pattern and write:
-  - what problem it solves,
-  - what risks it introduces,
-  - what “minimum adoption bar” you would require (tests, safety, telemetry).
-
----
-
-## Level 4 Capstone Options
-
-Choose one:
-
-- `projects/P08_multi_tenant_platform.md`
-- `projects/P09_domain_production_agent.md`
-- `projects/P10_evaluation_platform.md`
-- `projects/P12_multi_agent_system.md`
