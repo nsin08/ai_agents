@@ -254,8 +254,9 @@ class AdvancedInteractiveAgent:
 
     def __init__(self):
         self.agent: Optional[Agent] = None
-        self.provider_type = "mock"
-        self.model_name = "mistral:7b"
+        use_ollama = os.getenv("USE_OLLAMA", "").strip().lower() in {"1", "true", "yes", "y"}
+        self.provider_type = "ollama" if use_ollama else "mock"
+        self.model_name = os.getenv("OLLAMA_MODEL", "mistral:7b")
         self.max_turns = 3
         self.loop = None  # Persistent event loop for Windows compatibility
         
