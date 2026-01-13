@@ -1,5 +1,9 @@
 # Intermediate Level Curriculum
 
+[Prev: Level 1 Workbook](../01_beginner/02_workbook.md) | [Up: Curriculum Home](../README.md) | [Next: Level 3 Workbook](../03_advanced/02_workbook.md)
+
+---
+
 ## Overview
 
 The Intermediate curriculum builds on the Beginner foundation to teach **production-capable agent development**. You'll learn orchestration patterns, advanced memory systems, observability, and integration patterns that enable real-world deployments.
@@ -131,14 +135,20 @@ After completing the curriculum:
 
 After completing the Intermediate curriculum, continue to:
 
-- **[Advanced Curriculum](../03_advanced/README.md):** Multi-agent systems, human-in-the-loop, enterprise deployment
+- **[Advanced Curriculum](../03_advanced/02_workbook.md):** Multi-agent systems, human-in-the-loop, enterprise deployment
 - **[Projects](../projects/README.md):** End-to-end agent implementations
 
 ---
 
 ## Quick Links
 
-- [Beginner Curriculum](../01_beginner/README.md) — Prerequisites
+- [Beginner Curriculum](../01_beginner/02_workbook.md) — Prerequisites
 - [Labs Directory](../../../labs/) — Hands-on exercises
 - [Source Code](../../../src/agent_labs/) — Reference implementations
+- [Implementation Guide](05_implementation_guide.md) — “What to run/edit” map
+- [Runnable Snippets](snippets/README.md) — Verified examples + tests
 - [Main Curriculum Overview](../../ai_agents_learning_curriculum.md)
+
+---
+
+[Prev: Level 1 Workbook](../01_beginner/02_workbook.md) | [Up: Curriculum Home](../README.md) | [Next: Level 3 Workbook](../03_advanced/02_workbook.md)

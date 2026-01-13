@@ -1,83 +1,172 @@
-# Level 2 Slides — Core Components & Integration (I1–I7)
+# Level 2 Slides — Intermediate Curriculum
 
-Use this as a slide outline. Each “Slide” section is intended to become 1 slide.
+Use this as a slide outline. Each `## Slide` section is intended to become 1 slide.
 
 ---
 
 ## Slide — Title
 
-AI Agents: Core Components & Integration (Level 2)
+AI Agents (Level 2): Intermediate — Core Components & Production Patterns
+
+---
+
+## Slide — Who This Is For
+
+- You’ve built a basic agent (LLM + tools + memory)
+- You want production-grade patterns: reliability, observability, integration
+- You can read Python async/await and understand basic APIs
 
 ---
 
 ## Slide — Level 2 Outcomes
 
-- Orchestrator/controller design (state, retries, stop conditions)
-- Tool contracts (schema, RBAC, side effects)
-- Memory systems (RAG + write/retrieval policy)
-- Context engineering (token budgets + citations)
-- Guardrails and observability (production requirements)
+- Implement an orchestration loop with retries + verification
+- Design multi-tier memory (short / long / RAG) with policies
+- Engineer context for token budgets and overflow control
+- Add logs, traces, and metrics for debugging + cost visibility
+- Build resilient integrations (auth, timeouts, retry, circuit breaker)
 
 ---
 
-## Slide — I1: Orchestrator Deep Dive
+## Slide — Curriculum Map (6 Chapters)
 
-- LLM proposes; orchestrator enforces
-- State machine mindset: transitions, retries, timeouts
+1. Orchestrator patterns
+2. Advanced memory
+3. Context engineering
+4. Observability
+5. Multi-turn conversations
+6. Integration patterns
+
+---
+
+## Slide — The Core Loop (OPRV)
+
+Observe → Plan → Act → Verify → Refine
+
+- The LLM proposes; the orchestrator enforces
 - Verification is part of the loop (not optional)
+- Refinement is controlled, not “just ask again”
 
 ---
 
-## Slide — I2: Multi-Model Routing
+## Slide — Chapter 1: Orchestrator Patterns
 
-- Why multi-LLM: cost + latency + accuracy + risk
-- Router → Planner → Executor → Critic pattern
-- Risk triggers → stronger model or HITL gate
+- State machines and valid transitions
+- Planning errors vs action errors vs verification errors
+- Stop conditions: max turns, max cost, max latency
 
----
-
-## Slide — I3: Tools as Production APIs
-
-- Tool schema validation and authz are non-negotiable
-- Side effects must be explicit (writes, deletes, irreversible)
-- Idempotency + rollback are design requirements
+Lab mapping: `labs/03/README.md`
 
 ---
 
-## Slide — I4: Memory System Architecture
+## Slide — Memory Is Not One Thing
 
-- Session state vs long-term memory vs RAG are different
-- Write policy prevents contamination and privacy issues
-- Retrieval policy prevents garbage-in-context failures
+Three distinct tiers:
 
----
-
-## Slide — I5: Context Engineering
-
-- Context window is scarce compute
-- Structure beats raw text dumps
-- Token budgets + overflow strategies prevent brittle behavior
+- Short-term: recent conversational state
+- Long-term: durable facts/preferences
+- RAG: external knowledge retrieval
 
 ---
 
-## Slide — I6: Guardrails
+## Slide — Chapter 2: Advanced Memory
 
-- “Advice” is not safety; enforcement is safety
-- Confirmation gates for writes and irreversible actions
-- Block prompt injection at tool boundaries
+- Write policies (what is allowed to be persisted)
+- Retrieval policies (what is allowed into context)
+- “Contamination” risks and how to prevent them
 
----
-
-## Slide — I7: Observability
-
-- Logs + metrics + traces → debug and improve
-- Track cost per task and tool failures
-- Safety events are first-class telemetry
+Lab mapping: `labs/04/README.md`
 
 ---
 
-## Slide — Level 2 Projects
+## Slide — Context Is Scarce Compute
 
-- P03: Support agent (read-only)
-- P04: Multi-tool orchestrator
-- P05: RAG with evaluation
+Context window is a constrained budget:
+
+- Prefer structure over dumping raw text
+- Enforce token budgets (hard + soft limits)
+- Use overflow strategies (truncate, summarize, retrieve)
+
+---
+
+## Slide — Chapter 3: Context Engineering
+
+- Prompt templates + variables
+- Token estimation and packing
+- Chunking strategies for retrieval
+
+Lab mapping: `labs/05/README.md`
+
+---
+
+## Slide — Observability: Debugging Is a Feature
+
+If you can’t answer “why did it do that?”, it’s not production-ready.
+
+- Logs: structured events with context
+- Traces: step-level timing + causality
+- Metrics: counters + latency distributions
+
+---
+
+## Slide — Chapter 4: Observability
+
+- Structured logging (JSON)
+- Tracing spans across OPRV steps
+- Metrics: latency, token usage, tool calls, error rates
+
+Lab mapping: `labs/06/README.md`
+
+---
+
+## Slide — Multi-Turn Conversation Design
+
+- Session state ≠ long-term memory
+- Repair strategies for partial/incorrect user input
+- Slot filling and “known/unknown” tracking
+
+---
+
+## Slide — Chapter 5: Multi-Turn Conversations
+
+- Conversation state model
+- History windowing vs summarization
+- Safe memory write-back rules
+
+---
+
+## Slide — Integration Patterns: From Demos to Systems
+
+- Tools are production APIs with contracts
+- Validate inputs before execution; validate outputs after
+- Reliability patterns: timeouts, retry, circuit breakers
+
+---
+
+## Slide — Chapter 6: Integration Patterns
+
+- Tool contracts: name, description, schemas, constraints
+- Tool discovery and execution (registry)
+- Error handling: missing tools, validation errors, failures
+
+---
+
+## Slide — Verified Examples
+
+Runnable intermediate snippets live here:
+
+- `curriculum/presentable/02_intermediate/snippets/README.md`
+
+They are exercised by:
+
+- `tests/integration/test_intermediate_snippets.py`
+
+---
+
+## Slide — Close: What “Good” Looks Like
+
+- Deterministic behavior under failure (retries, timeouts, fallbacks)
+- Measurable behavior (logs, traces, metrics)
+- Safe behavior (policies and guardrails)
+- Testable behavior (mockable providers/tools; runnable examples)
+

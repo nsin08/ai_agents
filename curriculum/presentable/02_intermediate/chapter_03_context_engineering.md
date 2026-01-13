@@ -1,5 +1,9 @@
 # Chapter 03: Context Engineering
 
+[Prev](chapter_02_advanced_memory.md) | [Up](README.md) | [Next](chapter_04_observability.md)
+
+---
+
 ## Learning Objectives
 
 After completing this chapter, you will be able to:
@@ -786,3 +790,7 @@ Complete these exercises in the workbook to reinforce your learning:
 4. **Few-Shot Optimization:** Measure classification accuracy with 0, 1, 3, and 5 examples. Find the optimal number for your use case.
 
 5. **Context Prioritization:** Implement a priority-based context packer that dynamically selects the most relevant information from multiple sources.
+
+---
+
+[Prev](chapter_02_advanced_memory.md) | [Up](README.md) | [Next](chapter_04_observability.md)

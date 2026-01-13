@@ -1,207 +1,216 @@
-# Level 2 Workbook — Core Components & Integration (I1–I7)
+# Level 2 Workbook — Intermediate Curriculum
 
-**Goal:** Move from “correct mental model” to “buildable system design.”  
-**Estimated time:** 4–5 weeks (or 6–10 sessions instructor-led).  
-**Prereqs:** Level 1 outcomes (agent definition + architecture pillars).
+**Goal:** Move from “working demos” to “repeatable system design” using the reusable core (`src/agent_labs/`) and labs (`labs/03`–`labs/06`).  
+**Timebox:** ~15–20 hours (self-study) or 6–10 instructor-led sessions.  
+**Prereqs:** Level 1 outcomes + Python async/await comfort.
 
-## Level Outcomes
+## Level 2 Deliverables (evidence)
 
-By the end of Level 2, learners can:
+By the end of this workbook, you should have:
 
-- Design an orchestrator/controller that enforces policy and verification
-- Implement tool contracts (schema + permissions + side effects + validation)
-- Design memory systems (RAG + short/long-term) with safe write/retrieval policies
-- Engineer context for reliability (packing, compression, citations, token budgets)
-- Add guardrails and observability required for production debugging
+- An orchestrator/controller spec (states, transitions, stop conditions, retry rules)
+- A memory design (short/long/RAG) with explicit write + retrieval policies
+- A context packing plan (token budget + overflow strategy)
+- An observability plan (logs + traces + metrics + “how we debug” checklist)
+- A resilient tool integration plan (contracts + validation + error handling)
 
-## Deliverables (Evidence)
+## Setup
 
-- A controller spec (states, transitions, retry rules, stop conditions)
-- 2–3 tool specifications with schemas + RBAC + side effects
-- Memory architecture diagram + write policy + retrieval policy
-- Context “packing plan” with token budget and citation strategy
-- Observability plan: logs, metrics, traces, dashboards, cost attribution
+From repo root:
 
----
+```powershell
+uv venv
+uv pip install -e ".[dev]"
+```
 
-## I1 — The Orchestrator (Control Loop Deep Dive)
+Optional if you don’t install editable:
 
-**Primary sources:** `../../../../Agents/05_01_orchestrator_agent_controller.md`, `../../../../Agents/05_00_core_components.md`  
-**Timebox:** 90–120 minutes
+```powershell
+$env:PYTHONPATH = "src"
+```
 
-### Objectives
+## How to use this workbook
 
-- Separate “reasoning” (LLM) from “control” (orchestrator)
-- Define state, steps, and stop conditions
-- Design retries, timeouts, and fallbacks
+Each chapter below includes:
 
-### Exercises
+- Objectives (what you should learn)
+- Pointers (what files to read in `src/agent_labs/`)
+- One hands-on exercise (minimum) with suggested acceptance criteria
 
-1. Define your agent’s **state model**:
-   - goal, constraints, user context, tool results, intermediate artifacts
-2. Define **stop conditions**:
-   - success, irrecoverable failure, max steps, max cost, max latency
-3. Define a **retry policy**:
-   - what to retry, how many times, exponential backoff, circuit breaker
+Use the chapter texts for theory:
 
----
+- `curriculum/presentable/02_intermediate/chapter_01_orchestrator_patterns.md`
+- …
+- `curriculum/presentable/02_intermediate/chapter_06_integration_patterns.md`
 
-## I2 — LLM Selection & Multi-Model Routing
+## I1 — Orchestrator Patterns (Lab 03)
 
-**Primary source:** `../../../../Agents/05_02_llms_and_reasoning_modes.md`  
-**Timebox:** 90–120 minutes
+**Read:** `curriculum/presentable/02_intermediate/chapter_01_orchestrator_patterns.md`  
+**Lab:** `labs/03/README.md`  
+**Core modules:** `src/agent_labs/orchestrator/`
 
 ### Objectives
 
-- Understand why production agents often use multiple models
-- Design router/planner/executor/critic patterns
-- Balance cost, latency, accuracy, and risk
+- Define a control loop (OPRV) with explicit stop conditions
+- Separate planning vs execution vs verification failures
+- Model execution as a state machine
 
-### Exercises
+### Exercise (deliverable: controller spec)
 
-1. Create a routing table for your workflow:
-   - “cheap model” for classification/triage
-   - “strong model” for planning/complex reasoning
-   - “critic model” (or same model) for verification and safety checks
-2. Define “risk triggers” that force a stronger model or a human gate.
+Write a 1-page “controller spec” for an agent in your domain:
 
----
+- States + valid transitions
+- Stop conditions (max turns, cost, latency)
+- Retry policy and when to stop retrying
 
-## I3 — Tools & API Integration
+**Acceptance criteria:**
 
-**Primary sources:** `../../../../Agents/05_03_tools_and_apis_agent.md`, `../../../../Agents/09_02_tool_use_computer_control_autonomous_workflows.md`  
-**Timebox:** 120–150 minutes
+- Spec includes at least 6 states and explicit failure transitions
+- Includes at least 3 failure modes + corresponding handling
+- Includes at least 2 metrics you will emit for debugging
 
-### Objectives
+## I2 — Advanced Memory (Lab 04)
 
-- Treat tools as production APIs with strict contracts
-- Design a tool gateway (validation, authz, auditing)
-- Reason about side effects and idempotency
-
-### Exercises
-
-For 2 tools in your workflow:
-
-- Write a tool spec:
-  - name, description, input schema, output schema
-  - permissions/RBAC
-  - side effects (“writes what, where”)
-  - idempotency and rollback story
-- Define “unsafe parameters” that must be blocked or require confirmation.
-
----
-
-## I4 — Memory Systems (Short-Term, Long-Term, RAG)
-
-**Primary sources:**
-
-- `../../../../Agents/05_04_0_memory_and_rag.md`
-- `../../../../Agents/05_04_2_memory_write_policy.md`
-- `../../../../Agents/05_04_3_memory_retrieval_policy.md`
-
-**Timebox:** 120–150 minutes
+**Read:** `curriculum/presentable/02_intermediate/chapter_02_advanced_memory.md`  
+**Lab:** `labs/04/README.md`  
+**Core modules:** `src/agent_labs/memory/`
 
 ### Objectives
 
-- Separate short-term state from long-term memory
-- Use RAG for grounding and citation
-- Define memory write and retrieval policies to avoid contamination
+- Explain why short/long/RAG are different tiers
+- Define a write policy (what can be persisted)
+- Define a retrieval policy (what can enter context)
 
-### Exercises
+### Exercise (deliverable: memory architecture + policy)
 
-1. Design a 3-layer memory model for your workflow:
-   - session state (ephemeral)
-   - knowledge base (retrieval)
-   - long-term memory (persisted user/tenant/task memory)
-2. Draft a write policy:
-   - what is allowed to be stored
-   - when to store
-   - privacy boundaries (tenant/user isolation)
-3. Draft a retrieval policy:
-   - what sources are allowed
-   - ranking strategy and filters
-   - token budget rules
+Create a memory architecture diagram (ASCII is fine) and policies:
 
----
+- Short-term capacity strategy (window size, eviction)
+- Long-term storage strategy (what keys / what format)
+- RAG ingestion + retrieval strategy (chunk size, filters)
 
-## I5 — Context Engineering
+**Acceptance criteria:**
 
-**Primary source:** `../../../../Agents/05_04_1_context_engineering.md`  
-**Timebox:** 90–120 minutes
+- Includes at least 3 “do not store” rules (privacy / contamination)
+- Includes at least 3 “do not retrieve” rules (risk / irrelevance)
+- Includes one strategy for “conflicting facts”
+
+## I3 — Context Engineering (Lab 05)
+
+**Read:** `curriculum/presentable/02_intermediate/chapter_03_context_engineering.md`  
+**Lab:** `labs/05/README.md`  
+**Core modules:** `src/agent_labs/context/`
 
 ### Objectives
 
-- Treat context window as scarce compute
-- Decide what to include, compress, and omit
-- Improve reliability with structure and citations
+- Use prompt templates and variables correctly
+- Create a token budget and enforce it
+- Choose an overflow strategy (truncate vs summarize vs retrieve)
 
-### Exercises
+### Exercise (deliverable: packing plan)
 
-1. Build a “context packing plan”:
-   - system instructions, policies, tool schemas
-   - retrieved documents (with citations)
-   - memory snippets (with provenance)
-   - conversation summary
-2. Define a token budget per category and a fallback when overflow occurs.
+Create a context packing plan for a multi-step task:
 
----
+- Required fields (must-have)
+- Optional fields (nice-to-have)
+- Overflow policy (what gets dropped first)
+- Citation strategy (how you prevent “source-less claims”)
 
-## I6 — Policies & Guardrails
+**Acceptance criteria:**
 
-**Primary source:** `../../../../Agents/05_05_policies_and_guardrails.md`  
-**Timebox:** 90–120 minutes
+- Budget defined (max tokens) + prioritization order
+- Strategy specified for overflow and “very long user messages”
+- Plan includes a “safety / injection” section (what you strip/ignore)
 
-### Objectives
+## I4 — Observability (Lab 06)
 
-- Implement safety as enforcement, not advice
-- Define safety tiers and required gates
-- Prevent tool misuse and prompt injection risks
-
-### Exercises
-
-1. Define your safety tier (read-only, limited write, high-stakes).
-2. Define enforcement points:
-   - before tool execution (schema + RBAC)
-   - after tool result (sanity checks)
-   - before final response (redaction + policy check)
-3. Create a “confirmation gate” policy for irreversible actions.
-
----
-
-## I7 — Observability (Logging, Metrics, Tracing)
-
-**Primary source:** `../../../../Agents/05_06_observability_logging_metrics_tracing.md`  
-**Timebox:** 90–120 minutes
+**Read:** `curriculum/presentable/02_intermediate/chapter_04_observability.md`  
+**Lab:** `labs/06/README.md`  
+**Core modules:** `src/agent_labs/observability/`
 
 ### Objectives
 
-- Make agent behavior debuggable and auditable
-- Track cost, latency, tool failures, and safety interventions
-- Build feedback loops for evaluation and improvement
+- Emit structured logs with correlation IDs
+- Trace the OPRV steps with span timing
+- Track basic metrics (latency, errors, tool calls)
 
-### Exercises
+### Exercise (deliverable: observability checklist)
 
-1. Define a minimal telemetry schema:
-   - request_id, user/tenant, workflow_id
-   - model calls (name, tokens, latency, cost)
-   - tool calls (name, args hash, result status, latency)
-   - safety events (blocked/approved actions)
-2. Define 5 metrics and 3 alerts you would run in production.
+Write a debugging checklist for “agent produced wrong output”:
+
+- What logs do we check first?
+- What spans should exist and what is “too slow”?
+- What metrics indicate degradation?
+- What artifacts must be captured for reproductions?
+
+**Acceptance criteria:**
+
+- Checklist includes at least 5 log fields you require
+- Includes at least 3 spans you expect to see
+- Includes at least 3 metrics and their alert thresholds
+
+## I5 — Multi-Turn Conversations
+
+**Read:** `curriculum/presentable/02_intermediate/chapter_05_multi_turn_conversations.md`  
+**Core modules:** `src/agent_labs/orchestrator/context.py`, `src/agent_labs/context/window.py`
+
+### Objectives
+
+- Model conversation state (known/unknown slots)
+- Decide what stays in short-term vs summary vs long-term
+- Apply repair strategies for incomplete user input
+
+### Exercise (deliverable: state + repair plan)
+
+Pick a real conversation (support triage, onboarding, PR review). Define:
+
+- Required slots (must collect)
+- Optional slots (good-to-have)
+- Repair prompts when a slot is missing/invalid
+
+**Acceptance criteria:**
+
+- At least 5 required slots + validation rules
+- At least 3 repair strategies (clarify, confirm, reframe)
+- Explicit rule for when you stop asking and escalate
+
+## I6 — Integration Patterns (Tools)
+
+**Read:** `curriculum/presentable/02_intermediate/chapter_06_integration_patterns.md`  
+**Core modules:** `src/agent_labs/tools/`
+
+### Objectives
+
+- Define tool contracts (schema, constraints, side effects)
+- Implement tool discovery + validation + execution
+- Handle tool errors deterministically
+
+### Exercise (deliverable: tool contract + error handling)
+
+Define 2 tools for your domain as contracts (Markdown or JSON):
+
+- `name`, `description`
+- `input_schema`, `output_schema`
+- constraints (timeout, retries)
+- side effects (read/write) + gating (confirm/human approval)
+
+Then write an error-handling plan:
+
+- invalid inputs
+- missing tools
+- tool failures
+
+**Acceptance criteria:**
+
+- Contracts include input + output schema
+- Clear statement of side effects and gating rules
+- Error plan includes at least 3 failure scenarios and expected agent behavior
 
 ---
 
-## Level 2 Hands-On Projects
+## Verified runnable snippets (optional, recommended)
 
-Recommended sequence:
+Run examples that are verified by tests:
 
-1. `projects/P03_support_agent_read_only.md`
-2. `projects/P04_multi_tool_orchestrator.md`
-3. `projects/P05_rag_with_evaluation.md`
+- `curriculum/presentable/02_intermediate/snippets/README.md`
 
----
-
-## Knowledge Check (10 minutes)
-
-- Explain why tool schemas and RBAC belong in the orchestrator, not in the prompt.
-- Describe the difference between RAG and long-term memory and why mixing them is risky.
-- Name 3 signals you would use to detect regressions in an agent after a model upgrade.

@@ -1,5 +1,9 @@
 # Chapter 06: Integration Patterns
 
+[Prev](chapter_05_multi_turn_conversations.md) | [Up](README.md) | [Next: Level 3 Workbook](../03_advanced/02_workbook.md)
+
+---
+
 ## Learning Objectives
 
 After completing this chapter, you will be able to:
@@ -993,7 +997,7 @@ class MockTool(Tool):
             await asyncio.sleep(self.delay_ms / 1000)
         
         if self.responses:
-            return self.responses[self.call_count - 1 % len(self.responses)]
+            return self.responses[(self.call_count - 1) % len(self.responses)]
         
         return ToolResult(
             status=ExecutionStatus.SUCCESS,
@@ -1114,3 +1118,7 @@ Complete these exercises in the workbook to reinforce your learning:
 4. **Webhook Handler:** Build a webhook endpoint that triggers agent processing for incoming events.
 
 5. **Tool Documentation:** Generate Markdown documentation for a registry with 5+ tools.
+
+---
+
+[Prev](chapter_05_multi_turn_conversations.md) | [Up](README.md) | [Next: Level 3 Workbook](../03_advanced/02_workbook.md)

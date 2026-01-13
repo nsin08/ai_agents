@@ -1,5 +1,9 @@
 # Chapter 01: Orchestrator Patterns
 
+[Prev: Level 1 Workbook](../01_beginner/02_workbook.md) | [Up](README.md) | [Next](chapter_02_advanced_memory.md)
+
+---
+
 ## Learning Objectives
 
 After completing this chapter, you will be able to:
@@ -612,3 +616,7 @@ Complete these exercises in the workbook to reinforce your learning:
 4. **Tune Parameters:** Experiment with `max_turns` from 1-10 and `confidence_threshold` from 0.5-0.99. Document the trade-offs.
 
 5. **Add Retry Logic:** Extend the `_act` method with exponential backoff retry and test with simulated transient failures.
+
+---
+
+[Prev: Level 1 Workbook](../01_beginner/02_workbook.md) | [Up](README.md) | [Next](chapter_02_advanced_memory.md)

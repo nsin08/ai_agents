@@ -1,5 +1,9 @@
 # Chapter 02: Advanced Memory Systems
 
+[Prev](chapter_01_orchestrator_patterns.md) | [Up](README.md) | [Next](chapter_03_context_engineering.md)
+
+---
+
 ## Learning Objectives
 
 After completing this chapter, you will be able to:
@@ -750,3 +754,7 @@ Complete these exercises in the workbook to reinforce your learning:
 4. **Memory Consolidation:** Build a scheduled job that summarizes old short-term memory into long-term facts.
 
 5. **Confidence Decay:** Implement a mechanism that reduces fact confidence over time unless reinforced by new conversations.
+
+---
+
+[Prev](chapter_01_orchestrator_patterns.md) | [Up](README.md) | [Next](chapter_03_context_engineering.md)

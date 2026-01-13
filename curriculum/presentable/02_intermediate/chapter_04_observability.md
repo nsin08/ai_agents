@@ -1,5 +1,9 @@
 # Chapter 04: Observability & Monitoring
 
+[Prev](chapter_03_context_engineering.md) | [Up](README.md) | [Next](chapter_05_multi_turn_conversations.md)
+
+---
+
 ## Learning Objectives
 
 After completing this chapter, you will be able to:
@@ -754,3 +758,7 @@ Complete these exercises in the workbook to reinforce your learning:
 4. **Custom Metrics:** Add a `memory_retrieval_latency` metric and track it across 10 requests.
 
 5. **Alerting Prototype:** Write a function that triggers an alert when `error_rate > 5%` or `p99_latency > 1000ms`.
+
+---
+
+[Prev](chapter_03_context_engineering.md) | [Up](README.md) | [Next](chapter_05_multi_turn_conversations.md)

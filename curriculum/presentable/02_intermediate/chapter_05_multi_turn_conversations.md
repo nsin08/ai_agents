@@ -1,5 +1,9 @@
 # Chapter 05: Multi-Turn Conversations
 
+[Prev](chapter_04_observability.md) | [Up](README.md) | [Next](chapter_06_integration_patterns.md)
+
+---
+
 ## Learning Objectives
 
 After completing this chapter, you will be able to:
@@ -955,3 +959,7 @@ Complete these exercises in the workbook to reinforce your learning:
 4. **Session Persistence:** Implement save/load for your slot-filling agent. Verify slots persist across restarts.
 
 5. **Reference Resolution:** Extend the reference resolver to handle "the previous one", "both of them", and "neither".
+
+---
+
+[Prev](chapter_04_observability.md) | [Up](README.md) | [Next](chapter_06_integration_patterns.md)
