@@ -11,6 +11,10 @@ Run with:
     
 For Ollama integration tests (requires ollama serve running):
     pytest tests/scripts/test_advanced_interactive_agent.py -v -k "ollama"
+
+To explicitly enable Ollama integration tests:
+    $env:RUN_OLLAMA_TESTS = "true"   # PowerShell
+    pytest tests/scripts/test_advanced_interactive_agent.py -v -k "ollama"
 """
 
 import pytest
@@ -18,6 +22,9 @@ import asyncio
 import time
 from pathlib import Path
 import sys
+import os
+
+RUN_OLLAMA_TESTS = os.getenv("RUN_OLLAMA_TESTS", "false").strip().lower() in {"1", "true", "yes", "y"}
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
@@ -395,6 +402,10 @@ class TestAdvancedInteractiveAgentMock:
 # TESTS: ADVANCED INTERACTIVE AGENT (OLLAMA INTEGRATION)
 # ============================================================================
 
+@pytest.mark.skipif(
+    not RUN_OLLAMA_TESTS,
+    reason="Ollama integration tests disabled (set RUN_OLLAMA_TESTS=true to enable)",
+)
 class TestAdvancedInteractiveAgentOllama:
     """Integration tests with Ollama provider."""
     

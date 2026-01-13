@@ -25,11 +25,41 @@ This folder contains a presentation-ready curriculum built from the rough draft 
   - `03_advanced/02_workbook.md`
   - `03_advanced/03_examples.md`
   - `03_advanced/04_use_cases.md`
+  - `03_advanced/chapter_01_safety_guardrails.md`
+  - `03_advanced/chapter_02_multi_agent_systems.md`
+  - `03_advanced/chapter_03_production_deployment.md`
+  - `03_advanced/chapter_04_scaling_strategies.md`
+  - `03_advanced/chapter_05_monitoring_alerting.md`
+  - `03_advanced/chapter_06_security_best_practices.md`
+  - `03_advanced/implementation_patterns_library.md`
+  - `03_advanced/production_deployment_checklist.md`
+  - `03_advanced/adrs/ADR-001-safety-guardrails.md`
+  - `03_advanced/adrs/ADR-002-multi-agent-orchestration.md`
+  - `03_advanced/adrs/ADR-003-production-deployment-model.md`
+  - `03_advanced/adrs/ADR-004-scaling-strategy.md`
+  - `03_advanced/adrs/ADR-005-observability-slos.md`
+  - `03_advanced/adrs/ADR-006-security-boundaries.md`
+  - `03_advanced/case_studies/01_invoice_approval_assistant.md`
+  - `03_advanced/case_studies/02_multi_agent_incident_response.md`
+  - `03_advanced/case_studies/03_rag_faq_kubernetes_deployment.md`
+  - `03_advanced/case_studies/04_multi_tenant_support_platform_scaling.md`
+  - `03_advanced/case_studies/05_cost_spike_post_rollout.md`
+  - `03_advanced/case_studies/06_healthcare_triage_security.md`
 - Level 4 (Pro)
   - `04_pro/01_slides.md`
   - `04_pro/02_workbook.md`
   - `04_pro/03_examples.md`
   - `04_pro/04_use_cases.md`
+  - `04_pro/chapter_01_advanced_frameworks.md`
+  - `04_pro/chapter_02_reasoning_architectures.md`
+  - `04_pro/chapter_03_agentic_design_patterns.md`
+  - `04_pro/chapter_04_research_frontiers.md`
+  - `04_pro/research_paper_analysis.md`
+  - `04_pro/future_trends_analysis.md`
+  - `04_pro/advanced_patterns_library.md`
+  - `04_pro/benchmark_evaluation_framework.md`
+  - `04_pro/advanced_implementation_guide.md`
+  - `04_pro/papers/README.md`
 - Projects (12 total)
   - `projects/README.md`
   - `projects/P01_faq_bot_with_rag.md`
