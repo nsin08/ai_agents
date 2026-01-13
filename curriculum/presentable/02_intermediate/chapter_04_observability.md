@@ -716,6 +716,101 @@ Tokens used: 45
 
 ---
 
+## 4.4 Log Fields You Should Always Emit
+
+If you only add one observability feature, make it structured logs. They are the fastest path to debugging.
+
+A minimal event should include:
+
+- `run_id` or `trace_id`
+- `agent_state` (OBSERVING, PLANNING, ACTING, VERIFYING, REFINING)
+- `latency_ms`
+- `tokens_used` (estimate is fine)
+- `tool_name` and `tool_status` (when tools are used)
+
+This makes it possible to answer: "What happened, when, and why?"
+
+---
+
+## 4.5 Tracing: Make the Loop Visible
+
+Tracing should map to the OPRV steps. Each span should capture duration and key inputs/outputs.
+
+Practical guidance:
+
+- Start a span per phase: observe, plan, act, verify, refine.
+- Attach context fields (goal, turn, tool calls).
+- Always close spans even on failure.
+
+If you cannot see the slowest span, you cannot optimize the agent.
+
+When you add spans, keep the names stable and low-cardinality. Spans like `tool.execute` are useful; spans like `tool.execute:weather_lookup` can create noisy dashboards if the values explode.
+
+---
+
+## 4.6 Metrics That Change Behavior
+
+Metrics are not a dashboard decoration. They are decision inputs for scaling and safety.
+
+Start with:
+
+- Request count
+- Error rate
+- Latency (p50, p95, p99)
+- Tool error rate
+- Token usage per request
+
+Then define alert thresholds (example: error rate > 5% for 5 minutes).
+
+Also track baseline values during healthy runs so you can spot drift; without baselines, every spike looks the same.
+
+---
+
+## Implementation Guide (using core modules)
+
+Use these repo assets to make the chapter actionable:
+
+- Structured logging: `src/agent_labs/observability/logger.py`
+- Tracing spans: `src/agent_labs/observability/tracer.py`
+- Metrics collector: `src/agent_labs/observability/metrics.py`
+- Lab: `labs/06/README.md`
+- Runnable snippet: `curriculum/presentable/02_intermediate/snippets/ch04_tracing_and_metrics.py`
+
+Suggested sequence:
+
+1. Wrap each orchestration phase in a span.
+2. Emit a structured log per phase.
+3. Record latency and error metrics.
+
+**Deliverable:** a debugging checklist + metrics thresholds.
+
+---
+
+## Common Pitfalls and How to Avoid Them
+
+1. **Logs without context:** Without a run ID, you cannot correlate events.
+2. **Tracing only on success:** You need traces for failures the most.
+3. **No alert thresholds:** Metrics without thresholds do not protect systems.
+4. **Over-logging:** Too many logs can become noise; focus on signals first.
+
+---
+
+## 4.7 Incident Workflow (What to Do When It Breaks)
+
+Observability is only useful if it changes your response. Define a lightweight incident workflow:
+
+1. **Triage**: Identify the failing run by `run_id` or `trace_id`.
+2. **Scope**: Check error rate and latency charts to see if the issue is isolated or systemic.
+3. **Diagnose**: Inspect the slowest span and recent tool failures.
+4. **Mitigate**: Apply a safe fallback (disable a tool, reduce retries, switch to a smaller model).
+5. **Learn**: Update thresholds or add missing log fields.
+
+If you cannot complete these steps in under 10 minutes, your observability is not sufficient.
+
+**Practical tip:** Add a "diagnostic snapshot" function that prints the last trace, key metrics, and recent tool errors in one place. This becomes your first responder toolkit during incidents.
+
+---
+
 ## Summary
 
 ### Key Takeaways

@@ -125,6 +125,44 @@ def _transition_state(self, context: AgentContext, new_state: AgentState) -> Non
 
 ---
 
+## 1.4 Loop Parameters That Actually Matter
+
+The loop is simple, but the parameters are where most reliability decisions live. A few defaults can make an agent fragile:
+
+- `max_turns`: Prevents infinite loops. For tasks that depend on external tools, set a conservative upper bound (e.g., 3-5) and require explicit approval to raise it.
+- `max_cost` or `token_budget`: If you do not cap tokens, you cannot predict cost. Use a hard budget to fail fast.
+- `timeouts`: Tool timeouts should be shorter than your overall request budget. It is better to retry a tool quickly than to wait for a single long call.
+- `verification_thresholds`: If your verifier returns a confidence score, define what is "good enough" and what requires refinement.
+
+**Rule of thumb:** Start with stricter limits, then relax them only when you have metrics that show success rates are suffering. This creates a safe baseline and avoids cost surprises.
+
+---
+
+## 1.5 Verification Strategies (Not Optional)
+
+Verification is where you decide whether the system should stop or continue. If you do not have verification, you do not have a controllable agent.
+
+There are three common strategies:
+
+1. **LLM self-verification**: Ask the model to judge completion. This is fast but can be biased.
+2. **Rule-based verification**: Validate output format, JSON schemas, or deterministic checks.
+3. **Hybrid**: Run rules first, then use an LLM to judge soft criteria.
+
+Example (rule-based verifier):
+
+```python
+from agent_labs.orchestrator import AgentContext, VerificationResult
+
+def verify_json(context: AgentContext, result: str) -> VerificationResult:
+    if result.strip().startswith("{") and result.strip().endswith("}"):
+        return VerificationResult(is_complete=True, reason="Valid JSON")
+    return VerificationResult(is_complete=False, reason="Output is not JSON", feedback="Return valid JSON")
+```
+
+**Best Practice:** Always record the reason in the `VerificationResult`. This is what you use to diagnose "why did it keep looping?"
+
+---
+
 ## 2. ReAct Pattern: Reasoning + Acting
 
 ### 2.1 What is ReAct?
@@ -559,7 +597,7 @@ async def main():
             return "Look up weather for Seattle"
         if "achieved" in prompt.lower():
             return "YES | Weather retrieved successfully"
-        return "Processing..."
+    return "Processing..."
     
     orchestrator = SimpleOrchestrator(mock_llm, max_turns=3)
     result = await orchestrator.run("Get the weather in Seattle")
@@ -568,6 +606,36 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
 ```
+
+---
+
+## Implementation Guide (using core modules)
+
+Use these repo assets to make the chapter actionable:
+
+- Orchestrator loop: `src/agent_labs/orchestrator/agent.py`
+- States + transitions: `src/agent_labs/orchestrator/states.py`
+- Context + history: `src/agent_labs/orchestrator/context.py`
+- Lab: `labs/03/README.md`
+- Runnable snippet: `curriculum/presentable/02_intermediate/snippets/ch01_orchestrator_state_transitions.py`
+
+Suggested sequence:
+
+1. Read the chapter, then skim `agent.py` to see how observe/plan/act/verify/refine are structured.
+2. Run Lab 03 and instrument state transitions with timestamps.
+3. Run the snippet and inspect the printed valid transitions to confirm your mental model.
+
+**Deliverable:** a one-page controller spec (states, transitions, stop conditions, retry rules).
+
+---
+
+## Common Pitfalls and How to Avoid Them
+
+1. **Skipping verification:** This creates runaway loops and inconsistent behavior. Always verify completion.
+2. **Unbounded retries:** A retry policy without limits will burn budget and time. Always cap retries and total turns.
+3. **Silent state changes:** If you do not log transitions, you cannot debug production incidents.
+4. **Tool calls without validation:** If tool inputs are unvalidated, the agent will fail in unpredictable ways.
+5. **No failure path:** You must explicitly design what happens when a step is not recoverable.
 
 ---
 

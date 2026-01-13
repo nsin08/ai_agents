@@ -747,6 +747,83 @@ Review:"""
 
 ---
 
+## 3.4 Token Budgets: Make Them Explicit
+
+Token budgets are not optional in production. They are the only reliable way to control cost and latency.
+
+Define two limits:
+
+- **Hard limit**: never exceed this, even if you must drop context.
+- **Soft limit**: a warning threshold where you start compressing or summarizing.
+
+Practical approach:
+
+1. Estimate tokens for the prompt and history.
+2. Reserve a fixed budget for the model response.
+3. If you exceed soft limit, summarize or truncate the lowest-priority context.
+
+This turns "LLM length surprises" into predictable behavior.
+
+---
+
+## 3.5 Overflow Strategies (What to Drop First)
+
+When the context window is full, you must decide what to keep. Common strategies:
+
+- **Prioritized trimming**: drop low-priority items first (older chat, low-confidence memory).
+- **Summarization**: compress old turns into a short summary.
+- **Retrieval-on-demand**: store documents externally and retrieve only when needed.
+
+The key is determinism: the agent should make the same decision every time given the same inputs.
+
+---
+
+## Implementation Guide (using core modules)
+
+Use these repo assets to make the chapter actionable:
+
+- Templates: `src/agent_labs/context/templates.py`
+- Token counting: `src/agent_labs/context/tokens.py`
+- Chunking: `src/agent_labs/context/chunking.py`
+- Context windows: `src/agent_labs/context/window.py`
+- Lab: `labs/05/README.md`
+- Runnable snippet: `curriculum/presentable/02_intermediate/snippets/ch03_prompt_template_token_count.py`
+
+Suggested sequence:
+
+1. Build a template with variables and validate it (see `PromptTemplate`).
+2. Use token estimation to create a budgeted prompt.
+3. Run Lab 05 and experiment with chunk sizes + overlaps.
+
+**Deliverable:** a context packing plan with explicit budgets and overflow rules.
+
+---
+
+## Common Pitfalls and How to Avoid Them
+
+1. **Unbounded context growth:** Always enforce a budget, even in demos.
+2. **Over-summarizing:** Summaries can erase critical details; keep citations or IDs.
+3. **No template validation:** If variables are missing, the prompt will break silently.
+4. **Assuming chunking is free:** Chunking too small increases retrieval noise.
+
+---
+
+## 3.6 Prompt Contracts (Treat Prompts Like APIs)
+
+Prompts should be treated as interfaces, not free-form text. When a prompt becomes a contract, it is easier to test and maintain.
+
+A basic contract has:
+
+- **Inputs**: defined variables and types (e.g., `user_question: str`, `context_items: List[str]`).
+- **Outputs**: required structure (e.g., JSON with `answer`, `citations`, `confidence`).
+- **Failure modes**: what the model should do when input is missing or uncertain.
+
+When you version prompts, you reduce accidental regressions. When you add output schemas, you can validate responses and fail fast.
+
+**Practical tip:** Store prompt versions with clear names (e.g., `rag_answer_v2`) and log the version in every response. This makes A/B testing and incident debugging much easier.
+
+---
+
 ## Summary
 
 ### Key Takeaways

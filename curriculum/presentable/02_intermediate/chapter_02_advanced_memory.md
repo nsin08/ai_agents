@@ -709,6 +709,73 @@ save_session(agent, session_id)
 
 ---
 
+## 2.4 Write Policy: What Gets to Persist
+
+Memory is only useful if it is reliable. The most common failure mode is storing the wrong thing and then trusting it forever.
+
+Write policy answers: **"What is allowed to enter memory?"** It should include:
+
+- **Source requirements**: only store facts that came from trusted tools or verified outputs.
+- **User data boundaries**: do not store secrets or PII unless explicitly approved.
+- **Confidence thresholds**: store only when confidence is above a minimum threshold.
+- **Expiration rules**: not all facts last forever; set retention windows.
+
+Simple example:
+
+```
+Store long-term facts if:
+  - source == "tool" OR verified == true
+  - confidence >= 0.7
+  - content is not secret or PII
+Else: keep in short-term only.
+```
+
+---
+
+## 2.5 Retrieval Policy: What Gets to Influence Output
+
+Retrieval policy answers: **"What is allowed into context?"** This prevents contamination and keeps responses on-topic.
+
+Key rules:
+
+- Prefer **recent** and **high-confidence** memories.
+- Filter out memory with missing sources.
+- Do not inject contradictory facts without disambiguation.
+- Cap the number of retrieved items to protect token budget.
+
+If you cannot justify why a memory was retrieved, you should not use it.
+
+---
+
+## Implementation Guide (using core modules)
+
+Use these repo assets to make the chapter actionable:
+
+- Memory manager: `src/agent_labs/memory/manager.py`
+- Tier types: `src/agent_labs/memory/short_term.py`, `long_term.py`, `rag.py`
+- Storage backends: `src/agent_labs/memory/storage.py`
+- Lab: `labs/04/README.md`
+- Runnable snippet: `curriculum/presentable/02_intermediate/snippets/ch02_memory_manager_tiers.py`
+
+Suggested sequence:
+
+1. Read the chapter and inspect the `MemoryManager.observe()` method.
+2. Run Lab 04 and track what goes into each tier.
+3. Run the snippet and confirm the tier counts and retrieval behavior.
+
+**Deliverable:** a memory architecture diagram + write/retrieval policy.
+
+---
+
+## Common Pitfalls and How to Avoid Them
+
+1. **Storing raw conversation as "facts":** Treat raw history as short-term, not long-term.
+2. **Retrieving too much:** Flooding the prompt reduces quality and increases cost.
+3. **Ignoring source quality:** Tool outputs and verified facts are not the same as LLM guesses.
+4. **No expiration:** Outdated facts are worse than no facts.
+
+---
+
 ## Summary
 
 ### Key Takeaways
