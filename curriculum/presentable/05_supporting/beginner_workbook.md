@@ -1163,3 +1163,12 @@ You've completed 21 hands-on exercises covering:
 ---
 
 **Happy coding!** 🚀
+
+---
+
+## Document Checklist
+
+- [ ] Accessibility review (WCAG AA)
+- [ ] 21 exercises included
+- [ ] Solutions provided for each exercise
+- [ ] ASCII only

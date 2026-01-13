@@ -312,3 +312,12 @@ Run with: `python debug_helper.py`
 **Bookmark this page!** Return here whenever you need a quick lookup.
 
 Last Updated: January 2026 | For Beginner Curriculum
+
+---
+
+## Document Checklist
+
+- [ ] Accessibility review (WCAG AA)
+- [ ] Scannable sections with short bullets
+- [ ] Commands and tips included
+- [ ] ASCII only

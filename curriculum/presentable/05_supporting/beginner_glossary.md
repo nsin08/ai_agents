@@ -691,3 +691,12 @@ city: Boston
 
 **Tip**: Bookmark this page and reference while working through chapters. Return here when you see unfamiliar terms!
 
+---
+
+## Document Checklist
+
+- [ ] Accessibility review (WCAG AA)
+- [ ] At least 25 terms included
+- [ ] Definitions are concise and beginner-friendly
+- [ ] ASCII only
+

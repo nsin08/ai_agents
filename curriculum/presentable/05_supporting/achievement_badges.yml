@@ -1,0 +1,116 @@
+badges:
+  - id: beginner-lab-00
+    name: Lab 00 Complete
+    level: beginner
+    description: Completed environment setup lab
+    criteria: Run hello agent and pass tests
+  - id: beginner-rag
+    name: RAG Starter
+    level: beginner
+    description: Completed RAG fundamentals lab
+    criteria: Pass Lab 01 exercises
+  - id: beginner-tools
+    name: Tool User
+    level: beginner
+    description: Integrated first tool
+    criteria: Pass Lab 02 tool exercises
+  - id: beginner-workbook
+    name: Workbook Finisher
+    level: beginner
+    description: Completed all beginner workbook exercises
+    criteria: Submit 21 exercises
+  - id: intermediate-orchestrator
+    name: Orchestrator Builder
+    level: intermediate
+    description: Implemented OPRV loop with verification
+    criteria: Pass Lab 03 and Project 1.1
+  - id: intermediate-memory
+    name: Memory Architect
+    level: intermediate
+    description: Designed memory tiers and policies
+    criteria: Complete Project 2.1
+  - id: intermediate-context
+    name: Context Engineer
+    level: intermediate
+    description: Built token budget packer
+    criteria: Complete Project 3.2
+  - id: intermediate-observability
+    name: Observability Ready
+    level: intermediate
+    description: Implemented logs, traces, metrics
+    criteria: Complete Project 4.1-4.3
+  - id: intermediate-multiturn
+    name: Conversation Designer
+    level: intermediate
+    description: Built slot-filling flow
+    criteria: Complete Project 5.1
+  - id: intermediate-integration
+    name: Integration Patterns
+    level: intermediate
+    description: Tool contracts + validation
+    criteria: Complete Project 6.1-6.2
+  - id: advanced-safety
+    name: Safety Guardian
+    level: advanced
+    description: Implemented guardrails and policies
+    criteria: Complete Case Study 1
+  - id: advanced-multi-agent
+    name: Multi-Agent Coordinator
+    level: advanced
+    description: Coordinated specialized agents
+    criteria: Complete Case Study 2
+  - id: advanced-deployment
+    name: Deployment Strategist
+    level: advanced
+    description: Designed staged rollout
+    criteria: Complete Case Study 3
+  - id: advanced-scaling
+    name: Scaling Strategist
+    level: advanced
+    description: Designed scaling plan
+    criteria: Complete Case Study 4
+  - id: advanced-monitoring
+    name: Monitoring Expert
+    level: advanced
+    description: Defined alerting thresholds
+    criteria: Complete Case Study 5
+  - id: advanced-security
+    name: Security Boundary
+    level: advanced
+    description: Enforced tool access boundaries
+    criteria: Complete Case Study 6
+  - id: pro-evaluation
+    name: Evaluation Builder
+    level: pro
+    description: Built evaluation harness
+    criteria: Complete Pro Project 1
+  - id: pro-coordination
+    name: Coordination Researcher
+    level: pro
+    description: Studied multi-agent performance
+    criteria: Complete Pro Project 2
+  - id: pro-safety
+    name: Safety Benchmark
+    level: pro
+    description: Built safety prompt suite
+    criteria: Complete Pro Project 3
+  - id: pro-cost
+    name: Cost Engineer
+    level: pro
+    description: Reduced cost per request
+    criteria: Complete Pro Project 4
+  - id: labs-03-06
+    name: Intermediate Lab Streak
+    level: intermediate
+    description: Completed Labs 03 through 06
+    criteria: Pass labs 03-06
+  - id: labs-07-08
+    name: Advanced Lab Streak
+    level: advanced
+    description: Completed Labs 07 and 08
+    criteria: Pass labs 07-08
+  - id: all-levels
+    name: Full Journey
+    level: all
+    description: Completed all levels and projects
+    criteria: Complete all curricula and capstones
