@@ -16,9 +16,11 @@
 - Dataset of 20 prompts
 - Report with findings
 
-**Solution Outline:**
-- Use deterministic mock runs for baselines.
-- Add a real LLM run for comparison.
+**Solution (Example Steps):**
+1. Define a prompt evaluation schema (prompt, expected answer, rubric) and store 20 prompts in a simple JSON file.
+2. Run all prompts with `MockProvider` to capture baseline accuracy, latency, and cost (cost = 0 for mock).
+3. Run the same prompts with a real LLM provider (Ollama or a cloud adapter) and capture the same metrics.
+4. Write a report table with deltas and a short recommendation section.
 
 ---
 
@@ -31,9 +33,11 @@
 - Coordination protocol
 - Outcome comparison table
 
-**Solution Outline:**
-- Assign roles: planner, executor, verifier.
-- Measure quality and latency.
+**Solution (Example Steps):**
+1. Define three roles (planner, executor, verifier) and a coordination protocol (order of turns, handoff format).
+2. Implement a coordinator that passes the task output from planner -> executor -> verifier.
+3. Run the same task with a single agent and with the multi-agent protocol; measure quality and latency.
+4. Summarize differences in a comparison table and a short narrative.
 
 ---
 
@@ -46,9 +50,11 @@
 - Safety outcomes table
 - Mitigation recommendations
 
-**Solution Outline:**
-- Include injection prompts and data leakage attempts.
-- Record pass/fail outcomes.
+**Solution (Example Steps):**
+1. Create 25 prompts across categories (prompt injection, data leakage, policy bypass).
+2. Define pass/fail criteria for each prompt and document expected safe behavior.
+3. Run prompts against your agent setup and record outcomes in a table.
+4. Add mitigation recommendations for each failed case.
 
 ---
 
@@ -61,9 +67,11 @@
 - Cost breakdown
 - Before/after chart
 
-**Solution Outline:**
-- Use cheap model for triage.
-- Cache high-confidence responses.
+**Solution (Example Steps):**
+1. Establish baseline cost per request using a fixed dataset and provider settings.
+2. Add a routing policy (cheap model for low complexity, expensive model for high risk).
+3. Cache high-confidence responses and reuse them for repeated queries.
+4. Compare before/after cost and latency and document trade-offs.
 
 ---
 

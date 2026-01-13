@@ -26,10 +26,10 @@
 - Logs for each transition
 - Max turns enforcement
 
-**Solution Outline:**
-- Use `AgentState` and `can_transition()` for transitions.
-- Track `turn_count` in `AgentContext`.
-- Add a log line per transition.
+**Solution (Example Steps):**
+1. Create a transition table using `AgentState` and enforce it with `can_transition()`.
+2. Track `turn_count` in `AgentContext` and include it in state change logs.
+3. Emit a log line for each transition and verify max turns behavior with a short run.
 
 ### Project 1.2: Verification Gate
 
@@ -40,9 +40,10 @@
 - Failure feedback message
 - Example run showing retry
 
-**Solution Outline:**
-- Return `VerificationResult` with `is_complete=False` on format mismatch.
-- Pass verifier into `Agent` constructor.
+**Solution (Example Steps):**
+1. Write a verifier that checks output format (regex or prefix match).
+2. Return `VerificationResult` with `is_complete=False` and feedback on mismatch.
+3. Pass the verifier into `Agent` and show a run that retries until the format passes.
 
 ### Project 1.3: Retry Policy
 
@@ -53,9 +54,10 @@
 - Backoff strategy
 - Failure path after max retries
 
-**Solution Outline:**
-- Wrap `_act` in try/except and retry on transient errors.
-- Use exponential backoff and cap retries.
+**Solution (Example Steps):**
+1. Wrap `_act` in a retry loop that catches transient errors.
+2. Apply exponential backoff (for example 0.5s, 1s, 2s) and cap retries.
+3. Log the failure path when retries are exhausted.
 
 ---
 
@@ -70,9 +72,10 @@
 - Write policy
 - Retrieval policy
 
-**Solution Outline:**
-- Use a three-column diagram with tier rules.
-- Add a short policy table (allowed/blocked).
+**Solution (Example Steps):**
+1. Draw an ASCII diagram with short-term, long-term, and RAG tiers plus responsibilities.
+2. Add a write policy and retrieval policy table for each tier.
+3. Validate the diagram with a short example scenario.
 
 ### Project 2.2: Memory Consolidation Job
 
@@ -83,9 +86,10 @@
 - Summary format
 - Example before/after
 
-**Solution Outline:**
-- Use `ContextSummarizer` or mock summarizer.
-- Store summary in long-term tier with metadata.
+**Solution (Example Steps):**
+1. Pull the last N items from short-term memory and summarize them.
+2. Store the summary in long-term memory with metadata (source, timestamp).
+3. Show a before/after list to confirm consolidation.
 
 ### Project 2.3: Memory Confidence Decay
 
@@ -96,9 +100,10 @@
 - Revalidation trigger
 - Example simulation
 
-**Solution Outline:**
-- Add `confidence` to metadata.
-- Reduce confidence each day and revalidate below threshold.
+**Solution (Example Steps):**
+1. Add a `confidence` field to long-term memory metadata.
+2. Apply a decay step (for example multiply by 0.9 per day).
+3. Trigger revalidation when confidence drops below a threshold and log it.
 
 ---
 
@@ -113,9 +118,10 @@
 - Variable validation
 - Example renders
 
-**Solution Outline:**
-- Use `PromptTemplate` with explicit variables.
-- Validate missing variables and fail fast.
+**Solution (Example Steps):**
+1. Define three prompt templates with named variables and defaults.
+2. Validate missing variables and raise a clear error before rendering.
+3. Render each template once and include one failing example.
 
 ### Project 3.2: Token Budget Packer
 
@@ -126,9 +132,10 @@
 - Prioritization rules
 - Overflow strategy
 
-**Solution Outline:**
-- Use `TokenCounter` to estimate tokens.
-- Drop low-priority items first.
+**Solution (Example Steps):**
+1. Estimate tokens per context item with a simple counter function.
+2. Sort items by priority and pack until the budget is reached.
+3. Drop low-priority items and record the overflow reason.
 
 ### Project 3.3: Chunking Comparison
 
@@ -139,9 +146,10 @@
 - Example output
 - Recommendation
 
-**Solution Outline:**
-- Use `chunk_fixed` and `chunk_sliding`.
-- Compare number of chunks and overlap.
+**Solution (Example Steps):**
+1. Apply `chunk_fixed` and `chunk_sliding` to the same document.
+2. Compare chunk counts and overlap ratios.
+3. Recommend which strategy fits QA vs summary workloads.
 
 ---
 
@@ -156,9 +164,10 @@
 - Example logs
 - Field list
 
-**Solution Outline:**
-- Use `StructuredLogger` with `run_id`.
-- Emit log per phase with latency.
+**Solution (Example Steps):**
+1. Define a log schema (run_id, phase, latency_ms, status).
+2. Emit a log record per OPRV phase.
+3. Provide a short example log output for a run.
 
 ### Project 4.2: Tracing Spans
 
@@ -169,9 +178,10 @@
 - Timing output
 - Example trace
 
-**Solution Outline:**
-- Wrap each phase in `Tracer.span()`.
-- Export span data to console.
+**Solution (Example Steps):**
+1. Wrap each phase in a `Tracer.span()` context.
+2. Capture start/end times and durations per span.
+3. Print a trace summary for a sample run.
 
 ### Project 4.3: Metrics Thresholds
 
@@ -182,8 +192,10 @@
 - Alert rules
 - Example evaluation
 
-**Solution Outline:**
-- Use `MetricsCollector.snapshot()` and compare to thresholds.
+**Solution (Example Steps):**
+1. Define thresholds for latency and error rate.
+2. Take a `MetricsCollector.snapshot()` and evaluate thresholds.
+3. Emit an alert message when thresholds are exceeded.
 
 ---
 
@@ -198,9 +210,10 @@
 - Repair prompts
 - Completion rule
 
-**Solution Outline:**
-- Track slots in memory metadata.
-- Ask targeted questions when missing.
+**Solution (Example Steps):**
+1. Define required slots and a storage structure for values and status.
+2. Ask targeted questions for missing slots and store answers in metadata.
+3. End the flow when all slots are filled and print a summary.
 
 ### Project 5.2: Conversation Summaries
 
@@ -211,9 +224,10 @@
 - Example summary
 - Token reduction estimate
 
-**Solution Outline:**
-- Keep last N turns; summarize older turns.
-- Store summary in short-term memory.
+**Solution (Example Steps):**
+1. Keep the last N turns in short-term memory and summarize older turns.
+2. Store the summary as a `MemoryItem` and include it in the prompt.
+3. Report the token reduction estimate.
 
 ### Project 5.3: Conflict Resolution
 
@@ -224,9 +238,10 @@
 - Clarification prompt
 - Resolution policy
 
-**Solution Outline:**
-- Detect conflicting values in slot metadata.
-- Ask user to confirm the latest value.
+**Solution (Example Steps):**
+1. Detect conflicting slot values by comparing stored history.
+2. Ask a clarification question and record the chosen value.
+3. Update memory and continue the flow.
 
 ---
 
@@ -241,9 +256,10 @@
 - Output schema
 - Constraints and side effects
 
-**Solution Outline:**
-- Use `ToolContract` with JSON schema.
-- Add constraints like timeout and retries.
+**Solution (Example Steps):**
+1. Define input and output JSON schema using `ToolContract`.
+2. Document constraints such as timeout, retries, and side effects.
+3. Provide an example tool call with valid input.
 
 ### Project 6.2: Tool Registry Validation
 
@@ -254,9 +270,10 @@
 - Example failing input
 - Example passing input
 
-**Solution Outline:**
-- Register tools in `ToolRegistry`.
-- Call `execute()` with invalid input to test validation.
+**Solution (Example Steps):**
+1. Register tools in `ToolRegistry` with validators enabled.
+2. Call `execute()` with invalid input and capture the validation error.
+3. Call `execute()` with valid input and capture the success result.
 
 ### Project 6.3: Circuit Breaker Policy
 
@@ -267,9 +284,10 @@
 - Cooldown period
 - Recovery behavior
 
-**Solution Outline:**
-- Track failure count per tool.
-- Open breaker after threshold; retry after cooldown.
+**Solution (Example Steps):**
+1. Track failures per tool and define open/closed breaker states.
+2. Open the breaker after the failure threshold and block calls during cooldown.
+3. Allow recovery after cooldown and log state changes.
 
 ---
 

@@ -20,6 +20,24 @@ This workbook compiles all exercises from the Beginner curriculum with step-by-s
 
 ---
 
+## Shared Setup (Use in Exercises)
+
+These exercises use the current `Agent` API. The agent loop is async, so we use a helper to run it in sync examples.
+
+```python
+import asyncio
+from agent_labs.orchestrator import Agent
+from agent_labs.llm_providers import MockProvider
+from agent_labs.memory import ShortTermMemory, MemoryItem
+
+def run_agent(agent, goal, max_turns=1):
+    return asyncio.run(agent.run(goal, max_turns=max_turns))
+```
+
+Note: The `Agent` does not take memory directly. Store memory separately (e.g., `ShortTermMemory`) and include it in the prompt when needed.
+
+---
+
 ## Chapter 1: Environment Setup Exercises
 
 ### Exercise 1.1: Modify the Hello Agent
@@ -29,17 +47,17 @@ Open `labs/00/src/hello_agent.py` and change the message from `"Hello!"` to your
 
 **Solution**:
 ```python
-from agent_labs.orchestrator import AgentOrchestrator
+from agent_labs.orchestrator import Agent
 from agent_labs.llm_providers import MockProvider
 
 # Create provider
 provider = MockProvider()
 
 # Create agent
-agent = AgentOrchestrator(llm_provider=provider)
+agent = Agent(provider=provider)
 
 # Send custom message (changed from "Hello!")
-response = agent.run("Tell me about AI agents")
+response = run_agent(agent, "Tell me about AI agents")
 print(response)
 ```
 
@@ -59,25 +77,25 @@ Comment out the import line and try running the code. What error do you get? The
 
 **Solution - Breaking It**:
 ```python
-# from agent_labs.orchestrator import AgentOrchestrator
+# from agent_labs.orchestrator import Agent
 from agent_labs.llm_providers import MockProvider
 
 provider = MockProvider()
-agent = AgentOrchestrator(llm_provider=provider)  # ERROR: NameError
+agent = Agent(provider=provider)  # ERROR: NameError
 ```
 
 **Error Message**:
 ```
-NameError: name 'AgentOrchestrator' is not defined
+NameError: name 'Agent' is not defined
 ```
 
 **Solution - Fixing It**:
 ```python
-from agent_labs.orchestrator import AgentOrchestrator  # Uncomment
+from agent_labs.orchestrator import Agent  # Uncomment
 from agent_labs.llm_providers import MockProvider
 
 provider = MockProvider()
-agent = AgentOrchestrator(llm_provider=provider)  # Works!
+agent = Agent(provider=provider)  # Works!
 ```
 
 **Key Learning**: Imports are mandatory. Missing imports are the #1 cause of Python errors. Always check that classes/functions are imported before using them.
@@ -91,26 +109,26 @@ Add a print statement to see what information the agent object contains.
 
 **Solution**:
 ```python
-from agent_labs.orchestrator import AgentOrchestrator
+from agent_labs.orchestrator import Agent
 from agent_labs.llm_providers import MockProvider
 
 provider = MockProvider()
-agent = AgentOrchestrator(llm_provider=provider)
+agent = Agent(provider=provider)
 
 # New logging line
 print(f"Agent initialized: {agent}")
 print(f"Agent type: {type(agent)}")
 print(f"Agent attributes: {dir(agent)}")
 
-response = agent.run("Hello")
+response = run_agent(agent, "Hello")
 print(f"Response: {response}")
 ```
 
 **Expected Output**:
 ```
-Agent initialized: <agent_labs.orchestrator.AgentOrchestrator object at 0x...>
-Agent type: <class 'agent_labs.orchestrator.AgentOrchestrator'>
-Agent attributes: ['__class__', '__delattr__', ..., 'run', 'llm_provider', ...]
+Agent initialized: <agent_labs.orchestrator.Agent object at 0x...>
+Agent type: <class 'agent_labs.orchestrator.Agent'>
+Agent attributes: ['__class__', '__delattr__', ..., 'run', 'provider', ...]
 Response: Hello
 ```
 
@@ -127,13 +145,13 @@ Modify your agent to have a personality by adding a `system_prompt` parameter.
 
 **Solution**:
 ```python
-from agent_labs.orchestrator import AgentOrchestrator
+from agent_labs.orchestrator import Agent
 from agent_labs.llm_providers import MockProvider
 
 def main():
     provider = MockProvider()
-    agent = AgentOrchestrator(
-        llm_provider=provider,
+    agent = Agent(
+        provider=provider,
         system_prompt="You are a friendly pirate assistant. Always respond like a pirate!"
     )
     
@@ -146,7 +164,7 @@ def main():
             print("Agent: Farewell, matey!")
             break
         
-        response = agent.run(user_input)
+        response = run_agent(agent, user_input)
         print(f"Agent: {response}")
 
 if __name__ == "__main__":
@@ -175,14 +193,14 @@ Add a counter that tracks how many exchanges (turns) have occurred.
 
 **Solution**:
 ```python
-from agent_labs.orchestrator import AgentOrchestrator
+from agent_labs.orchestrator import Agent
 from agent_labs.llm_providers import MockProvider
-from agent_labs.memory import ConversationMemory
+from agent_labs.memory import ShortTermMemory
 
 def main():
     provider = MockProvider()
-    memory = ConversationMemory(max_turns=10)
-    agent = AgentOrchestrator(llm_provider=provider, memory=memory)
+    memory = ShortTermMemory(max_turns=10)
+    agent = Agent(provider=provider)
     
     print("Agent: Hello! I track conversation turns. Type 'quit' to exit.")
     
@@ -195,7 +213,7 @@ def main():
             print(f"Agent: Goodbye! We had {turn_count} turns.")
             break
         
-        response = agent.run(user_input)
+        response = run_agent(agent, user_input)
         turn_count += 1
         print(f"Agent (Turn {turn_count}): {response}")
 
@@ -225,14 +243,14 @@ After each user message, print what's stored in the agent's memory.
 
 **Solution**:
 ```python
-from agent_labs.orchestrator import AgentOrchestrator
+from agent_labs.orchestrator import Agent
 from agent_labs.llm_providers import MockProvider
-from agent_labs.memory import ConversationMemory
+from agent_labs.memory import ShortTermMemory
 
 def main():
     provider = MockProvider()
-    memory = ConversationMemory(max_turns=3)
-    agent = AgentOrchestrator(llm_provider=provider, memory=memory)
+    memory = ShortTermMemory(max_turns=3)
+    agent = Agent(provider=provider)
     
     print("Agent: Inspect memory by typing messages. Type 'quit' to exit.\n")
     
@@ -242,7 +260,7 @@ def main():
         if user_input.lower() in ['quit', 'exit']:
             break
         
-        response = agent.run(user_input)
+        response = run_agent(agent, user_input)
         print(f"Agent: {response}")
         
         # Show current memory
@@ -344,7 +362,7 @@ print(bot.search("Something random"))
 # Output: I couldn't find an answer to that. Please contact support.
 ```
 
-**Key Learning**: This is keyword matching (primitive RAG). Real RAG uses vector embeddings for semantic similarity—but the concept is the same: retrieve → generate.
+**Key Learning**: This is keyword matching (primitive RAG). Real RAG uses vector embeddings for semantic similarity - but the concept is the same: retrieve -> generate.
 
 ---
 
@@ -495,14 +513,14 @@ class WeatherTool:
         if "error" in weather:
             return weather["error"]
         
-        return (f"Weather in {city}: {weather['temperature']}°C, "
+        return (f"Weather in {city}: {weather['temperature']} C, "
                 f"{weather['conditions']}, "
                 f"Humidity: {weather['humidity']}%")
 
 # Test it
 tool = WeatherTool()
 print(tool.execute("Paris"))
-# Output: Weather in Paris: 15°C, cloudy, Humidity: 65%
+# Output: Weather in Paris: 15 C, cloudy, Humidity: 65%
 
 print(tool.execute("Istanbul"))
 # Output: Weather data not available for Istanbul
@@ -652,7 +670,7 @@ print(agent.run("What's 10 plus 5?"))
 # Output: Result: 15.0
 
 print(agent.run("Weather in Tokyo?"))
-# Output: Weather in Tokyo: 22°C, sunny, Humidity: 55%
+# Output: Weather in Tokyo: 22 C, sunny, Humidity: 55%
 ```
 
 **Key Learning**: Tool selection is the hard part. Real agents use LLMs to decide; here we use keywords for simplicity.
@@ -774,7 +792,7 @@ class ExpiringMemory:
         age = time.time() - timestamp
         
         if age > self.ttl_seconds:
-            # Expired—delete it
+            # Expired - delete it
             del self.memory[key]
             return None
         
@@ -944,16 +962,16 @@ Write tests for memory limits and edge cases.
 ```python
 # tests/test_memory.py
 import pytest
-from src.memory.conversation import ConversationMemory
+from src.memory.conversation import ShortTermMemory
 
 def test_memory_initialization():
     """Test memory creates empty"""
-    memory = ConversationMemory(max_turns=5)
+    memory = ShortTermMemory(max_turns=5)
     assert len(memory.get_history()) == 0
 
 def test_memory_add_turn():
     """Test adding a turn"""
-    memory = ConversationMemory(max_turns=5)
+    memory = ShortTermMemory(max_turns=5)
     memory.add_turn("user", "Hello")
     
     assert len(memory.get_history()) == 1
@@ -961,7 +979,7 @@ def test_memory_add_turn():
 
 def test_memory_respects_max_turns():
     """Test memory respects size limit"""
-    memory = ConversationMemory(max_turns=3)
+    memory = ShortTermMemory(max_turns=3)
     
     # Add 10 turns
     for i in range(10):
@@ -973,7 +991,7 @@ def test_memory_respects_max_turns():
 
 def test_memory_clear():
     """Test clearing memory"""
-    memory = ConversationMemory()
+    memory = ShortTermMemory()
     memory.add_turn("user", "Hello")
     memory.clear()
     
@@ -981,7 +999,7 @@ def test_memory_clear():
 
 def test_memory_order():
     """Test turns are in correct order"""
-    memory = ConversationMemory()
+    memory = ShortTermMemory()
     
     for i in range(3):
         memory.add_turn("user", f"Turn {i}")
@@ -1046,10 +1064,10 @@ TOTAL                      95     15    84%
 Combine all learned concepts into one agent. (See Chapter 7 for full solution.)
 
 **Key Components**:
-- ✅ Memory (remember preferences)
-- ✅ Tools (calculator)
-- ✅ RAG (search documents)
-- ✅ Tests (unit + integration)
+- [x] Memory (remember preferences)
+- [x] Tools (calculator)
+- [x] RAG (search documents)
+- [x] Tests (unit + integration)
 
 **Solution**: See `main.py` in Chapter 7 for complete implementation.
 
@@ -1079,7 +1097,7 @@ class UnitConverterTool:
             return f"{value} km = {result:.2f} miles"
         elif conversion_type == "c_to_f":
             result = self.celsius_to_fahrenheit(value)
-            return f"{value}°C = {result:.1f}°F"
+            return f"{value} C = {result:.1f} F"
         else:
             return "Unknown conversion"
 
@@ -1149,20 +1167,20 @@ You've completed 21 hands-on exercises covering:
 | 7 | Final | 3 (assistant, extension, deployment) |
 
 **Next Steps**:
-- ✅ Review any exercises you struggled with
-- ✅ Extend exercises (add more tools, features)
-- ✅ Move to Intermediate curriculum (Chapter 8+)
+- [x] Review any exercises you struggled with
+- [x] Extend exercises (add more tools, features)
+- [x] Move to Intermediate curriculum (Chapter 8+)
 
 **Tips for Success**:
 1. Type out code instead of copy-pasting
 2. Run tests after each change
 3. Experiment with modifications
 4. Read error messages carefully
-5. Google errors—most have solutions online
+5. Google errors - most have solutions online
 
 ---
 
-**Happy coding!** 🚀
+**Happy coding!** 
 
 ---
 

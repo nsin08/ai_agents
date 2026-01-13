@@ -13,7 +13,7 @@
 uv venv                           # Create virtual environment
 source .venv/bin/activate        # Activate (Linux/Mac)
 .venv\Scripts\activate           # Activate (Windows)
-pip install package-name         # Install packages
+uv pip install package-name      # Install packages
 
 # Git
 git clone <url>                  # Download repository
@@ -24,13 +24,13 @@ git push                         # Push to remote
 
 # Testing
 pytest tests/                    # Run all tests
-pytest tests/test_file.py -v    # Run with output
-pytest --cov=src                # Coverage report
+pytest tests/test_file.py -v     # Run with output
+pytest --cov=src                 # Coverage report
 
 # Run Code
-python script.py                # Execute Python file
-python -m pytest                # Run tests via module
-python -i script.py             # Interactive mode
+python script.py                 # Execute Python file
+python -m pytest                 # Run tests via module
+python -i script.py              # Interactive mode
 ```
 
 ---
@@ -38,32 +38,23 @@ python -i script.py             # Interactive mode
 ## Python Patterns
 
 ```python
-# Creating an Agent
-from agent_labs.orchestrator import AgentOrchestrator
-from agent_labs.llm_providers import MockProvider
-from agent_labs.memory import ConversationMemory
+import asyncio
+from agent_labs.orchestrator import Agent
+from agent_labs.llm_providers import MockProvider, OllamaProvider
+from agent_labs.memory import ShortTermMemory, MemoryItem
 
-provider = MockProvider()  # or OpenAIProvider, OllamaProvider
-memory = ConversationMemory(max_turns=10)
-agent = AgentOrchestrator(llm_provider=provider, memory=memory)
+provider = MockProvider()  # or OllamaProvider(model="llama2")
+agent = Agent(provider=provider)
+memory = ShortTermMemory(max_items=10)
 
-# Using an Agent
-response = agent.run("Your question here")
+def run_agent(agent, goal, max_turns=1):
+    return asyncio.run(agent.run(goal, max_turns=max_turns))
+
+# Use memory by injecting history into the prompt
+memory.store(MemoryItem(role="user", content="Hello"))
+history = "\n".join(item.content for item in memory.retrieve())
+response = run_agent(agent, f"History:\n{history}\nUser: say hello")
 print(response)
-
-# Working with Memory
-memory.add_turn("user", "message")
-history = memory.get_history()
-memory.clear()
-
-# Building a Tool
-class MyTool:
-    name = "my_tool"
-    description = "What it does"
-    
-    def execute(self, *args, **kwargs):
-        # Implementation
-        return result
 ```
 
 ---
@@ -71,41 +62,37 @@ class MyTool:
 ## Common Patterns by Chapter
 
 ### Ch 1: Setup
-```python
-# Verify environment
-python --version                # Should be 3.11+
+```bash
+python --version  # Should be 3.11+
 uv --version
 pytest --version
 ```
 
 ### Ch 2: Agent Loop
 ```python
-# Interactive agent
-while True:
-    user_input = input("You: ")
-    if user_input.lower() == 'quit':
-        break
-    response = agent.run(user_input)
-    print(f"Agent: {response}")
+user_input = "What is an AI agent?"
+response = run_agent(agent, user_input, max_turns=2)
+print(response)
 ```
 
 ### Ch 3: RAG
 ```python
-from agent_labs.tools import VectorRetriever
-from agent_labs.memory import DocumentStore
+from agent_labs.memory import RAGMemory, MemoryItem
 
-doc_store = DocumentStore()
-retriever = VectorRetriever(doc_store, top_k=3)
-agent.tools.append(retriever)
+rag = RAGMemory()
+rag.store(MemoryItem(role="doc", content="Paris is the capital of France."))
+results = rag.retrieve(query="capital of France", top_k=1)
+print(results[0].content)
 ```
 
 ### Ch 4: Tools
 ```python
-# Tool selection
-if "calculate" in user_input.lower():
-    result = calculator.execute(operation, a, b)
-elif "weather" in user_input.lower():
-    result = weather_tool.execute(city)
+from agent_labs.tools import ToolRegistry, Calculator
+
+registry = ToolRegistry()
+registry.register(Calculator())
+result = registry.execute("calculator", {"operation": "add", "a": 2, "b": 3})
+print(result.output)
 ```
 
 ### Ch 5: Memory Persistence
@@ -114,7 +101,7 @@ import json
 from pathlib import Path
 
 def save_preferences(data, file="prefs.json"):
-    with open(file, 'w') as f:
+    with open(file, "w") as f:
         json.dump(data, f, indent=2)
 
 def load_preferences(file="prefs.json"):
@@ -126,9 +113,8 @@ def load_preferences(file="prefs.json"):
 import pytest
 
 def test_my_feature():
-    """Test description"""
-    result = function_to_test(input_value)
-    assert result == expected_value
+    result = 2 + 2
+    assert result == 4
 ```
 
 ---
@@ -139,12 +125,12 @@ def test_my_feature():
 |---------|----------|
 | `ModuleNotFoundError: No module named 'agent_labs'` | Install: `uv pip install -r requirements.txt` |
 | `NameError: name 'XYZ' is not defined` | Add import: `from module import XYZ` |
-| `pytest: command not found` | Install: `pip install pytest` |
+| `pytest: command not found` | Install: `uv pip install pytest` |
 | `virtual environment not activated` | Run: `source .venv/bin/activate` (Linux/Mac) or `.venv\Scripts\activate` (Windows) |
 | `git: command not found` | Install Git from https://git-scm.com/downloads |
 | `Python version too old` | Download 3.11+ from https://python.org |
-| Agent doesn't remember (no memory) | Add: `memory = ConversationMemory(max_turns=10)` and pass to agent |
-| Test fails randomly | Switch to MockProvider instead of real LLM |
+| Agent doesn't remember | Use `ShortTermMemory` and include history in the prompt |
+| Test fails randomly | Switch to `MockProvider` instead of real LLM |
 
 ---
 
@@ -152,21 +138,21 @@ def test_my_feature():
 
 ```
 ai_agents/
-├── labs/
-│   ├── 00/                    # Environment (Chapter 1)
-│   ├── 01/                    # RAG (Chapter 3)
-│   ├── 02/                    # Tools (Chapter 4)
-│   └── 04/                    # Memory (Chapter 5)
-├── curriculum/presentable/01_beginner/
-│   ├── chapter_01_*.md        # Chapters
-│   └── ...
-├── src/agent_labs/
-│   ├── orchestrator/          # Agent core
-│   ├── llm_providers/         # Providers (OpenAI, Mock, Ollama)
-│   ├── memory/                # Memory systems
-│   ├── tools/                 # Tool implementations
-│   └── ...
-└── tests/                     # Test files
+|-- labs/
+|   |-- 00/                    # Environment (Chapter 1)
+|   |-- 01/                    # RAG (Chapter 3)
+|   |-- 02/                    # Tools (Chapter 4)
+|   |-- 04/                    # Memory (Chapter 5)
+|-- curriculum/presentable/01_beginner/
+|   |-- chapter_01_*.md        # Chapters
+|   |-- ...
+|-- src/agent_labs/
+|   |-- orchestrator/          # Agent core
+|   |-- llm_providers/         # Providers (OpenAI, Mock, Ollama)
+|   |-- memory/                # Memory systems
+|   |-- tools/                 # Tool implementations
+|   |-- ...
+|-- tests/                     # Test files
 ```
 
 ---
@@ -175,60 +161,54 @@ ai_agents/
 
 | Class | Method | Purpose |
 |-------|--------|---------|
-| `AgentOrchestrator` | `run(text)` | Send message, get response |
+| `Agent` | `run(goal, max_turns)` | Run the agent loop |
 | `MockProvider` | `generate(prompt)` | Returns mock response (echoes) |
-| `OpenAIProvider` | `generate(prompt)` | Calls GPT-4/GPT-3.5 |
 | `OllamaProvider` | `generate(prompt)` | Calls local LLM |
-| `ConversationMemory` | `add_turn(role, text)` | Add message to memory |
-| `ConversationMemory` | `get_history()` | Retrieve all messages |
-| `DocumentStore` | `search(query)` | Find documents |
-| `VectorRetriever` | `execute(query)` | RAG retrieval |
+| `ShortTermMemory` | `store(item)` | Add memory item |
+| `ShortTermMemory` | `retrieve(query)` | Get memory items |
+| `RAGMemory` | `retrieve(query, top_k)` | Retrieve relevant items |
+| `ToolRegistry` | `register(tool)` | Register tool |
+| `ToolRegistry` | `execute(name, input)` | Execute tool |
 
 ---
 
 ## Decision Trees
 
 ### Which Provider to Use?
-```
-Do you want to test locally?
-├─ YES → Use MockProvider (instant, free)
-└─ NO → Do you have an API key?
-    ├─ YES (OpenAI) → Use OpenAIProvider
-    └─ YES (Local) → Use OllamaProvider
-```
+- Do you want to test locally?
+  - YES -> Use `MockProvider` (instant, free)
+  - NO -> Do you have a local LLM?
+    - YES -> Use `OllamaProvider`
+    - NO -> Use a cloud provider adapter (not yet implemented here)
 
 ### How to Store Data?
-```
-Does data need to survive restart?
-├─ NO → Use ConversationMemory (RAM-based)
-└─ YES → Use JSON file or LongTermMemory
-    ├─ Simple → JSON with open()/json.dump()
-    └─ Complex → Database (later curriculum)
-```
+- Does data need to survive restart?
+  - NO -> Use `ShortTermMemory` (RAM-based)
+  - YES -> Use JSON file or `LongTermMemory`
+    - Simple -> JSON with `open()` + `json.dump()`
+    - Complex -> Database (later curriculum)
 
 ### Should I Test It?
-```
-Is it part of core functionality?
-├─ YES → Write unit test
-├─ Tools? → Test tool behavior
-├─ Memory? → Test persistence
-└─ User-facing? → Write integration test
-```
+- Is it part of core functionality?
+  - YES -> Write unit test
+  - Tools? -> Test tool behavior
+  - Memory? -> Test persistence
+  - User-facing? -> Write integration test
 
 ---
 
 ## Common Mistakes & Fixes
 
-| ❌ Wrong | ✅ Right |
-|---------|----------|
+| Wrong | Right |
+|-------|-------|
 | No imports | Add `from module import Class` |
 | Unactivated venv | Always activate before running |
-| No memory in agent | Pass `memory=ConversationMemory()` |
-| Tool execution fails silently | Always wrap in try/except |
-| Memory grows forever | Set `max_turns` limit |
-| Test uses real LLM | Switch to MockProvider |
+| No memory in agent | Use `ShortTermMemory` and inject history |
+| Tool execution fails silently | Wrap calls in try/except |
+| Memory grows forever | Set `max_items` limit |
+| Test uses real LLM | Switch to `MockProvider` |
 | No error handling | Add `assert` statements in tests |
-| Ignoring error messages | READ the error—it tells you what's wrong |
+| Ignoring error messages | Read the error, it tells you what's wrong |
 
 ---
 
@@ -251,12 +231,12 @@ Is it part of core functionality?
 - [ ] Solved all 21 exercises
 - [ ] Wrote and ran tests
 - [ ] Built a small project
-- [ ] Understand agent loop (observe → plan → act)
+- [ ] Understand agent loop (observe -> plan -> act)
 - [ ] Know the difference: tools vs memory vs RAG
 - [ ] Can explain: embeddings, tokens, hallucination
 - [ ] Feel confident running Python + pytest + git
 
-**Ready?** → Move to Intermediate curriculum!
+**Ready?** -> Move to Intermediate curriculum!
 
 ---
 
@@ -273,16 +253,16 @@ print(f"Virtual Env: {sys.prefix}")
 
 # Check imports
 try:
-    from agent_labs.orchestrator import AgentOrchestrator
-    print("✓ agent_labs installed")
+    from agent_labs.orchestrator import Agent
+    print("[OK] agent_labs installed")
 except ImportError:
-    print("✗ agent_labs NOT installed")
+    print("[FAIL] agent_labs NOT installed")
 
 try:
     import pytest
-    print("✓ pytest installed")
+    print("[OK] pytest installed")
 except ImportError:
-    print("✗ pytest NOT installed")
+    print("[FAIL] pytest NOT installed")
 
 # List installed packages
 import subprocess
@@ -305,7 +285,7 @@ Run with: `python debug_helper.py`
 7. **Read the docs** - Library docs have examples
 8. **Version control always** - Use git from day 1
 9. **Test early** - Write tests while coding, not after
-10. **Have fun** - You're building AI agents! 🚀
+10. **Have fun** - You're building AI agents!
 
 ---
 
