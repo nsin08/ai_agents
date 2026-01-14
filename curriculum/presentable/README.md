@@ -75,5 +75,6 @@ This folder contains a presentation-ready curriculum built from the rough draft 
   - `projects/P11_cost_engineering.md`
   - `projects/P12_multi_agent_system.md`
 - Supporting references
+  - `05_supporting/00_supporting_index.md`
   - `90_supporting/01_glossary.md`
   - `90_supporting/02_appendix_source_mapping.md`

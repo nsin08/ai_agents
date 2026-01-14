@@ -13,7 +13,7 @@
 
 **Example**: A customer support agent that reads support tickets, decides which team should handle them, and assigns them automatically.
 
-**Related Chapter**: Chapter 2: Your First Agent
+**Related Chapter**: [Chapter 2: Your First Agent](../01_beginner/chapter_02_your_first_agent.md): Your First Agent
 
 ---
 
@@ -22,7 +22,7 @@
 
 **Example**: `source .venv/bin/activate` (Linux/Mac) or `.venv\Scripts\activate` (Windows)
 
-**Related Chapter**: Chapter 1: Environment Setup
+**Related Chapter**: [Chapter 1: Environment Setup](../01_beginner/chapter_01_environment_setup.md): Environment Setup
 
 **See Also**: Virtual Environment, venv
 
@@ -33,18 +33,24 @@
 
 **Example**: Agent making 3 API calls at once instead of waiting for each one.
 
-**Related Chapter**: Chapter 1 (Python 3.11+ supports async)
+**Related Chapter**: [Chapter 1: Environment Setup](../01_beginner/chapter_01_environment_setup.md) (Python 3.11+ supports async)
 
 ---
 
 ## C
 
-### Conversation Memory
-**Definition**: Short-term memory that stores recent conversation turns (messages).
+### Short-Term Memory (Conversation Memory)
+**Definition**: Bounded memory that stores recent conversation turns (messages). In code, use `ShortTermMemory`.
 
-**Example**: Agent remembers last 10 exchanges with user, then forgets old ones.
+**Example**:
+```python
+from agent_labs.memory import ShortTermMemory, MemoryItem
 
-**Related Chapter**: Chapter 5: Memory and Context
+memory = ShortTermMemory(max_items=10)
+memory.store(MemoryItem(role="user", content="Hello"))
+```
+
+**Related Chapter**: [Chapter 5: Memory and Context](../01_beginner/chapter_05_memory_and_context.md): Memory and Context
 
 **See Also**: Long-Term Memory, Memory Expiration
 
@@ -55,7 +61,7 @@
 
 **Example**: GPT-4 has 8K token context (roughly 6,000 words). Longer conversations don't fit.
 
-**Related Chapter**: Chapter 5 (Token Management)
+**Related Chapter**: [Chapter 5: Memory and Context](../01_beginner/chapter_05_memory_and_context.md) (Token Management)
 
 ---
 
@@ -71,7 +77,7 @@
 ### Definition of Done (DoD)
 **Definition**: Checklist of what must be complete before a story is considered finished.
 
-**Example**: For Chapter 1, all tests must pass, all exercises completed.
+**Example**: For [Chapter 1: Environment Setup](../01_beginner/chapter_01_environment_setup.md), all tests must pass, all exercises completed.
 
 **Related Chapter**: Mentioned in acceptance criteria
 
@@ -89,7 +95,7 @@
 
 **Example**: pytest, agent_labs, pydantic are dependencies of this project.
 
-**Related Chapter**: Chapter 1 (uv installs dependencies)
+**Related Chapter**: [Chapter 1: Environment Setup](../01_beginner/chapter_01_environment_setup.md) (uv installs dependencies)
 
 **See Also**: Package Manager
 
@@ -100,7 +106,7 @@
 
 **Example**: FAQ database, company handbook, knowledge base.
 
-**Related Chapter**: Chapter 3: RAG Fundamentals
+**Related Chapter**: [Chapter 3: RAG Fundamentals](../01_beginner/chapter_03_rag_fundamentals.md): RAG Fundamentals
 
 ---
 
@@ -109,9 +115,9 @@
 ### Embedding (Vector Embedding)
 **Definition**: Conversion of text into a list of numbers (vector) that captures meaning.
 
-**Example**: "dog" → [0.8, 0.2, 0.1, ...]; "cat" → [0.7, 0.3, 0.1, ...] (similar vectors = similar meaning)
+**Example**: "dog" -> [0.8, 0.2, 0.1, ...]; "cat" -> [0.7, 0.3, 0.1, ...] (similar vectors = similar meaning)
 
-**Related Chapter**: Chapter 3: RAG Fundamentals
+**Related Chapter**: [Chapter 3: RAG Fundamentals](../01_beginner/chapter_03_rag_fundamentals.md): RAG Fundamentals
 
 **Key Insight**: Similar meanings have similar vectors; enables semantic search.
 
@@ -122,7 +128,7 @@
 
 **Why**: Prevents package conflicts between projects.
 
-**Related Chapter**: Chapter 1: Environment Setup
+**Related Chapter**: [Chapter 1: Environment Setup](../01_beginner/chapter_01_environment_setup.md): Environment Setup
 
 **See Also**: Virtual Environment, venv
 
@@ -131,9 +137,9 @@
 ### Error Message
 **Definition**: Text that explains what went wrong when code fails.
 
-**Example**: `NameError: name 'AgentOrchestrator' is not defined`
+**Example**: `NameError: name 'Agent' is not defined`
 
-**Pro Tip**: Read error messages carefully—they tell you exactly how to fix the problem.
+**Pro Tip**: Read error messages carefully - they tell you exactly how to fix the problem.
 
 ---
 
@@ -142,9 +148,9 @@
 ### Flow / Workflow
 **Definition**: Step-by-step sequence of actions to accomplish a goal.
 
-**Example**: Search documents → Filter results → Generate answer → Send response.
+**Example**: Search documents -> Filter results -> Generate answer -> Send response.
 
-**Related Chapter**: Chapter 4 (Multi-Step Workflows)
+**Related Chapter**: [Chapter 4: Tool Integration](../01_beginner/chapter_04_tool_integration.md) (Multi-Step Workflows)
 
 ---
 
@@ -164,7 +170,7 @@
 
 **Solution**: Use RAG, validate outputs, constrain with prompts.
 
-**Related Chapter**: Chapter 3 (RAG prevents hallucination)
+**Related Chapter**: [Chapter 3: RAG Fundamentals](../01_beginner/chapter_03_rag_fundamentals.md) (RAG prevents hallucination)
 
 ---
 
@@ -173,7 +179,7 @@
 
 **Example**: `python labs/00/src/hello_agent.py`
 
-**Related Chapter**: Chapter 1: Environment Setup
+**Related Chapter**: [Chapter 1: Environment Setup](../01_beginner/chapter_01_environment_setup.md): Environment Setup
 
 ---
 
@@ -182,9 +188,9 @@
 ### Import (Python Import)
 **Definition**: Loading code from another file or library into your script.
 
-**Example**: `from agent_labs.orchestrator import AgentOrchestrator`
+**Example**: `from agent_labs.orchestrator import Agent`
 
-**Related Chapter**: Chapter 1 (missing imports cause errors)
+**Related Chapter**: [Chapter 1: Environment Setup](../01_beginner/chapter_01_environment_setup.md) (missing imports cause errors)
 
 ---
 
@@ -195,7 +201,7 @@
 
 **Difference from Unit Test**: Unit tests one component; integration tests multiple.
 
-**Related Chapter**: Chapter 6: Testing Your Agent
+**Related Chapter**: [Chapter 6: Testing Your Agent](../01_beginner/chapter_06_testing_your_agent.md): Testing Your Agent
 
 ---
 
@@ -206,7 +212,7 @@
 
 **Example**: `{"name": "Sarah", "age": 30, "city": "Boston"}`
 
-**Related Chapter**: Used for storing preferences (Chapter 5)
+**Related Chapter**: Used for storing preferences ([Chapter 5: Memory and Context](../01_beginner/chapter_05_memory_and_context.md))
 
 ---
 
@@ -217,7 +223,7 @@
 
 **Example**: Company policies, product documentation, FAQs.
 
-**Related Chapter**: Chapter 3: RAG Fundamentals
+**Related Chapter**: [Chapter 3: RAG Fundamentals](../01_beginner/chapter_03_rag_fundamentals.md): RAG Fundamentals
 
 ---
 
@@ -241,7 +247,7 @@
 
 **Examples**: GPT-4, GPT-3.5, Claude, Llama 2
 
-**Related Chapter**: Discussed in Chapter 2 (Providers)
+**Related Chapter**: Discussed in [Chapter 2: Your First Agent](../01_beginner/chapter_02_your_first_agent.md) (Providers)
 
 **See Also**: Provider
 
@@ -252,9 +258,9 @@
 
 **Example**: User preferences saved to JSON file; agent remembers them after restart.
 
-**Related Chapter**: Chapter 5: Memory and Context
+**Related Chapter**: [Chapter 5: Memory and Context](../01_beginner/chapter_05_memory_and_context.md): Memory and Context
 
-**Contrast**: Conversation Memory (session-only)
+**Contrast**: Short-Term Memory (session-only)
 
 ---
 
@@ -264,11 +270,11 @@
 **Definition**: Agent's ability to remember past information.
 
 **Types**:
-- Conversation Memory: Recent exchanges
+- Short-Term Memory: Recent exchanges
 - Long-Term Memory: Persistent facts
 - Episodic Memory: Searchable past events
 
-**Related Chapter**: Chapter 5: Memory and Context
+**Related Chapter**: [Chapter 5: Memory and Context](../01_beginner/chapter_05_memory_and_context.md): Memory and Context
 
 ---
 
@@ -277,9 +283,9 @@
 
 **Why Use**: Fast, cheap, predictable (no actual LLM calls).
 
-**Limitation**: Not actually intelligent—just repeats.
+**Limitation**: Not actually intelligent - just repeats.
 
-**Related Chapter**: Chapter 2 (Providers)
+**Related Chapter**: [Chapter 2: Your First Agent](../01_beginner/chapter_02_your_first_agent.md) (Providers)
 
 ---
 
@@ -288,7 +294,7 @@
 
 **Example**: One agent handles support, another handles billing, they collaborate.
 
-**Related Chapter**: Chapter 4 (multi-step workflows hint at this)
+**Related Chapter**: [Chapter 4: Tool Integration](../01_beginner/chapter_04_tool_integration.md) (multi-step workflows hint at this)
 
 ---
 
@@ -299,19 +305,19 @@
 
 **Example**: Run Llama 2 locally on your computer.
 
-**Related Chapter**: Chapter 2 (Provider options)
+**Related Chapter**: [Chapter 2: Your First Agent](../01_beginner/chapter_02_your_first_agent.md) (Provider options)
 
 ---
 
 ### Observe-Plan-Act Loop
-**Definition**: Core agent reasoning cycle: perceive situation → decide action → execute.
+**Definition**: Core agent reasoning cycle: perceive situation -> decide action -> execute.
 
 **Example**:
 1. Observe: User asks "What's 5+3?"
 2. Plan: "Need calculator tool"
 3. Act: Call calculator
 
-**Related Chapter**: Chapter 2 (The Five-Step Loop)
+**Related Chapter**: [Chapter 2: Your First Agent](../01_beginner/chapter_02_your_first_agent.md) (The Five-Step Loop)
 
 ---
 
@@ -320,16 +326,16 @@
 
 **Cost**: Charged per token used.
 
-**Related Chapter**: Chapter 2 (Provider options)
+**Related Chapter**: [Chapter 2: Your First Agent](../01_beginner/chapter_02_your_first_agent.md) (Provider options)
 
 ---
 
 ### Orchestrator
 **Definition**: Component that coordinates all agent operations (memory, tools, reasoning).
 
-**Analogy**: Orchestra conductor—manages all instruments working together.
+**Analogy**: Orchestra conductor - manages all instruments working together.
 
-**Related Chapter**: Chapter 2 (AgentOrchestrator)
+**Related Chapter**: [Chapter 2: Your First Agent](../01_beginner/chapter_02_your_first_agent.md) (Agent)
 
 ---
 
@@ -340,7 +346,7 @@
 
 **Examples**: pytest, agent_labs, numpy
 
-**Related Chapter**: Chapter 1 (uv installs packages)
+**Related Chapter**: [Chapter 1: Environment Setup](../01_beginner/chapter_01_environment_setup.md) (uv installs packages)
 
 **See Also**: Package Manager, Dependencies
 
@@ -351,7 +357,7 @@
 
 **Examples**: uv (modern), pip (traditional)
 
-**Related Chapter**: Chapter 1: Environment Setup
+**Related Chapter**: [Chapter 1: Environment Setup](../01_beginner/chapter_01_environment_setup.md): Environment Setup
 
 ---
 
@@ -360,16 +366,16 @@
 
 **Example**: Calculator's divide() needs parameters: a (dividend) and b (divisor).
 
-**Related Chapter**: Chapter 4 (Tool Parameters)
+**Related Chapter**: [Chapter 4: Tool Integration](../01_beginner/chapter_04_tool_integration.md) (Tool Parameters)
 
 ---
 
 ### Personality (System Prompt)
 **Definition**: Instructions that customize an agent's behavior and tone.
 
-**Example**: "You are a friendly pirate assistant" → agent responds like a pirate.
+**Example**: "You are a friendly pirate assistant" -> agent responds like a pirate.
 
-**Related Chapter**: Chapter 2 (system_prompt parameter)
+**Related Chapter**: [Chapter 2: Your First Agent](../01_beginner/chapter_02_your_first_agent.md) (system_prompt parameter)
 
 ---
 
@@ -378,7 +384,7 @@
 
 **Analogy**: "Where the agent gets its intelligence from."
 
-**Related Chapter**: Chapter 2, Section 5 (LLM Providers)
+**Related Chapter**: [Chapter 2: Your First Agent](../01_beginner/chapter_02_your_first_agent.md), Section 5 (LLM Providers)
 
 ---
 
@@ -389,7 +395,7 @@
 
 **Required Version**: 3.11+ (for async support and improvements)
 
-**Related Chapter**: Chapter 1
+**Related Chapter**: [Chapter 1: Environment Setup](../01_beginner/chapter_01_environment_setup.md)
 
 ---
 
@@ -413,7 +419,7 @@
 
 **Benefit**: Agent can answer from your documents, not just training data.
 
-**Related Chapter**: Chapter 3: RAG Fundamentals
+**Related Chapter**: [Chapter 3: RAG Fundamentals](../01_beginner/chapter_03_rag_fundamentals.md): RAG Fundamentals
 
 **See Also**: Embedding, Vector Search
 
@@ -424,16 +430,16 @@
 
 **Example**: https://github.com/nsin08/ai_agents
 
-**Related Chapter**: Chapter 1 (`git clone`)
+**Related Chapter**: [Chapter 1: Environment Setup](../01_beginner/chapter_01_environment_setup.md) (`git clone`)
 
 ---
 
 ### Retriever
 **Definition**: Tool that searches documents and returns relevant ones.
 
-**Example**: VectorRetriever uses embeddings to find similar documents.
+**Example**: A vector retriever uses embeddings to find similar documents.
 
-**Related Chapter**: Chapter 3 (VectorRetriever in RAG)
+**Related Chapter**: [Chapter 3: RAG Fundamentals](../01_beginner/chapter_03_rag_fundamentals.md) (RAG retrieval)
 
 ---
 
@@ -446,14 +452,14 @@
 
 **Contrast**: Keyword search only matches exact words.
 
-**Related Chapter**: Chapter 3 (Embeddings enable semantic search)
+**Related Chapter**: [Chapter 3: RAG Fundamentals](../01_beginner/chapter_03_rag_fundamentals.md) (Embeddings enable semantic search)
 
 ---
 
 ### State Machine
 **Definition**: System with defined states and transitions between them.
 
-**Example**: Agent states: Waiting → Processing → Responding → Done
+**Example**: Agent states: Waiting -> Processing -> Responding -> Done
 
 **Related Chapter**: Mentioned in orchestrator flow
 
@@ -464,7 +470,7 @@
 
 **Example**: `preferences.json` stores user preferences permanently.
 
-**Related Chapter**: Chapter 5 (Long-Term Memory)
+**Related Chapter**: [Chapter 5: Memory and Context](../01_beginner/chapter_05_memory_and_context.md) (Long-Term Memory)
 
 ---
 
@@ -473,7 +479,7 @@
 
 **Example**: "You are a helpful assistant focused on customer support."
 
-**Related Chapter**: Chapter 2 (Personality Agent)
+**Related Chapter**: [Chapter 2: Your First Agent](../01_beginner/chapter_02_your_first_agent.md) (Personality Agent)
 
 ---
 
@@ -486,7 +492,7 @@
 
 **Why**: Catch bugs early, ensure changes don't break things.
 
-**Related Chapter**: Chapter 6: Testing Your Agent
+**Related Chapter**: [Chapter 6: Testing Your Agent](../01_beginner/chapter_06_testing_your_agent.md): Testing Your Agent
 
 ---
 
@@ -495,7 +501,7 @@
 
 **Examples**: Calculator, weather API, database query, email sender.
 
-**Related Chapter**: Chapter 4: Tool Integration
+**Related Chapter**: [Chapter 4: Tool Integration](../01_beginner/chapter_04_tool_integration.md): Tool Integration
 
 ---
 
@@ -504,7 +510,7 @@
 
 **Example**: Calculator tool needs "operation", "a", "b" parameters.
 
-**Related Chapter**: Chapter 4 (Section 2)
+**Related Chapter**: [Chapter 4: Tool Integration](../01_beginner/chapter_04_tool_integration.md) (Section 2)
 
 ---
 
@@ -513,16 +519,16 @@
 
 **Why**: LLMs charge per token; context windows limit tokens.
 
-**Example**: "Hello world" ≈ 2 tokens
+**Example**: "Hello world" ~= 2 tokens
 
-**Related Chapter**: Chapter 5 (Token Management)
+**Related Chapter**: [Chapter 5: Memory and Context](../01_beginner/chapter_05_memory_and_context.md) (Token Management)
 
 ---
 
 ### Troubleshooting
 **Definition**: Process of finding and fixing problems.
 
-**Related Chapter**: Chapter 1 (Common Troubleshooting section)
+**Related Chapter**: [Chapter 1: Environment Setup](../01_beginner/chapter_01_environment_setup.md) (Common Troubleshooting section)
 
 **Pro Tip**: Read error messages, Google the error, check documentation.
 
@@ -537,7 +543,7 @@
 
 **Example**: Query vector [0.2, 0.8, 0.3] finds documents with similar vectors.
 
-**Related Chapter**: Chapter 3 (Embeddings and Vector Search)
+**Related Chapter**: [Chapter 3: RAG Fundamentals](../01_beginner/chapter_03_rag_fundamentals.md) (Embeddings and Vector Search)
 
 ---
 
@@ -548,7 +554,7 @@
 
 **Why**: Prevents package conflicts between different projects.
 
-**Related Chapter**: Chapter 1: Environment Setup
+**Related Chapter**: [Chapter 1: Environment Setup](../01_beginner/chapter_01_environment_setup.md): Environment Setup
 
 ---
 
@@ -557,9 +563,9 @@
 ### Workflow
 **Definition**: Step-by-step process to accomplish a task.
 
-**Example**: Book-a-flight workflow: get date → search flights → select → book → confirm.
+**Example**: Book-a-flight workflow: get date -> search flights -> select -> book -> confirm.
 
-**Related Chapter**: Chapter 4 (Multi-Step Workflows)
+**Related Chapter**: [Chapter 4: Tool Integration](../01_beginner/chapter_04_tool_integration.md) (Multi-Step Workflows)
 
 ---
 
@@ -591,7 +597,7 @@ city: Boston
 
 ## Appendix: Terms by Chapter
 
-### Chapter 1: Environment Setup
+### [Chapter 1: Environment Setup](../01_beginner/chapter_01_environment_setup.md): Environment Setup
 - Activation
 - Dependencies
 - Environment
@@ -603,7 +609,7 @@ city: Boston
 - Tool
 - Virtual Environment
 
-### Chapter 2: Your First Agent
+### [Chapter 2: Your First Agent](../01_beginner/chapter_02_your_first_agent.md): Your First Agent
 - Agent
 - Async
 - Context Window
@@ -617,8 +623,8 @@ city: Boston
 - Provider
 - System Prompt
 
-### Chapter 3: RAG Fundamentals
-- Conversation Memory
+### [Chapter 3: RAG Fundamentals](../01_beginner/chapter_03_rag_fundamentals.md): RAG Fundamentals
+- Short-Term Memory
 - Document Store
 - Embedding
 - Hallucination
@@ -629,15 +635,15 @@ city: Boston
 - Token
 - Vector / Vector Search
 
-### Chapter 4: Tool Integration
+### [Chapter 4: Tool Integration](../01_beginner/chapter_04_tool_integration.md): Tool Integration
 - Flow / Workflow
 - Multi-Agent
 - Parameter
 - Tool
 - Tool Contract
 
-### Chapter 5: Memory and Context
-- Conversation Memory
+### [Chapter 5: Memory and Context](../01_beginner/chapter_05_memory_and_context.md): Memory and Context
+- Short-Term Memory
 - Context Window
 - JSON
 - Long-Term Memory
@@ -645,12 +651,12 @@ city: Boston
 - Storage
 - Token
 
-### Chapter 6: Testing
+### [Chapter 6: Testing Your Agent](../01_beginner/chapter_06_testing_your_agent.md): Testing
 - Integration Test
 - Quiz
 - Test / Unit Test
 
-### Chapter 7: Final Project
+### [Chapter 7: Final Project](../01_beginner/chapter_07_final_project.md): Final Project
 - Definition of Done
 - Definition of Ready
 - Glossary
@@ -690,4 +696,13 @@ city: Boston
 ---
 
 **Tip**: Bookmark this page and reference while working through chapters. Return here when you see unfamiliar terms!
+
+---
+
+## Document Checklist
+
+- [ ] Accessibility review (WCAG AA)
+- [ ] At least 25 terms included
+- [ ] Definitions are concise and beginner-friendly
+- [ ] ASCII only
 
