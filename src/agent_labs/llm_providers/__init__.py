@@ -11,6 +11,7 @@ Exports:
 from .base import Provider, LLMResponse
 from .mock import MockProvider
 from .ollama import OllamaProvider
+from .openai import OpenAIProvider
 from .cloud import CloudProvider
 from .exceptions import (
     ProviderError,
@@ -30,6 +31,7 @@ __all__ = [
     # Implementations
     "MockProvider",
     "OllamaProvider",
+    "OpenAIProvider",
     "CloudProvider",
     # Exceptions
     "ProviderError",

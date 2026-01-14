@@ -392,9 +392,9 @@ Goodbye!
 
 ---
 
-## 4. explore.py - Predefined Scenarios
+## 4. explore.py - Predefined Scenarios with Dynamic Provider Control
 
-**Usage:**
+**Basic Usage:**
 ```bash
 python scripts/explore.py SCENARIO_NAME
 ```
@@ -406,11 +406,28 @@ python scripts/explore.py reasoning      # Logic puzzles and riddles
 python scripts/explore.py storytelling   # Creative writing prompts
 python scripts/explore.py teaching       # Topic explanations
 python scripts/explore.py advanced       # Complex multi-turn reasoning
+python scripts/explore.py openai         # OpenAI GPT-4 powered responses
 ```
 
-**Features:** Structured learning paths, batch prompts, great for demos/teaching  
-**Pros:** No configuration needed, good for learning, reproducible  
-**Cons:** Limited to predefined scenarios
+**CLI Arguments for Provider/Model Override:**
+```bash
+# Switch provider
+python scripts/explore.py reasoning --openai                    # Use OpenAI
+python scripts/explore.py teaching --ollama                     # Use Ollama
+python scripts/explore.py quickstart --mock                     # Use Mock (instant)
+
+# Override model
+python scripts/explore.py openai --model gpt-3.5-turbo
+python scripts/explore.py reasoning --ollama --model phi
+
+# List or help
+python scripts/explore.py --list                                # List scenarios
+python scripts/explore.py --help                                # Show help
+```
+
+**Features:** Structured learning paths, dynamic provider control, batch prompts  
+**Pros:** No configuration needed, flexible provider switching, reproducible  
+**Cons:** Limited to predefined scenarios (customize by editing script)
 
 ---
 

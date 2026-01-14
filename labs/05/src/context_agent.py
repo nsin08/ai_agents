@@ -49,15 +49,17 @@ class ContextAgent:
     - Few-shot example management
     """
     
-    def __init__(self, model: str = "gpt-3.5-turbo", max_tokens: int = 8000):
+    def __init__(self, model: Optional[str] = None, max_tokens: int = 8000):
         """
         Initialize context agent.
         
         Args:
-            model: LLM model name (used for token estimation)
+            model: LLM model name (used for token estimation). If None, reads from env (LLM_MODEL)
             max_tokens: Context window size for target model
         """
-        self.model = model
+        import os
+        # Use provided model, or env var, or None (caller must handle)
+        self.model = model or os.getenv("LLM_MODEL")
         self.max_tokens = max_tokens
         self.templates = {}
         self.examples = {}

@@ -25,15 +25,21 @@ if sys.stdout.encoding and 'utf' not in sys.stdout.encoding.lower():
 
 import asyncio
 import os
+import argparse
 from pathlib import Path
 from dataclasses import dataclass
 from typing import List, Optional
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from agent_labs.orchestrator import Agent
-from agent_labs.llm_providers import MockProvider, OllamaProvider, CloudProvider
+from agent_labs.llm_providers import MockProvider, OllamaProvider, OpenAIProvider
+from agent_labs.config import get_config, reload_config, ProviderConfig
 
 
 @dataclass
@@ -75,6 +81,18 @@ class ExplorationNotebook:
                 "Solve this riddle: I have cities but no houses. What am I?",
                 "Explain the concept of recursion",
                 "What's the capital of France?",
+            ],
+        ),
+        "openai": Scenario(
+            name="OpenAI GPT-4",
+            description="Use OpenAI GPT-4 for high-quality responses",
+            provider="openai",
+            model="gpt-4",
+            max_turns=5,
+            prompts=[
+                "What is artificial intelligence?",
+                "Explain quantum computing in simple terms",
+                "What are the ethical implications of AI?",
             ],
         ),
         "storytelling": Scenario(
@@ -132,15 +150,26 @@ class ExplorationNotebook:
     
     # Future cloud provider scenarios (requires implementation in cloud.py)
     CLOUD_SCENARIOS = {
-        "cloud": Scenario(
-            name="Cloud Provider",
-            description="[Coming Soon] Use cloud LLM providers (OpenAI, Anthropic, etc.)",
-            provider="cloud",
-            model="gpt-4",
+        "anthropic": Scenario(
+            name="Anthropic Claude",
+            description="[Coming Soon] Use Anthropic Claude",
+            provider="anthropic",
+            model="claude-3-opus",
             max_turns=5,
             prompts=[
                 "Explain quantum computing",
                 "Write a poem about AI",
+            ],
+        ),
+        "google": Scenario(
+            name="Google Gemini",
+            description="[Coming Soon] Use Google Gemini",
+            provider="google",
+            model="gemini-pro",
+            max_turns=5,
+            prompts=[
+                "What is machine learning?",
+                "Explain neural networks",
             ],
         ),
     }
@@ -162,14 +191,20 @@ class ExplorationNotebook:
             print(f"   Prompts: {len(scenario.prompts)}")
             print()
 
-    async def run_scenario(self, scenario_key: str):
-        """Run a scenario."""
+    async def run_scenario(self, scenario_key: str, override_provider: Optional[str] = None, override_model: Optional[str] = None):
+        """Run a scenario with optional provider/model override."""
         if scenario_key not in self.all_scenarios:
             print(f"✗ Unknown scenario: {scenario_key}")
             self.list_scenarios()
             return
 
         scenario = self.all_scenarios[scenario_key]
+        
+        # Override provider and model if specified
+        if override_provider:
+            scenario.provider = override_provider
+        if override_model:
+            scenario.model = override_model
 
         print(f"\n╔════════════════════════════════════════════════════════════════╗")
         print(f"║  {scenario.name:<60}║")
@@ -188,14 +223,30 @@ class ExplorationNotebook:
                 model=scenario.model,
                 base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
             )
-        elif scenario.provider == "cloud":
-            # Cloud provider requires implementation in cloud.py
-            print("⚠️  CloudProvider is not yet implemented.")
-            print("    To use cloud providers (OpenAI, Anthropic, etc.):")
-            print("    1. Implement the CloudProvider class in src/agent_labs/llm_providers/cloud.py")
-            print("    2. Add API key configuration")
-            print("    3. Run this scenario again")
-            print("\n    For now, use 'ollama' provider scenarios.\n")
+        elif scenario.provider == "openai":
+            # OpenAI provider
+            api_key = os.getenv("OPENAI_API_KEY")
+            if not api_key:
+                print("⚠️  OpenAI API key not found.")
+                print("    Set OPENAI_API_KEY environment variable in .env file")
+                print("    Example: OPENAI_API_KEY=sk-...")
+                return
+            
+            provider = OpenAIProvider(
+                api_key=api_key,
+                model=scenario.model,
+                base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+                timeout=int(os.getenv("OPENAI_TIMEOUT", "30")),
+                temperature=float(os.getenv("OPENAI_TEMPERATURE", "0.7")),
+            )
+        elif scenario.provider in ["anthropic", "google", "azure-openai"]:
+            # Cloud providers not yet fully implemented
+            print(f"⚠️  {scenario.provider.title()} provider is not yet fully implemented.")
+            print(f"    To use {scenario.provider}:")
+            print(f"    1. Implement the {scenario.provider.title()}Provider class")
+            print(f"    2. Add API key configuration")
+            print(f"    3. Run this scenario again")
+            print(f"\n    For now, use 'ollama' or 'openai' provider scenarios.\n")
             return
         else:
             print(f"✗ Unknown provider: {scenario.provider}")
@@ -242,11 +293,13 @@ USAGE:
 AVAILABLE SCENARIOS:
   quickstart   - Simple introductory prompts (Ollama)
   reasoning    - Test logical reasoning (Ollama)
+  openai       - Use OpenAI GPT-4 (requires OPENAI_API_KEY)
   storytelling - Creative story generation (Ollama)
   teaching     - Complex topic explanations (Ollama)
   advanced     - Advanced reasoning tasks (Ollama)
   mock         - Fast testing with MockProvider
-  cloud        - [Coming Soon] Cloud provider integration
+  anthropic    - [Coming Soon] Anthropic Claude
+  google       - [Coming Soon] Google Gemini
 
 PREREQUISITES:
   For Ollama scenarios (default):
@@ -254,12 +307,17 @@ PREREQUISITES:
     2. Start server: ollama serve
     3. Pull model: ollama pull llama2
   
-  For Cloud scenarios (future):
-    Implementation required in cloud.py
+  For OpenAI scenarios:
+    1. Set OPENAI_API_KEY in .env file
+    2. Example: OPENAI_API_KEY=sk-...
+  
+  For other cloud providers (Anthropic, Google):
+    Implementation required in respective provider files
 
 EXAMPLES:
   python scripts/explore.py quickstart    # Default: uses Ollama + llama2
   python scripts/explore.py reasoning
+  python scripts/explore.py openai        # Uses OpenAI GPT-4 (requires API key)
   python scripts/explore.py teaching
   python scripts/explore.py mock          # Fast testing without LLM
 
@@ -280,18 +338,77 @@ OUTPUT:
 
 async def main():
     """Entry point."""
+    from dotenv import load_dotenv
+    load_dotenv()
+
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(
+        description='Agent Exploration Notebook - Run interactive agent scenarios',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # List available scenarios
+  python scripts/explore.py --list
+  
+  # Run a scenario with defaults
+  python scripts/explore.py reasoning
+  
+  # Override provider and model
+  python scripts/explore.py reasoning --openai --model gpt-4
+  python scripts/explore.py teaching --ollama --model llama3.2:3b
+  python scripts/explore.py quickstart --mock
+  
+  # Override with specific model only
+  python scripts/explore.py openai --model gpt-3.5-turbo
+        """
+    )
+    parser.add_argument('scenario', nargs='?', default='quickstart',
+                       help='Scenario to run (quickstart, reasoning, openai, teaching, etc.)')
+    parser.add_argument('--list', action='store_true',
+                       help='List all available scenarios and exit')
+    parser.add_argument('--help-full', action='store_true',
+                       help='Show full help with scenario descriptions')
+    parser.add_argument('--ollama', action='store_true',
+                       help='Override scenario provider to use Ollama')
+    parser.add_argument('--openai', action='store_true',
+                       help='Override scenario provider to use OpenAI (requires OPENAI_API_KEY)')
+    parser.add_argument('--mock', action='store_true',
+                       help='Override scenario provider to use Mock (deterministic responses)')
+    parser.add_argument('--model', type=str,
+                       help='Override model name (e.g., gpt-4, llama3.2:3b, etc.)')
+
+    args = parser.parse_args()
+
     notebook = ExplorationNotebook()
 
-    if len(sys.argv) < 2 or sys.argv[1] == "--help":
-        notebook.show_help()
-        return
-
-    if sys.argv[1] == "--list":
+    if args.list:
         notebook.list_scenarios()
         return
 
-    scenario_key = sys.argv[1].lower()
-    await notebook.run_scenario(scenario_key)
+    if args.help_full:
+        notebook.show_help()
+        return
+
+    # Determine provider override
+    override_provider = None
+    if args.openai:
+        override_provider = "openai"
+    elif args.ollama:
+        override_provider = "ollama"
+    elif args.mock:
+        override_provider = "mock"
+
+    # Validate OpenAI API key if openai provider is requested
+    if override_provider == "openai":
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key or api_key.strip() == "":
+            print("✗ Error: OPENAI_API_KEY not set in environment")
+            print("  Please set your OpenAI API key in .env file or environment")
+            return
+
+    # Run the scenario with overrides
+    scenario_key = args.scenario.lower() if args.scenario else "quickstart"
+    await notebook.run_scenario(scenario_key, override_provider, args.model)
 
 
 if __name__ == "__main__":
