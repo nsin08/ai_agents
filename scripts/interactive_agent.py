@@ -38,15 +38,135 @@ import asyncio
 import os
 from pathlib import Path
 from typing import Optional
+from dotenv import load_dotenv
+
+# Load .env file before anything else
+load_dotenv()
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from agent_labs.orchestrator import Agent, AgentState
-from agent_labs.llm_providers import MockProvider, OllamaProvider
+from agent_labs.llm_providers import MockProvider, OllamaProvider, OpenAIProvider, CloudProvider
 from agent_labs.memory import MemoryManager, ShortTermMemory, LongTermMemory
 from agent_labs.tools import ToolRegistry, TextSummarizer, CodeAnalyzer
-from agent_labs.config import get_config, AgentConfig, LLMProvider
+from agent_labs.config import get_config, AgentConfig, LLMProvider, ProviderConfig
+
+
+class ProviderFactory:
+    """Factory and registry for LLM provider instances.
+    
+    Implements the Factory + Registry pattern to:
+    - Eliminate if/elif chains for provider creation
+    - Enable easy addition of new providers
+    - Provide introspection of available providers
+    """
+    
+    _registry = {
+        "mock": MockProvider,
+        "ollama": OllamaProvider,
+        "openai": OpenAIProvider,
+        "anthropic": CloudProvider,  # Placeholder until Anthropic adapter implemented
+        "google": CloudProvider,  # Placeholder until Google adapter implemented
+        "azure-openai": CloudProvider,  # Placeholder until Azure OpenAI adapter implemented
+    }
+    
+    @classmethod
+    def register(cls, name: str, provider_class) -> None:
+        """Register a new provider type for runtime use.
+        
+        Args:
+            name: Provider type identifier (e.g., 'openai', 'anthropic')
+            provider_class: Provider class (must implement BaseProvider interface)
+        """
+        cls._registry[name] = provider_class
+    
+    @classmethod
+    def create(cls, provider_type: str, config: ProviderConfig):
+        """Create a provider instance based on type.
+        
+        Args:
+            provider_type: Type of provider to create
+            config: ProviderConfig instance with settings
+            
+        Returns:
+            Provider instance (implements BaseProvider interface)
+            
+        Raises:
+            ValueError: If provider type is unknown or missing required config
+            NotImplementedError: If provider placeholder not yet implemented
+        """
+        provider_class = cls._registry.get(provider_type)
+        if not provider_class:
+            available = ", ".join(cls.list_providers())
+            raise ValueError(
+                f"Provider '{provider_type}' not registered. "
+                f"Available: {available}"
+            )
+        
+        # Provider-specific initialization logic
+        if provider_type == "mock":
+            return provider_class()
+        elif provider_type == "ollama":
+            return provider_class(
+                model=config.model,
+                base_url=config.base_url,
+                timeout=config.timeout,
+            )
+        elif provider_type == "openai":
+            # OpenAI provider - fully implemented
+            if not config.api_key:
+                raise ValueError(
+                    "Provider 'openai' requires API key. "
+                    "Set OPENAI_API_KEY environment variable."
+                )
+            if not config.model:
+                raise ValueError(
+                    "Provider 'openai' requires model name. "
+                    "Set OPENAI_MODEL environment variable."
+                )
+            return provider_class(
+                api_key=config.api_key,
+                model=config.model,
+                base_url=config.base_url,
+                timeout=config.timeout,
+                temperature=config.temperature,
+            )
+        elif provider_type in ["anthropic", "google", "azure-openai"]:
+            # Cloud providers not yet implemented
+            if not config.api_key:
+                api_key_var = provider_type.upper().replace("-", "_") + "_API_KEY"
+                raise ValueError(
+                    f"Provider '{provider_type}' requires API key. "
+                    f"Set {api_key_var} environment variable."
+                )
+            if not config.model:
+                raise ValueError(
+                    f"Provider '{provider_type}' requires model name. "
+                    f"Set LLM_MODEL or {provider_type.upper()}_MODEL environment variable."
+                )
+            
+            # Raise NotImplementedError with helpful message
+            raise NotImplementedError(
+                f"Provider '{provider_type}' is registered but not yet fully implemented.\n"
+                f"✓ Configuration ready:\n"
+                f"  - Model: {config.model}\n"
+                f"  - API Key: {'✓ Set' if config.api_key else '✗ Missing'}\n"
+                f"Next: Implement {provider_type.upper()} adapter in src/agent_labs/llm_providers/"
+            )
+        else:
+            raise NotImplementedError(
+                f"Provider '{provider_type}' placeholder not yet implemented."
+            )
+    
+    @classmethod
+    def list_providers(cls) -> list[str]:
+        """List all registered provider types.
+        
+        Returns:
+            List of provider type names
+        """
+        return list(cls._registry.keys())
 
 
 class InteractiveAgent:
@@ -85,32 +205,29 @@ class InteractiveAgent:
             print(f"⚠ Warning: Could not initialize all tools: {e}")
 
     def _init_agent(self):
-        """Initialize agent with current configuration."""
+        """Initialize agent with current configuration using provider factory."""
         try:
             provider_config = self.config.provider_config
             
+            # Use factory to create provider (eliminates if/elif chains)
+            provider = ProviderFactory.create(self.provider_type, provider_config)
+            
+            # Display initialization status
+            provider_display = self.provider_type.upper()
             if self.provider_type == "mock":
-                provider = MockProvider()
-                print(f"✓ Initialized MockProvider (fast, deterministic)")
-            elif self.provider_type == "ollama":
-                provider = OllamaProvider(
-                    model=provider_config.model,
-                    base_url=provider_config.base_url,
-                    timeout=provider_config.timeout,
-                )
-                print(f"✓ Initialized OllamaProvider ({provider_config.model})")
+                print(f"✓ Initialized {provider_display}Provider (fast, deterministic)")
             else:
-                # Support for future cloud providers
-                raise ValueError(
-                    f"Provider '{self.provider_type}' not yet implemented in interactive mode. "
-                    f"Supported: mock, ollama"
-                )
+                print(f"✓ Initialized {provider_display}Provider ({provider_config.model})")
 
             self.agent = Agent(provider=provider)
             self.conversation_history = []
+        except (ValueError, NotImplementedError) as e:
+            # Re-raise provider-specific errors so caller can handle them
+            raise
         except Exception as e:
             print(f"✗ Error initializing agent: {e}")
             self.agent = None
+            raise
 
     def show_help(self):
         """Display help information."""
@@ -123,8 +240,8 @@ COMMANDS:
   /help              Show this help message
   /config            Display current agent configuration
   /reset             Clear conversation history and agent state
-  /provider TYPE     Switch provider: 'mock' or 'ollama'
-  /model NAME        Set model name (e.g., 'llama2', 'mistral')
+  /provider TYPE     Switch provider (run /config to see available providers)
+  /model NAME        Set model name (e.g., 'llama2', 'gpt-4', 'claude-3')
   /max_turns N       Set maximum turns for agent response (1-10)
   /tools             List available tools and their usage
   /summarize TEXT    Summarize given text (min 50 chars)
@@ -141,15 +258,18 @@ EXAMPLES:
   > What is machine learning?
   > /provider ollama
   > /model mistral
+  > /provider openai
+  > /model gpt-4
   > /max_turns 5
   > Explain the capital of France
   > /history
   > /reset
 
 NOTES:
-  - MockProvider gives instant, deterministic responses
-  - OllamaProvider requires Ollama running locally (ollama serve)
-  - Pull models first: ollama pull llama2
+  - MockProvider: Instant, deterministic responses (best for testing)
+  - OllamaProvider: Local LLM via Ollama (ollama serve required)
+  - OpenAI/Anthropic/Google: Cloud providers (API keys required, see .env.example)
+  - Pull Ollama models: ollama pull llama2
   - Agent uses memory to track conversation context
         """
         print(help_text)
@@ -396,12 +516,48 @@ Use these tools to experiment with agent-tool interaction patterns!
 
         elif cmd.startswith("/provider "):
             provider_type = cmd.split(" ", 1)[1].strip().lower()
-            if provider_type in ["mock", "ollama"]:
-                self.provider_type = provider_type
-                self._init_agent()
-                print(f"✓ Switched to {provider_type} provider")
+            available_providers = ProviderFactory.list_providers()
+            
+            if provider_type in available_providers:
+                # Reload .env FIRST (without override so we can set LLM_PROVIDER after)
+                try:
+                    from dotenv import load_dotenv
+                    load_dotenv()  # Load provider-specific settings (API keys, models, etc.)
+                    
+                    # NOW set the provider type (after loading other env vars)
+                    self.provider_type = provider_type
+                    os.environ["LLM_PROVIDER"] = provider_type
+                    
+                    from agent_labs.config import reload_config
+                    self.config = reload_config()
+                    self.model_name = self.config.provider_config.model
+                    
+                    self._init_agent()
+                    print(f"✓ Switched to {provider_type} provider")
+                except NotImplementedError as e:
+                    # Provider registered but not yet implemented (e.g., Anthropic, Google)
+                    print(f"ℹ Provider '{provider_type}' recognized and configured")
+                    print(f"  Status: Not yet fully implemented")
+                    print(f"  {e}")
+                    # Revert to mock since provider not yet implemented
+                    os.environ["LLM_PROVIDER"] = "mock"
+                    self.provider_type = "mock"
+                    from agent_labs.config import reload_config
+                    self.config = reload_config()
+                    self._init_agent()
+                    print(f"  (Keeping mock provider)")
+                except (ValueError, Exception) as e:
+                    # Configuration error (missing API key, model, etc.)
+                    error_msg = str(e)
+                    print(f"✗ Configuration error: {error_msg}")
+                    # Revert to previous provider on error
+                    os.environ["LLM_PROVIDER"] = "mock"
+                    self.provider_type = "mock"
+                    return True
             else:
-                print(f"✗ Unknown provider: {provider_type}. Use 'mock' or 'ollama'")
+                available = ", ".join(available_providers)
+                print(f"✗ Unknown provider: {provider_type}")
+                print(f"   Available: {available}")
             return True
 
         elif cmd.startswith("/model "):
