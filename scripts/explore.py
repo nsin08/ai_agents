@@ -28,12 +28,17 @@ import os
 from pathlib import Path
 from dataclasses import dataclass
 from typing import List, Optional
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from agent_labs.orchestrator import Agent
-from agent_labs.llm_providers import MockProvider, OllamaProvider, CloudProvider
+from agent_labs.llm_providers import MockProvider, OllamaProvider, OpenAIProvider
+from agent_labs.config import get_config, reload_config, ProviderConfig
 
 
 @dataclass
@@ -75,6 +80,18 @@ class ExplorationNotebook:
                 "Solve this riddle: I have cities but no houses. What am I?",
                 "Explain the concept of recursion",
                 "What's the capital of France?",
+            ],
+        ),
+        "openai": Scenario(
+            name="OpenAI GPT-4",
+            description="Use OpenAI GPT-4 for high-quality responses",
+            provider="openai",
+            model="gpt-4",
+            max_turns=5,
+            prompts=[
+                "What is artificial intelligence?",
+                "Explain quantum computing in simple terms",
+                "What are the ethical implications of AI?",
             ],
         ),
         "storytelling": Scenario(
@@ -132,15 +149,26 @@ class ExplorationNotebook:
     
     # Future cloud provider scenarios (requires implementation in cloud.py)
     CLOUD_SCENARIOS = {
-        "cloud": Scenario(
-            name="Cloud Provider",
-            description="[Coming Soon] Use cloud LLM providers (OpenAI, Anthropic, etc.)",
-            provider="cloud",
-            model="gpt-4",
+        "anthropic": Scenario(
+            name="Anthropic Claude",
+            description="[Coming Soon] Use Anthropic Claude",
+            provider="anthropic",
+            model="claude-3-opus",
             max_turns=5,
             prompts=[
                 "Explain quantum computing",
                 "Write a poem about AI",
+            ],
+        ),
+        "google": Scenario(
+            name="Google Gemini",
+            description="[Coming Soon] Use Google Gemini",
+            provider="google",
+            model="gemini-pro",
+            max_turns=5,
+            prompts=[
+                "What is machine learning?",
+                "Explain neural networks",
             ],
         ),
     }
@@ -188,14 +216,30 @@ class ExplorationNotebook:
                 model=scenario.model,
                 base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
             )
-        elif scenario.provider == "cloud":
-            # Cloud provider requires implementation in cloud.py
-            print("⚠️  CloudProvider is not yet implemented.")
-            print("    To use cloud providers (OpenAI, Anthropic, etc.):")
-            print("    1. Implement the CloudProvider class in src/agent_labs/llm_providers/cloud.py")
-            print("    2. Add API key configuration")
-            print("    3. Run this scenario again")
-            print("\n    For now, use 'ollama' provider scenarios.\n")
+        elif scenario.provider == "openai":
+            # OpenAI provider
+            api_key = os.getenv("OPENAI_API_KEY")
+            if not api_key:
+                print("⚠️  OpenAI API key not found.")
+                print("    Set OPENAI_API_KEY environment variable in .env file")
+                print("    Example: OPENAI_API_KEY=sk-...")
+                return
+            
+            provider = OpenAIProvider(
+                api_key=api_key,
+                model=scenario.model,
+                base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+                timeout=int(os.getenv("OPENAI_TIMEOUT", "30")),
+                temperature=float(os.getenv("OPENAI_TEMPERATURE", "0.7")),
+            )
+        elif scenario.provider in ["anthropic", "google", "azure-openai"]:
+            # Cloud providers not yet fully implemented
+            print(f"⚠️  {scenario.provider.title()} provider is not yet fully implemented.")
+            print(f"    To use {scenario.provider}:")
+            print(f"    1. Implement the {scenario.provider.title()}Provider class")
+            print(f"    2. Add API key configuration")
+            print(f"    3. Run this scenario again")
+            print(f"\n    For now, use 'ollama' or 'openai' provider scenarios.\n")
             return
         else:
             print(f"✗ Unknown provider: {scenario.provider}")
@@ -242,11 +286,13 @@ USAGE:
 AVAILABLE SCENARIOS:
   quickstart   - Simple introductory prompts (Ollama)
   reasoning    - Test logical reasoning (Ollama)
+  openai       - Use OpenAI GPT-4 (requires OPENAI_API_KEY)
   storytelling - Creative story generation (Ollama)
   teaching     - Complex topic explanations (Ollama)
   advanced     - Advanced reasoning tasks (Ollama)
   mock         - Fast testing with MockProvider
-  cloud        - [Coming Soon] Cloud provider integration
+  anthropic    - [Coming Soon] Anthropic Claude
+  google       - [Coming Soon] Google Gemini
 
 PREREQUISITES:
   For Ollama scenarios (default):
@@ -254,12 +300,17 @@ PREREQUISITES:
     2. Start server: ollama serve
     3. Pull model: ollama pull llama2
   
-  For Cloud scenarios (future):
-    Implementation required in cloud.py
+  For OpenAI scenarios:
+    1. Set OPENAI_API_KEY in .env file
+    2. Example: OPENAI_API_KEY=sk-...
+  
+  For other cloud providers (Anthropic, Google):
+    Implementation required in respective provider files
 
 EXAMPLES:
   python scripts/explore.py quickstart    # Default: uses Ollama + llama2
   python scripts/explore.py reasoning
+  python scripts/explore.py openai        # Uses OpenAI GPT-4 (requires API key)
   python scripts/explore.py teaching
   python scripts/explore.py mock          # Fast testing without LLM
 
