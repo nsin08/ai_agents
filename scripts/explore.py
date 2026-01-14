@@ -25,6 +25,7 @@ if sys.stdout.encoding and 'utf' not in sys.stdout.encoding.lower():
 
 import asyncio
 import os
+import argparse
 from pathlib import Path
 from dataclasses import dataclass
 from typing import List, Optional
@@ -190,14 +191,20 @@ class ExplorationNotebook:
             print(f"   Prompts: {len(scenario.prompts)}")
             print()
 
-    async def run_scenario(self, scenario_key: str):
-        """Run a scenario."""
+    async def run_scenario(self, scenario_key: str, override_provider: Optional[str] = None, override_model: Optional[str] = None):
+        """Run a scenario with optional provider/model override."""
         if scenario_key not in self.all_scenarios:
             print(f"✗ Unknown scenario: {scenario_key}")
             self.list_scenarios()
             return
 
         scenario = self.all_scenarios[scenario_key]
+        
+        # Override provider and model if specified
+        if override_provider:
+            scenario.provider = override_provider
+        if override_model:
+            scenario.model = override_model
 
         print(f"\n╔════════════════════════════════════════════════════════════════╗")
         print(f"║  {scenario.name:<60}║")
@@ -331,18 +338,77 @@ OUTPUT:
 
 async def main():
     """Entry point."""
+    from dotenv import load_dotenv
+    load_dotenv()
+
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(
+        description='Agent Exploration Notebook - Run interactive agent scenarios',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # List available scenarios
+  python scripts/explore.py --list
+  
+  # Run a scenario with defaults
+  python scripts/explore.py reasoning
+  
+  # Override provider and model
+  python scripts/explore.py reasoning --openai --model gpt-4
+  python scripts/explore.py teaching --ollama --model llama3.2:3b
+  python scripts/explore.py quickstart --mock
+  
+  # Override with specific model only
+  python scripts/explore.py openai --model gpt-3.5-turbo
+        """
+    )
+    parser.add_argument('scenario', nargs='?', default='quickstart',
+                       help='Scenario to run (quickstart, reasoning, openai, teaching, etc.)')
+    parser.add_argument('--list', action='store_true',
+                       help='List all available scenarios and exit')
+    parser.add_argument('--help-full', action='store_true',
+                       help='Show full help with scenario descriptions')
+    parser.add_argument('--ollama', action='store_true',
+                       help='Override scenario provider to use Ollama')
+    parser.add_argument('--openai', action='store_true',
+                       help='Override scenario provider to use OpenAI (requires OPENAI_API_KEY)')
+    parser.add_argument('--mock', action='store_true',
+                       help='Override scenario provider to use Mock (deterministic responses)')
+    parser.add_argument('--model', type=str,
+                       help='Override model name (e.g., gpt-4, llama3.2:3b, etc.)')
+
+    args = parser.parse_args()
+
     notebook = ExplorationNotebook()
 
-    if len(sys.argv) < 2 or sys.argv[1] == "--help":
-        notebook.show_help()
-        return
-
-    if sys.argv[1] == "--list":
+    if args.list:
         notebook.list_scenarios()
         return
 
-    scenario_key = sys.argv[1].lower()
-    await notebook.run_scenario(scenario_key)
+    if args.help_full:
+        notebook.show_help()
+        return
+
+    # Determine provider override
+    override_provider = None
+    if args.openai:
+        override_provider = "openai"
+    elif args.ollama:
+        override_provider = "ollama"
+    elif args.mock:
+        override_provider = "mock"
+
+    # Validate OpenAI API key if openai provider is requested
+    if override_provider == "openai":
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key or api_key.strip() == "":
+            print("✗ Error: OPENAI_API_KEY not set in environment")
+            print("  Please set your OpenAI API key in .env file or environment")
+            return
+
+    # Run the scenario with overrides
+    scenario_key = args.scenario.lower() if args.scenario else "quickstart"
+    await notebook.run_scenario(scenario_key, override_provider, args.model)
 
 
 if __name__ == "__main__":
