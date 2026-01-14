@@ -46,6 +46,7 @@ from agent_labs.orchestrator import Agent, AgentState
 from agent_labs.llm_providers import MockProvider, OllamaProvider
 from agent_labs.memory import MemoryManager, ShortTermMemory, LongTermMemory
 from agent_labs.tools import ToolRegistry, TextSummarizer, CodeAnalyzer
+from agent_labs.config import get_config, AgentConfig, LLMProvider
 
 
 class InteractiveAgent:
@@ -53,9 +54,23 @@ class InteractiveAgent:
 
     def __init__(self):
         self.agent: Optional[Agent] = None
-        self.provider_type = "ollama"
-        self.model_name = "mistral:7b"
-        self.max_turns = 3
+        # Load configuration from environment
+        try:
+            self.config = get_config()
+            self.provider_type = self.config.provider.value
+            self.model_name = self.config.provider_config.model
+            self.max_turns = self.config.max_turns
+        except ValueError as e:
+            # Fallback to mock if config invalid
+            print(f"⚠ Configuration error: {e}")
+            print("⚠ Falling back to mock provider")
+            os.environ["LLM_PROVIDER"] = "mock"
+            from agent_labs.config import reload_config
+            self.config = reload_config()
+            self.provider_type = "mock"
+            self.model_name = "mock-model"
+            self.max_turns = 3
+        
         self.conversation_history = []
         self.tool_registry = ToolRegistry()
         self._init_tools()
@@ -72,17 +87,24 @@ class InteractiveAgent:
     def _init_agent(self):
         """Initialize agent with current configuration."""
         try:
+            provider_config = self.config.provider_config
+            
             if self.provider_type == "mock":
                 provider = MockProvider()
                 print(f"✓ Initialized MockProvider (fast, deterministic)")
             elif self.provider_type == "ollama":
                 provider = OllamaProvider(
-                    model=self.model_name,
-                    base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+                    model=provider_config.model,
+                    base_url=provider_config.base_url,
+                    timeout=provider_config.timeout,
                 )
-                print(f"✓ Initialized OllamaProvider ({self.model_name})")
+                print(f"✓ Initialized OllamaProvider ({provider_config.model})")
             else:
-                raise ValueError(f"Unknown provider: {self.provider_type}")
+                # Support for future cloud providers
+                raise ValueError(
+                    f"Provider '{self.provider_type}' not yet implemented in interactive mode. "
+                    f"Supported: mock, ollama"
+                )
 
             self.agent = Agent(provider=provider)
             self.conversation_history = []

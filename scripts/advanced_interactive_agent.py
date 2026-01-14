@@ -56,6 +56,7 @@ from agent_labs.orchestrator import Agent, AgentState
 from agent_labs.llm_providers import MockProvider, OllamaProvider
 from agent_labs.memory import MemoryManager, ShortTermMemory, LongTermMemory
 from agent_labs.tools import ToolRegistry, TextSummarizer, CodeAnalyzer
+from agent_labs.config import get_config, AgentConfig, LLMProvider
 
 
 # ============================================================================
@@ -254,10 +255,24 @@ class AdvancedInteractiveAgent:
 
     def __init__(self):
         self.agent: Optional[Agent] = None
-        use_ollama = os.getenv("USE_OLLAMA", "").strip().lower() in {"1", "true", "yes", "y"}
-        self.provider_type = "ollama" if use_ollama else "mock"
-        self.model_name = os.getenv("OLLAMA_MODEL", "mistral:7b")
-        self.max_turns = 3
+        
+        # Load configuration from environment
+        try:
+            self.config = get_config()
+            self.provider_type = self.config.provider.value
+            self.model_name = self.config.provider_config.model
+            self.max_turns = self.config.max_turns
+        except ValueError as e:
+            # Fallback to mock if config invalid
+            print(f"⚠ Configuration error: {e}")
+            print("⚠ Falling back to mock provider")
+            os.environ["LLM_PROVIDER"] = "mock"
+            from agent_labs.config import reload_config
+            self.config = reload_config()
+            self.provider_type = "mock"
+            self.model_name = "mock-model"
+            self.max_turns = 3
+        
         self.loop = None  # Persistent event loop for Windows compatibility
         
         # Observability
