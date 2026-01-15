@@ -563,6 +563,9 @@ Use these tools to experiment with agent-tool interaction patterns!
         elif cmd.startswith("/model "):
             model_name = cmd.split(" ", 1)[1].strip()
             self.model_name = model_name
+            # Update the config object with the new model name
+            self.config.provider_config.model = model_name
+            # Reinitialize agent with the new model
             self._init_agent()
             print(f"✓ Model set to {model_name}")
             return True
