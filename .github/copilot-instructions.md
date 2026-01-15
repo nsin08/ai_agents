@@ -70,53 +70,66 @@ When you need governance context, load these from https://github.com/nsin08/spac
 
 ### Build/Test Commands
 ```bash
-# Build (no build step required for Python)
+# Installation (editable for development)
 python -m pip install -e .
 
-# Test
-pytest tests/
+# Test suite (all tests use pytest with asyncio auto-mode)
+pytest tests/                                    # Run all tests
+pytest tests/unit/                               # Fast tests only (no Ollama/network)
+pytest tests/integration/                        # Slow tests (e.g., with Ollama)
+pytest tests/ -m "not ollama"                    # Skip tests requiring Ollama instance
+pytest tests/ -k "test_agent" -v                 # Run specific tests with output
+pytest tests/ --cov=src --cov-report=term-missing  # Coverage report
 
-# Test with coverage
-pytest tests/ --cov=src --cov-report=term-missing
+# Code quality
+ruff check src/ tests/                           # Lint (fast Python linter)
+ruff check --fix src/ tests/                     # Auto-fix lint issues
+black --check src/ tests/                        # Code formatting check
+black src/ tests/                                # Auto-format code
+mypy src/                                        # Type checking (strict mode)
 
-# Test specific markers
-pytest tests/ -m "not ollama"  # Skip tests requiring Ollama
-pytest tests/unit/              # Run only unit tests
-pytest tests/integration/       # Run only integration tests
+# Interactive exploration (require running environment)
+python scripts/quick_test.py "Your prompt"      # Single-prompt test (uses mock by default)
+python scripts/quick_test.py "Prompt" --ollama  # With real Ollama (requires ollama serve)
+python scripts/interactive_agent.py              # Full REPL with tools and conversation
+python scripts/advanced_interactive_agent.py    # REPL + observability, context, safety
+python scripts/explore.py quickstart            # Predefined learning scenarios
 
-# Lint
-ruff check src/ tests/
-black --check src/ tests/
-mypy src/
-
-# Format
-black src/ tests/
-ruff check --fix src/ tests/
-
-# Run interactive scripts
-python scripts/interactive_agent.py
-python scripts/explore.py
+# Makefile shortcuts (in scripts/)
+cd scripts && make test                         # Run tests from scripts directory
+cd scripts && make lint
+cd scripts && make format
 ```
+
+**Key Testing Patterns:**
+- **Async-first**: All agent/tool/memory tests use `pytest-asyncio` (async functions marked with `async def test_*()`)
+- **Provider-agnostic**: Tests configure `LLM_PROVIDER=mock` by default; use `MockProvider` for deterministic outputs
+- **Markers**: Use `@pytest.mark.ollama` for tests requiring live Ollama; use `@pytest.mark.integration` for slow tests
+- **Test file locations**: `tests/unit/` for isolated tests (no network/Ollama), `tests/integration/` for real provider tests
+- **Mock vs Real**: All labs use mock LLM by default (fast, CI-friendly); configure `LLM_PROVIDER=ollama` for hands-on learning with real model
 
 ### Architecture Overview
 Monorepo with three integrated layers: (1) production-oriented reference knowledge base (Agents/), (2) modular learning curriculum for multiple skill levels (curriculum/), and (3) framework-agnostic shared core with progressive lab modules (src/agent_labs/ + labs/00-08/). All labs support both mock mode (deterministic, CI-friendly) and real LLM mode (Ollama/cloud) for practical learning.
 
-Key components:
-- **Shared Core (src/agent_labs/)**: Framework-agnostic agent system with LLM providers, orchestrator, tools, memory, context engineering, observability, evaluation, and safety modules
-- **Labs (labs/00-08/)**: Progressive hands-on exercises from setup through multi-agent systems, each with runnable code, tests, and exercises
-- **Curriculum (curriculum/)**: Multi-level learning materials (beginner → intermediate → advanced → pro) with chapters, case studies, and projects
+**Key Architectural Principles:**
+- **Framework-agnostic first**: Core teaches fundamentals (control loop, tool contracts, memory, safety) independent of LangChain/LangGraph
+- **Pluggable LLM providers**: SingleProvider interface with MockProvider (for tests), OllamaProvider (local), and CloudProvider adapters (OpenAI, Anthropic, Google, Azure)
+- **Async-first**: All tools, orchestrator, and memory systems use async/await (pytest-asyncio required)
+- **Contract-driven tools**: Tools define input/output schemas via Pydantic, validated before execution; registry manages execution, timing, and error handling
+- **State machine orchestrator**: Agent flows through Observe → Plan → Act → Verify states with configurable max turns and timeout enforcement
 
-### Key Files
-- `src/agent_labs/llm_providers/`: LLM provider adapters (MockProvider, OllamaProvider, CloudProvider)
-- `src/agent_labs/orchestrator/`: Agent orchestration engine (Agent, AgentContext, states)
-- `src/agent_labs/tools/`: Tool contracts, schemas, and validation framework
-- `src/agent_labs/memory/`: Memory systems (ConversationMemory, RAGMemory)
-- `src/agent_labs/safety/`: Safety validators and guardrails
-- `src/agent_labs/observability/`: Logging, tracing, and metrics
-- `pyproject.toml`: Project configuration and dependencies
-- `pytest.ini`: Test configuration with markers (ollama, integration, unit)
-- `README.md`: Main repository documentation and overview
-- `labs/*/README.md`: Lab guides with exercises and learning objectives
+**Key Components:**
+- **Shared Core (src/agent_labs/)**:
+  - `llm_providers/`: Provider base class + implementations (MockProvider, OllamaProvider, CloudProvider); env var configured via `LLMProvider` and `ProviderConfig`
+  - `orchestrator/`: `Agent` class (control loop), `AgentState` enum (Observe/Plan/Act/Verify), `AgentContext` (conversation history + metadata)
+  - `tools/`: `Tool` base class, `ToolContract` (input/output schemas), `ToolRegistry` (async execution + validation), built-in tools (Calculator, WebSearch, FileRead)
+  - `memory/`: ConversationMemory (short-term), RAG memory interfaces (long-term retrieval)
+  - `safety/`: Guardrails, permission validators, injection detection
+  - `observability/`: Structured logging, metrics events, cost attribution
+  - `evaluation/`: Golden test runner, regression comparison, reporting
+  - `config.py`: Centralized configuration (LLM_PROVIDER, LLM_MODEL, timeouts, defaults)
+- **Labs (labs/00-08/)**: Progressive hands-on exercises; each with README (overview), exercise.md (tasks), src/ (runnable code), tests/ (deterministic tests)
+- **Curriculum (curriculum/)**: Multi-level learning materials (beginner → intermediate → advanced → pro)
 
 ### File Organization (per Rule 11)
 - **Application code:** `src/`, `lib/`, `app/` (standard project structure)
@@ -158,6 +171,145 @@ Key components:
 **Testing:**
 - Use `LLM_PROVIDER=mock` for deterministic testing (default in CI)
 - Use `LLM_PROVIDER=ollama` for local development with real LLM
+
+---
+
+## Codebase-Specific Patterns & Conventions
+
+### LLM Provider Abstraction
+All agent code accesses LLMs through the `Provider` interface, never directly. Configuration flows through `ProviderConfig` env vars:
+
+```python
+from agent_labs.config import LLMProvider, ProviderConfig
+from agent_labs.llm_providers import MockProvider, OllamaProvider
+
+# Configuration from env vars (LLM_PROVIDER, LLM_MODEL, OPENAI_API_KEY, etc.)
+config = ProviderConfig(LLMProvider.OLLAMA)
+provider = OllamaProvider(model=config.model, base_url=config.base_url)
+
+# In tests, always use MockProvider for deterministic behavior
+provider = MockProvider(responses=["answer1", "answer2"])
+```
+
+### Tool Design Pattern (Async-First, Contract-Driven)
+Tools inherit from `Tool` base class and define Pydantic schemas for inputs/outputs. `ToolRegistry` handles validation, execution, and error handling:
+
+```python
+from agent_labs.tools import Tool, ToolContract, ExecutionStatus, ToolResult
+from pydantic import BaseModel
+
+class MyToolInput(BaseModel):
+    query: str
+
+class MyTool(Tool):
+    async def execute(self, **kwargs) -> ToolResult:
+        # Always async; ToolRegistry validates against schema
+        return ToolResult(
+            output="result",
+            status=ExecutionStatus.SUCCESS,
+            duration=0.5
+        )
+
+# Registry execution (async, validated, with timing)
+registry = ToolRegistry()
+registry.register(MyTool(), "my_tool")
+result = await registry.execute("my_tool", query="test")
+```
+
+### Agent Orchestrator (State Machine)
+The `Agent` class implements Observe → Plan → Act → Verify loop with configurable stop conditions:
+
+```python
+from agent_labs.orchestrator import Agent, AgentState, AgentContext
+
+context = AgentContext(user_message="your prompt", max_turns=5, timeout_seconds=30)
+agent = Agent(llm_provider=provider, tool_registry=registry)
+result = await agent.run(context)  # Returns AgentState.DONE or raises error
+
+# States: Observe (perceive) → Plan (reason) → Act (execute) → Verify (check success)
+# Stop on: max_turns exceeded, timeout, explicit done signal, or error
+```
+
+### Memory Systems (Conversation + Long-Term)
+Short-term memory stores conversation history; long-term memory supports RAG retrieval with write/retrieval policies:
+
+```python
+from agent_labs.memory import ConversationMemory
+
+memory = ConversationMemory(max_turns=20)
+memory.add_user_message("What is Python?")
+memory.add_assistant_message("Python is a programming language...")
+context = memory.get_context()  # Returns formatted history for LLM
+```
+
+### Configuration Loading
+All runtime config flows through `src/agent_labs/config.py`:
+- `LLM_PROVIDER`: Which provider to use (mock, ollama, openai, anthropic, google, azure-openai)
+- `LLM_MODEL`: Model name (e.g., "mistral:7b", "gpt-4", "claude-3-opus")
+- `LLM_BASE_URL`: API endpoint (e.g., "http://localhost:11434" for Ollama)
+- Provider-specific keys: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, etc.
+- Agent settings: `AGENT_MAX_TURNS`, `AGENT_TIMEOUT`
+
+### Error Handling Pattern
+Providers raise typed exceptions; agents catch and decide recovery:
+
+```python
+from agent_labs.llm_providers import ProviderConnectionError, ProviderTimeoutError
+
+try:
+    response = await provider.query("prompt")
+except ProviderConnectionError:
+    # Retry or fallback
+except ProviderTimeoutError:
+    # Longer timeout or skip
+```
+
+### Observability Conventions
+Use structured logging for traces; emit events for cost/metrics:
+
+```python
+from agent_labs.observability import emit_event
+
+emit_event("agent_turn", {
+    "turn": 1,
+    "state": "Plan",
+    "tokens_used": 150,
+    "cost": 0.001
+})
+```
+
+---
+
+## Testing & Development Workflows
+
+### Running a Single Test
+```bash
+pytest tests/unit/test_config.py::TestConfigDefaults::test_default_model -v
+```
+
+### Debugging an Agent
+```bash
+# Set log level to DEBUG to see orchestrator state transitions
+export DEBUG=1
+python scripts/quick_test.py "your prompt"
+
+# Interactive REPL with breakpoint access
+python scripts/interactive_agent.py
+```
+
+### Adding a New Tool
+1. Create class inheriting from `Tool` in `src/agent_labs/tools/`
+2. Define input/output Pydantic schemas
+3. Implement async `execute()` method
+4. Add tests in `tests/unit/test_tools.py`
+5. Register in `ToolRegistry` before running agent
+6. Document in tool's docstring (used by LLM)
+
+### Adding a Lab
+1. Create `labs/NN_topic/` directory
+2. Add `README.md` (overview + prerequisites), `exercise.md` (tasks), `src/` (code), `tests/` (tests)
+3. Use `LLM_PROVIDER=mock` by default; support `--ollama` flag
+4. Ensure deterministic tests pass in CI
 
 ---
 
