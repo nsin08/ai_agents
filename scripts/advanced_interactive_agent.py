@@ -935,10 +935,13 @@ TOKEN BUDGETING:
                         print(f"✗ Unknown provider: {provider_type}")
                         print(f"   Available: {available}")
                 elif prompt.startswith("/model "):
-                    self.model_name = prompt.split()[1]
-                    if self.provider_type == "ollama":
-                        self._init_agent()
-                    print(f"✓ Model set to {self.model_name}")
+                    model_name = prompt.split()[1]
+                    self.model_name = model_name
+                    # Update the config object with the new model name
+                    self.config.provider_config.model = model_name
+                    # Reinitialize agent with the new model
+                    self._init_agent()
+                    print(f"✓ Model set to {model_name}")
                 elif prompt.startswith("/max_turns "):
                     try:
                         turns = int(prompt.split()[1])
