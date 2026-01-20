@@ -2,17 +2,18 @@
 # Documentation: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
 # Default owner for everything in the repository
-# Replace [GITHUB_USERNAME] with your GitHub username or team (e.g., @username or @org/team-name)
-* @[GITHUB_USERNAME]
+*       @nsin08
 
-# Critical governance paths requiring CODEOWNER approval
-/.github/ @[GITHUB_USERNAME]
-/.github/workflows/ @[GITHUB_USERNAME]
-/.github/copilot-instructions.md @[GITHUB_USERNAME]
-/.context/ @[GITHUB_USERNAME]
+# GitHub governance configuration requires CODEOWNER approval
+/.github/  @nsin08
+/.github/workflows/ @nsin08
+/.github/copilot-instructions.md @nsin08
 
-# Core application paths (adjust based on your project structure)
-# Uncomment and modify as needed:
-# /src/core/ @[GITHUB_USERNAME]
-# /lib/ @[GITHUB_USERNAME]
+# Context documentation requires CODEOWNER approval
+/.context/project/ @nsin08
+/.context/sprint/ @nsin08
+
+# Core application paths
+/src/ @nsin08
+/tests/ @nsin08
 # /config/ @[GITHUB_USERNAME]

@@ -4,6 +4,90 @@ Four interactive scripts for experimenting with AI agents from `src/agent_labs`.
 
 Note: These are test scripts for agent behavior and learning workflows.
 
+---
+
+## 🚀 Setup Instructions
+
+### Prerequisite Check
+- ✅ Python 3.11+ installed
+- ✅ At workspace root: `d:\wsl_shared\src\ai_agents`
+- ✅ All scripts are in: `scripts/`
+
+### Option A: Automated Setup (Recommended)
+
+**Windows:**
+```batch
+cd scripts
+setup.bat
+.venv\Scripts\activate.bat
+python interactive_agent.py
+```
+
+**Linux/macOS:**
+```bash
+cd scripts
+chmod +x setup.sh
+./setup.sh
+source .venv/bin/activate
+python interactive_agent.py
+```
+
+### Option B: Manual Setup with uv
+
+```bash
+# From scripts/ directory
+cd scripts
+
+# Create Python 3.11 venv
+uv venv --python 3.11 .venv
+
+# Activate (Windows)
+.venv\Scripts\activate.bat
+# OR Activate (Linux/macOS)
+source .venv/bin/activate
+
+# Install dependencies
+uv pip install -r requirements.txt
+
+# Run
+python interactive_agent.py
+```
+
+### Option C: Using Make (Quickest)
+
+```bash
+cd scripts
+make setup
+make run
+```
+
+### Option D: From Workspace Root
+
+```bash
+# Install workspace + scripts dependencies
+python -m pip install -e .
+python -m pip install -r scripts/requirements.txt
+
+# Run script directly
+python scripts/interactive_agent.py
+```
+
+### Environment Setup (Optional - for Ollama)
+
+Create `.env` file in `scripts/` directory:
+```bash
+# Copy from template
+cp .env.example .env
+
+# Edit with your settings
+# LLM_PROVIDER=mock          # mock, ollama, openai, anthropic
+# LLM_MODEL=llama2           # Model to use
+# OLLAMA_BASE_URL=http://localhost:11434
+# OPENAI_API_KEY=sk-...      # If using OpenAI
+```
+
+---
+
 ## Quick Start (30 seconds)
 
 ```bash
@@ -24,12 +108,13 @@ python scripts/explore.py quickstart
 
 ## Scripts Overview
 
-| Script | Purpose | Best For |
-|--------|---------|----------|
-| **quick_test.py** | Single-prompt testing | Fast verification, CI/CD, one-liners |
-| **interactive_agent.py** | Full REPL interface with tools | Deep exploration, conversations, debugging |
-| **advanced_interactive_agent.py** | REPL with observability, context & safety | Production patterns, monitoring, safety guardrails |
-| **explore.py** | Predefined scenarios | Structured learning, teaching, demos |
+| Script | Purpose | Best For | Setup | Command |
+|--------|---------|----------|-------|---------|
+| **quick_test.py** | Single-prompt testing | Fast verification, CI/CD, one-liners | ✅ None | `python quick_test.py "prompt"` |
+| **interactive_agent.py** | Full REPL interface with tools | Deep exploration, conversations, debugging | ✅ None (uses .venv if available) | `python interactive_agent.py` |
+| **advanced_interactive_agent.py** | REPL with observability, context & safety | Production patterns, monitoring, safety guardrails | ✅ None | `python advanced_interactive_agent.py` |
+| **explore.py** | Predefined scenarios | Structured learning, teaching, demos | ✅ None | `python explore.py quickstart` |
+| **memory_test.py** | Test memory/context injection | Verify memory functionality | ✅ None | `python memory_test.py` |
 
 ---
 
@@ -392,25 +477,58 @@ Goodbye!
 
 ---
 
-## 4. explore.py - Predefined Scenarios
+## 4. explore.py - Predefined Scenarios with Dynamic Provider Control
 
-**Usage:**
+**Basic Usage:**
 ```bash
 python scripts/explore.py SCENARIO_NAME
 ```
 
 **Available Scenarios:**
+
+| Scenario | Description | Example | Prompts | Provider |
+|----------|-------------|---------|---------|----------|
+| `quickstart` | Simple introductory prompts (2-3 quick questions) | `python explore.py quickstart` | 3 | Mock (instant) |
+| `reasoning` | Test logical reasoning and puzzle-solving | `python explore.py reasoning --ollama` | 3 | Ollama/Mock |
+| `storytelling` | Creative story generation and narrative | `python explore.py storytelling --openai` | 3 | Ollama/Mock |
+| `teaching` | Complex topic explanations and tutorials | `python explore.py teaching --ollama` | 3 | Ollama/Mock |
+| `advanced` | Advanced multi-turn reasoning tasks | `python explore.py advanced --ollama --turns 5` | 3 | Ollama/Mock |
+| `openai` | OpenAI GPT-4 specific responses | `python explore.py openai` | 3 | OpenAI |
+| `mock` | Fast testing without LLM | `python explore.py mock` | 3 | Mock (instant) |
+
+**CLI Arguments for Provider/Model Override:**
 ```bash
-python scripts/explore.py quickstart     # Simple 2-3 question intro
-python scripts/explore.py reasoning      # Logic puzzles and riddles
-python scripts/explore.py storytelling   # Creative writing prompts
-python scripts/explore.py teaching       # Topic explanations
-python scripts/explore.py advanced       # Complex multi-turn reasoning
+# Switch provider
+python scripts/explore.py reasoning --openai                    # Use OpenAI
+python scripts/explore.py teaching --ollama                     # Use Ollama
+python scripts/explore.py quickstart --mock                     # Use Mock (instant)
+
+# Override model
+python scripts/explore.py openai --model gpt-3.5-turbo
+python scripts/explore.py reasoning --ollama --model mistral
+
+# List or help
+python scripts/explore.py --list                                # List scenarios
+python scripts/explore.py --help                                # Show help
 ```
 
-**Features:** Structured learning paths, batch prompts, great for demos/teaching  
-**Pros:** No configuration needed, good for learning, reproducible  
-**Cons:** Limited to predefined scenarios
+**Examples:**
+```bash
+# Instant testing (no setup)
+python scripts/explore.py quickstart
+
+# With Ollama (requires: ollama serve, ollama pull mistral)
+python scripts/explore.py reasoning --ollama
+python scripts/explore.py teaching --ollama --model mistral
+
+# With OpenAI (requires: OPENAI_API_KEY env var)
+python scripts/explore.py reasoning --openai
+python scripts/explore.py teaching --openai --model gpt-4
+```
+
+**Features:** Structured learning paths, dynamic provider control, batch prompts  
+**Pros:** No configuration needed, flexible provider switching, reproducible  
+**Cons:** Limited to predefined scenarios (customize by editing script)
 
 ---
 
@@ -571,11 +689,15 @@ $env:OLLAMA_BASE_URL="http://localhost:11434"
 
 ## Files in This Directory
 
-- `quick_test.py` - Single-prompt testing script
 - `interactive_agent.py` - Full REPL with commands and memory
+- `advanced_interactive_agent.py` - Production-grade REPL with observability
+- `quick_test.py` - Single-prompt testing script
 - `explore.py` - Predefined learning scenarios
 - `memory_test.py` - Memory/context injection verification
-- `README.md` - This file
+- `setup.sh` / `setup.bat` - Automated setup scripts
+- `Makefile` - Build and test commands
+- `requirements.txt` - Python dependencies
+- `README.md` - **This file** (complete documentation)
 
 ---
 
