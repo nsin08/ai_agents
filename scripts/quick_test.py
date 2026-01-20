@@ -20,12 +20,16 @@ if sys.stdout.encoding and 'utf' not in sys.stdout.encoding.lower():
 import asyncio
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from agent_labs.orchestrator import Agent
-from agent_labs.llm_providers import MockProvider, OllamaProvider
+from agent_labs.llm_providers import MockProvider, OllamaProvider, OpenAIProvider
 
 
 async def main():
@@ -38,24 +42,29 @@ async def main():
 USAGE:
   python scripts/quick_test.py "Your prompt here"
   python scripts/quick_test.py "What is 2+2?" --ollama
-  python scripts/quick_test.py "Tell me about AI" --model mistral
+  python scripts/quick_test.py "Tell me about AI" --openai
+  python scripts/quick_test.py "Explain ML" --model gpt-4 --openai
 
 OPTIONS:
-  --ollama              Use OllamaProvider instead of MockProvider
-  --model NAME          Set model name (default: llama2)
+  --ollama              Use OllamaProvider (local LLM)
+  --openai              Use OpenAIProvider (requires OPENAI_API_KEY)
+  --model NAME          Set model name (default: llama2 for ollama, gpt-4 for openai)
   --turns N             Set max turns (default: 3)
 
 EXAMPLES:
   python scripts/quick_test.py "What is Python?"
   python scripts/quick_test.py "Explain quantum computing" --ollama
-  python scripts/quick_test.py "Define machine learning" --turns 5
+  python scripts/quick_test.py "Define machine learning" --openai
+  python scripts/quick_test.py "Write a haiku about AI" --openai --model gpt-3.5-turbo
+  python scripts/quick_test.py "Test prompt" --turns 5
         """)
         sys.exit(1)
 
     # Parse arguments
     prompt = sys.argv[1]
     use_ollama = "--ollama" in sys.argv
-    model_name = "llama2"
+    use_openai = "--openai" in sys.argv
+    model_name = None
     max_turns = 3
 
     for i, arg in enumerate(sys.argv):
@@ -64,14 +73,38 @@ EXAMPLES:
         elif arg == "--turns" and i + 1 < len(sys.argv):
             max_turns = int(sys.argv[i + 1])
 
-    # Create provider
-    if use_ollama:
+    # Determine provider and model
+    if use_openai:
+        # OpenAI provider
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            print("✗ Error: OPENAI_API_KEY not set")
+            print("  Set OPENAI_API_KEY in .env file or environment")
+            sys.exit(1)
+        
+        if not model_name:
+            model_name = os.getenv("OPENAI_MODEL", "gpt-4")
+        
+        provider = OpenAIProvider(
+            api_key=api_key,
+            model=model_name,
+            base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+            timeout=int(os.getenv("OPENAI_TIMEOUT", "30")),
+            temperature=float(os.getenv("OPENAI_TEMPERATURE", "0.7")),
+        )
+        print(f"🤖 Using OpenAIProvider ({model_name})\n")
+    elif use_ollama:
+        # Ollama provider
+        if not model_name:
+            model_name = os.getenv("OLLAMA_MODEL", "llama2")
+        
         provider = OllamaProvider(
             model=model_name,
             base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
         )
         print(f"🤖 Using OllamaProvider ({model_name})\n")
     else:
+        # Mock provider (default)
         provider = MockProvider()
         print(f"🤖 Using MockProvider\n")
 

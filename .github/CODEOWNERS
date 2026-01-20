@@ -2,7 +2,10 @@
 # Documentation: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
 # Default owner for everything in the repository
-# Replace [GITHUB_USERNAME] with your GitHub username or team (e.g., @username or @org/team-name)
+*       @nsin08
+
+# GitHub governance configuration
+/.github/  @nsin08
 * @[GITHUB_USERNAME]
 
 # Critical governance paths requiring CODEOWNER approval

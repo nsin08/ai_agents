@@ -2,110 +2,149 @@
 
 ## Overview
 
-`explore.py` is a script-based notebook for testing AI agents with real LLM providers. It runs predefined scenarios to demonstrate agent capabilities.
+`explore.py` is a script-based notebook for testing AI agents with predefined learning scenarios. It runs structured prompts to demonstrate agent capabilities with flexible provider and model selection via CLI arguments.
+
+**No setup required** - runs instantly with MockProvider by default. Optional Ollama integration for real LLM responses.
+
+**Location:** `scripts/explore.py` in workspace  
+**Workspace:** `d:\wsl_shared\src\ai_agents`  
+**Python:** 3.11+ required
+
+---
+
+## Setup (Optional - Choose One)
+
+### Setup Method 1: From Scripts Directory (Automated)
+
+```bash
+cd scripts
+
+# Windows
+setup.bat
+.venv\Scripts\activate.bat
+
+# Linux/macOS
+chmod +x setup.sh
+./setup.sh
+source .venv/bin/activate
+```
+
+### Setup Method 2: Using Make
+
+```bash
+cd scripts
+make setup      # Creates venv and installs dependencies
+```
+
+### Setup Method 3: No Setup - Run Directly
+
+```bash
+# From scripts/ or workspace root, run without setup
+python scripts/explore.py quickstart
+```
+
+---
 
 ## Quick Start
 
-### 1. Setup Ollama (Default Provider)
+### 1. No Setup Required - Run Immediately
 
 ```bash
-# Install Ollama from https://ollama.ai/download
-
-# Start Ollama server
-ollama serve
-
-# Pull the model (in another terminal)
-ollama pull llama2
-```
-
-### 2. Run Scenarios
-
-```bash
-# Run default quickstart scenario
+# Run default quickstart scenario (instant, uses MockProvider)
 python scripts/explore.py
 
 # Run specific scenario
 python scripts/explore.py reasoning
 python scripts/explore.py teaching
-python scripts/explore.py advanced
+python scripts/explore.py storytelling
 
-# List all available scenarios
+# List all scenarios
 python scripts/explore.py --list
-
-# Show help
 python scripts/explore.py --help
 ```
 
+### 2. With Ollama (For Real LLM - Optional)
+
+```bash
+# Prerequisites:
+# 1. Install Ollama from https://ollama.ai/download
+# 2. Start Ollama: ollama serve (in separate terminal)
+# 3. Pull model: ollama pull llama2
+
+# Run with Ollama
+python scripts/explore.py reasoning --ollama
+python scripts/explore.py teaching --ollama --model mistral
+python scripts/explore.py quickstart --ollama
+```
+
+### 3. With Cloud Providers (OpenAI, Anthropic, etc.)
+
+```bash
+# Set API key
+export OPENAI_API_KEY="sk-..."     # Linux/macOS
+# OR
+set OPENAI_API_KEY=sk-...           # Windows
+
+# Run with OpenAI
+python scripts/explore.py reasoning --openai
+python scripts/explore.py teaching --openai --model gpt-4
+```
+
+---
+
 ## Available Scenarios
 
-| Scenario | Provider | Description | Prompts |
-|----------|----------|-------------|---------|
-| `quickstart` | Ollama | Simple introductory prompts | 3 |
-| `reasoning` | Ollama | Test logical reasoning | 3 |
-| `storytelling` | Ollama | Creative story generation | 3 |
-| `teaching` | Ollama | Complex topic explanations | 3 |
-| `advanced` | Ollama | Advanced reasoning tasks | 3 |
-| `mock` | Mock | Fast testing without LLM | 3 |
-| `cloud` | Cloud | [Coming Soon] Cloud providers | 2 |
+| Scenario | Description | Example | Prompts | Provider |
+|----------|-------------|---------|---------|----------|
+| `quickstart` | Simple introductory prompts (2-3 quick questions) | `python explore.py quickstart` | 3 | Mock (instant) |
+| `reasoning` | Test logical reasoning and puzzle-solving | `python explore.py reasoning --ollama` | 3 | Ollama/Mock |
+| `storytelling` | Creative story generation and narrative | `python explore.py storytelling --openai` | 3 | Ollama/Mock |
+| `teaching` | Complex topic explanations and tutorials | `python explore.py teaching --ollama` | 3 | Ollama/Mock |
+| `advanced` | Advanced multi-turn reasoning tasks | `python explore.py advanced --ollama --turns 5` | 3 | Ollama/Mock |
+| `openai` | OpenAI GPT-4 specific responses | `python explore.py openai` | 3 | OpenAI |
+| `mock` | Fast testing without LLM | `python explore.py mock` | 3 | Mock (instant) |
 
 ## Provider Configuration
 
-### Ollama (Default)
-
-```python
-# Default configuration
-provider = OllamaProvider(
-    model="llama2",
-    base_url="http://localhost:11434"
-)
-
-# Custom Ollama endpoint
-export OLLAMA_BASE_URL="http://custom-server:11434"
-python scripts/explore.py quickstart
-```
-
-### Cloud Providers (Future)
-
-To add cloud provider support (OpenAI, Anthropic, etc.):
-
-1. **Implement CloudProvider** in `src/agent_labs/llm_providers/cloud.py`:
-
-```python
-class OpenAIProvider(Provider):
-    def __init__(self, api_key: str, model: str = "gpt-4"):
-        self.api_key = api_key
-        self.model = model
-        self.client = OpenAI(api_key=api_key)
-    
-    async def generate(self, prompt: str, **kwargs) -> LLMResponse:
-        response = await self.client.chat.completions.create(
-            model=self.model,
-            messages=[{"role": "user", "content": prompt}],
-            **kwargs
-        )
-        return LLMResponse(
-            content=response.choices[0].message.content,
-            model=self.model,
-            tokens=response.usage.total_tokens
-        )
-```
-
-2. **Update explore.py** to use the cloud provider:
-
-```python
-elif scenario.provider == "cloud":
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        print("❌ Missing OPENAI_API_KEY environment variable")
-        return
-    provider = OpenAIProvider(api_key=api_key, model=scenario.model)
-```
-
-3. **Configure API keys**:
+### CLI Arguments for Provider Selection
 
 ```bash
+# Provider flags
+python scripts/explore.py SCENARIO --openai              # Use OpenAI
+python scripts/explore.py SCENARIO --ollama              # Use Ollama
+python scripts/explore.py SCENARIO --mock                # Use Mock
+
+# Model override
+python scripts/explore.py SCENARIO --model MODEL_NAME
+
+# Examples
+python scripts/explore.py reasoning --openai --model gpt-4
+python scripts/explore.py teaching --ollama --model phi
+python scripts/explore.py quickstart --mock
+```
+
+### Ollama Setup
+
+```bash
+# Use specific model
+python scripts/explore.py teaching --ollama --model phi
+python scripts/explore.py advanced --ollama --model llama3.2:3b
+
+# Custom endpoint
+export OLLAMA_BASE_URL="http://custom-server:11434"
+python scripts/explore.py reasoning --ollama
+```
+
+### OpenAI Setup
+
+```bash
+# Set API key
 export OPENAI_API_KEY="sk-..."
-python scripts/explore.py cloud
+
+# Run scenarios
+python scripts/explore.py reasoning --openai              # Uses default model
+python scripts/explore.py teaching --openai --model gpt-3.5-turbo
+python scripts/explore.py openai --model gpt-4           # OpenAI scenario
 ```
 
 ## Adding Custom Scenarios
@@ -117,16 +156,17 @@ SCENARIOS = {
     "my_scenario": Scenario(
         name="My Custom Scenario",
         description="Description of what this tests",
-        provider="ollama",  # or "cloud", "mock"
+        provider="ollama",  # Default: "ollama", "openai", "mock"
         model="llama2",
         max_turns=5,
-        prompts=[
-            "First prompt",
-            "Second prompt",
-            "Third prompt",
-        ],
+        prompts=["First prompt", "Second prompt", "Third prompt"],
     ),
 }
+```
+
+**Override at runtime:**
+```bash
+python scripts/explore.py my_scenario --openai --model gpt-4
 ```
 
 ## Troubleshooting
@@ -135,68 +175,187 @@ SCENARIOS = {
 
 ```bash
 # Error: Connection refused to localhost:11434
-# Solution: Start Ollama server
+# Solution 1: Start Ollama server
 ollama serve
+
+# Solution 2: Use different provider
+python scripts/explore.py reasoning --openai    # Use OpenAI
+python scripts/explore.py reasoning --mock      # Use Mock
 ```
 
-### Model Not Found
+### Model Not Found (Ollama)
 
 ```bash
-# Error: Model 'llama2' not found
-# Solution: Download the model
-ollama pull llama2
+# Error: Model not found
+# Solution: Download model
+ollama pull phi
+ollama pull llama3.2:3b
 
-# List available models
-ollama list
+# Use pre-pulled model
+python scripts/explore.py reasoning --ollama --model phi
+```
+
+### Missing OpenAI API Key
+
+```bash
+# Error: OPENAI_API_KEY not set
+# Solution 1: Set env var
+export OPENAI_API_KEY="sk-..."
+python scripts/explore.py reasoning --openai
+
+# Solution 2: Use different provider
+python scripts/explore.py reasoning --ollama
+python scripts/explore.py reasoning --mock
 ```
 
 ### Slow Responses
 
 ```bash
-# Use a smaller/faster model
-ollama pull llama2:7b
-# Update scenario model to "llama2:7b"
+# Use faster model
+python scripts/explore.py reasoning --ollama --model phi
+
+# Or use Mock for instant testing
+python scripts/explore.py reasoning --mock
 ```
-
-### API Rate Limits (Cloud Providers)
-
-When cloud providers are implemented, rate limiting may occur. The framework includes automatic retry with exponential backoff.
 
 ## Example Output
 
 ```
 ╔════════════════════════════════════════════════════════════════╗
-║  Quick Start                                                   ║
+║  Reasoning & Logic                                             ║
 ╚════════════════════════════════════════════════════════════════╝
 
-Description: Simple introductory prompts with Ollama
+Description: Test agent's reasoning capabilities
 
 Configuration:
   Provider:  ollama
-  Model:     llama2
-  Max Turns: 3
+  Model:     phi
+  Max Turns: 5
 
 ────────────────────────────────────────────────────────────────
 Prompt 1/3
 ────────────────────────────────────────────────────────────────
 
-📝 What is artificial intelligence?
+📝 Solve this riddle: I have cities but no houses. What am I?
 
 ⏳ Agent processing...
 
 ✓ Response:
-Artificial intelligence (AI) refers to computer systems that can perform tasks
-that typically require human intelligence, such as learning, problem-solving,
-and decision-making...
+[Agent's response with reasoning...]
 
 ════════════════════════════════════════════════════════════════
-✓ Scenario 'quickstart' completed successfully!
+✓ Scenario 'reasoning' completed successfully!
 ════════════════════════════════════════════════════════════════
 ```
 
-## Next Steps
+## Command Reference
 
-1. **Experiment**: Try different scenarios and observe agent behavior
-2. **Customize**: Add your own scenarios with specific prompts
-3. **Cloud Integration**: Implement cloud providers for production use
-4. **Monitor**: Use observability features to track agent performance
+```bash
+# List scenarios
+python scripts/explore.py --list
+
+# Run scenario (uses default provider/model)
+python scripts/explore.py reasoning
+
+# Override provider
+python scripts/explore.py reasoning --openai
+python scripts/explore.py reasoning --ollama
+python scripts/explore.py reasoning --mock
+
+# Override model
+python scripts/explore.py teaching --ollama --model phi
+python scripts/explore.py reasoning --openai --model gpt-3.5-turbo
+
+# Show help
+python scripts/explore.py --help
+```
+
+---
+
+## 🔌 Provider Configuration Details
+
+### MockProvider (Default - Instant)
+- **Speed:** Instant
+- **Setup:** None required
+- **Best for:** Quick testing, CI/CD, learning structure
+
+```bash
+python scripts/explore.py quickstart
+# OR explicit
+python scripts/explore.py quickstart --mock
+```
+
+### OllamaProvider (Local LLM - Optional)
+- **Speed:** Depends on model and hardware
+- **Setup:** ~5 minutes (install Ollama, pull model)
+- **Best for:** Real LLM testing without API keys
+
+```bash
+# Prerequisites
+ollama pull mistral     # ~4GB, recommended
+# OR
+ollama pull llama2      # ~4GB, alternative
+
+# Run
+python scripts/explore.py reasoning --ollama
+python scripts/explore.py teaching --ollama --model mistral
+```
+
+### OpenAIProvider (Cloud - Optional)
+- **Speed:** Fast (API-based)
+- **Setup:** API key required
+- **Best for:** Production-quality responses, GPT-4
+
+```bash
+# Set API key
+export OPENAI_API_KEY="sk-..."
+
+# Run
+python scripts/explore.py reasoning --openai
+python scripts/explore.py teaching --openai --model gpt-4
+python scripts/explore.py advanced --openai
+```
+
+---
+
+## ✅ Verify Installation
+
+```bash
+# Test 1: No-setup test (should be instant)
+python scripts/explore.py --mock
+
+# Test 2: List scenarios
+python scripts/explore.py --list
+
+# Test 3: Run quickstart
+python scripts/explore.py quickstart
+```
+
+Expected: Agent processes each prompt and shows response.
+
+---
+
+## 🐛 Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| `ModuleNotFoundError: No module named agent_labs` | Run `python -m pip install -e .` from workspace root |
+| `Scenario not found` | Run `python scripts/explore.py --list` to see available scenarios |
+| `OllamaProvider connection error` | Start Ollama: `ollama serve` in separate terminal; check running: `ollama list` |
+| `Model not found in Ollama` | Pull model: `ollama pull mistral` or `ollama pull llama2` |
+| `OPENAI_API_KEY not set` | Set key: `export OPENAI_API_KEY=sk-...` (Linux/macOS) or `set OPENAI_API_KEY=sk-...` (Windows) |
+| Slow responses | Use MockProvider (instant) or switch to faster model (mistral < llama2) |
+
+---
+
+## 📖 Related Documentation
+
+- **README.md** - Complete interactive agent guide with all script descriptions
+- **QUICK_START.md** - Quick setup reference for all scripts
+- **quick_test.py** - Single-prompt testing (see usage: `python quick_test.py`)
+- **interactive_agent.py** - Full REPL interface
+- **advanced_interactive_agent.py** - REPL with observability
+
+---
+
+## Next Steps
