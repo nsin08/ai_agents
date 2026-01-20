@@ -235,6 +235,39 @@ Common isolation failures:
 
 A useful mental model: tenant_id is a required parameter of every privileged operation. If a function does not accept tenant_id, it is suspicious.
 
+### E) Remote tool servers (MCP)
+
+If you adopt remote tool servers (e.g., via MCP), treat them as a first-class security boundary:
+
+- The model is not trusted; tool calls must be validated and authorized in code.
+- The tool server is a dependency; it can fail, be misconfigured, or be compromised.
+
+Minimum controls for MCP-style tool execution:
+
+1. **Allowlist tools per workflow** (deny by default)
+2. **Validate inputs** against tool schemas before sending to the server
+3. **Bind identity to every call**:
+   - `tenant_id` (required)
+   - `actor_id` / roles
+   - `request_id` / `tool_call_id` (for traceability)
+4. **Audit events** for every tool call (especially writes):
+   - tool name, action, outcome, latency, and sanitized metadata
+5. **Do not trust tool output** as safe instructions:
+   - tool output can contain injection strings; treat it like any other untrusted input channel
+
+Example audit event fields (metadata only):
+
+```json
+{
+  "event": "remote_tool_call_completed",
+  "request_id": "req-123",
+  "tenant_id": "t-9",
+  "tool": "repo_read_file",
+  "status": "success",
+  "latency_ms": 42
+}
+```
+
 ---
 
 ## 3) Authentication and Authorization Patterns

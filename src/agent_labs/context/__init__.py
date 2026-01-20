@@ -11,6 +11,7 @@ from .tokens import estimate_tokens, TokenCounter
 from .window import ContextWindow, TokenLimitExceededError
 from .serializers import to_json, from_json, to_yaml, from_yaml
 from .examples import QA_TEMPLATE, REASONING_TEMPLATE, TOOL_USE_TEMPLATE
+from .manifest import ContextManifest, ContextManifestItem
 
 __all__ = [
     "PromptTemplate",
@@ -31,4 +32,6 @@ __all__ = [
     "QA_TEMPLATE",
     "REASONING_TEMPLATE",
     "TOOL_USE_TEMPLATE",
+    "ContextManifest",
+    "ContextManifestItem",
 ]
