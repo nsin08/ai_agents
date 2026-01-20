@@ -697,7 +697,54 @@ save_session(agent, session_id)
 | > 100,000 | PostgreSQL/Redis | Need connection pooling |
 | Semantic search | Vector DB | Pinecone, Weaviate, etc. |
 
-### 8.3 Memory Optimization Tips
+### 8.3 Vector Retrieval Production Patterns (Metadata + Provenance + Fallbacks)
+
+The RAG tier is only production-grade when retrieval is:
+
+- **scoped** (tenant, ACL, doc type)
+- **observable** (provenance and logging)
+- **robust** (fallbacks when dependencies degrade)
+
+#### A) Store strong metadata per chunk
+
+Every chunk should carry enough provenance to explain why it was retrieved:
+
+- `doc_id`, `chunk_id`
+- `source` (kb, runbook, ticket, repo file)
+- `timestamp` / `version`
+- `tenant_id` (or workspace/project scope)
+- optional: `tags`, `owner`, `sensitivity`
+
+Without provenance, you cannot debug, audit, or evaluate retrieval behavior.
+
+#### B) Retrieval pipeline: filter -> retrieve -> rerank -> pack
+
+A practical default pipeline:
+
+1. Pre-filter by tenant + ACL + doc type
+2. Retrieve top-K (vector similarity, keyword, or hybrid)
+3. Optionally rerank the top-K (cheap heuristic or model-based reranker)
+4. Pack evidence into context with citations
+
+#### C) Hybrid retrieval (keyword + vector)
+
+Vector search is powerful, but keyword search still wins for:
+
+- exact identifiers (ticket IDs, error codes)
+- rare terms
+- structured names
+
+Hybrid retrieval (keyword + vector + merge/rerank) is common in production systems.
+
+#### D) Fallback modes
+
+External dependencies fail (vector DB, embedder, network). Your agent should have explicit fallback modes:
+
+- vector store down -> keyword-only retrieval
+- retrieval too slow -> "no retrieval" mode with clear user messaging
+- missing provenance -> drop the chunk (do not inject untrusted content)
+
+### 8.4 Memory Optimization Tips
 
 1. **Summarize before pruning:** Instead of discarding old short-term items, summarize them into a single "context summary" fact.
 
