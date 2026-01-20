@@ -29,6 +29,31 @@ Or if using Copilot Spaces:
 
 ---
 
+## 1.1 Environment Awareness (Reduce Retries)
+
+Agents MUST adapt to the user's environment and avoid guessing.
+
+### Preflight (run once before GitHub/Git operations)
+
+- Detect which shell you are in and output commands for that shell only.
+- Confirm `git` exists (`git --version`).
+- Confirm `gh` exists (`gh --version`).
+- If you will create/update Issues/PRs/labels: confirm auth (`gh auth status`).
+  - If not authenticated: STOP and ask the user to authenticate. Do not attempt alternate methods.
+
+### GitHub tooling policy
+
+- Prefer `gh` first for GitHub operations (issues/PRs/labels).
+- Use GitHub MCP only if the user explicitly asks to use it (and only after checking it is available).
+- Do not try multiple approaches for the same action; fail fast with the exact error and missing prerequisite.
+
+### Branch safety
+
+- Do not push directly to protected branches (`main`, `develop`, `release/*`) unless the user explicitly requests it.
+- Use PR-based flow for merges; branch protection enforces policy server-side.
+
+---
+
 ## Essential Framework Files
 
 When you need governance context, load these from https://github.com/nsin08/space_framework:

@@ -2,10 +2,17 @@
 # Created: 2026-01-09
 
 # ============================================
-# space_framework: Task Working Files
+# space_framework Rule 11: File Organization
 # ============================================
-# Per Rule 11: Task working files go in .context/tasks-{id}-{slug}__gh/ (gitignored)
-.context/tasks-*__gh/
+# Committed: .context/project/ (architecture, ADRs, design docs)
+# Committed: .context/sprint/ (sprint plans, retros)
+# Git-Ignored: .context/temp/ (agent scratch, drafts)
+# Git-Ignored: .context/issues/ (issue workspaces)
+# Git-Ignored: .context/reports/ (generated reports)
+.context/temp/
+.context/issues/
+.context/reports/
+.context/tasks-*__gh/  # legacy (deprecated)
 
 # ============================================
 # Python
