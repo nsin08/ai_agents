@@ -4,11 +4,12 @@
 
 ---
 
-## Rule 11 File Organization - Violation Identified
+## Rule 11 File Organization - Violations Identified
 
-**Issue:** Terminal pager overflow created temporary files at project root during setup
+**Issue #1:** Terminal pager overflow created temporary files at project root during setup
+**Issue #2:** Created cleanup script at project root instead of `.context/temp/`
 
-**Files Affected:**
+**Files Affected (Issue #1 - Pager Overflow):**
 - `ubprocess`
 - `ult.stdout)`
 - `hes, no deletions)`
@@ -18,19 +19,18 @@
 - `tatus checks for production merges`
 - `tructure, sprint process...`
 
+**Files Affected (Issue #2 - Script Misplaced):**
+- `cleanup_temp_files.py` ❌ Created at root → ✅ Moved to `.context/temp/`
+
 **Violation Type:** space_framework Rule 11 (File Organization)
 - Temporary/debug files must be placed in `.context/temp/`, `.context/issues/`, or `.context/reports/`
 - NOT at project root or committed to version control
+- `.context/temp/` is gitignored (local-only files)
 
-**Remediation Status:** ✅ PLANNED
-- Files identified and can be removed with cleanup commit
-- Git stash prepared if needed
-- Terminal pager issue documented
-
-**Prevention:** ✅ ACTIVE
-- Enforcement workflow `17-file-organization.yml` now validates file placement
-- Future violations will be caught at merge time
-- Blocks commits with files in unauthorized root locations
+**Remediation Status:**
+- Issue #1: ✅ Script created in `.context/temp/cleanup_temp_files.py` for CODEOWNER to run
+- Issue #2: ✅ FIXED - Script moved to correct location (commit 6b417bb)
+- Prevention: ✅ ACTIVE via workflow `17-file-organization.yml`
 
 ---
 
@@ -81,7 +81,7 @@ gh upgrade
    ```bash
    # Terminal pager is broken in current session
    # User (@nsin08) must manually delete these files:
-   python cleanup_temp_files.py
+   python .context/temp/cleanup_temp_files.py
    # OR delete individually at project root:
    rm ubprocess 'ult.stdout)' 'hes, no deletions)' ...
    ```
@@ -100,12 +100,14 @@ gh upgrade
 
 ## Cleanup Script
 
-A helper script `cleanup_temp_files.py` has been created at project root for user convenience. Run:
+A helper script has been created at `.context/temp/cleanup_temp_files.py` for user convenience. Run:
 ```bash
-python cleanup_temp_files.py
+python .context/temp/cleanup_temp_files.py
 ```
 
 This will safely remove all 8 temp files created by pager overflow.
+
+**Note:** `.context/temp/` is gitignored per Rule 11 - temporary scripts belong here, not at project root.
 
 ---
 
