@@ -4,18 +4,16 @@
 # Default owner for everything in the repository
 *       @nsin08
 
-# GitHub governance configuration
+# GitHub governance configuration requires CODEOWNER approval
 /.github/  @nsin08
-* @[GITHUB_USERNAME]
+/.github/workflows/ @nsin08
+/.github/copilot-instructions.md @nsin08
 
-# Critical governance paths requiring CODEOWNER approval
-/.github/ @[GITHUB_USERNAME]
-/.github/workflows/ @[GITHUB_USERNAME]
-/.github/copilot-instructions.md @[GITHUB_USERNAME]
-/.context/ @[GITHUB_USERNAME]
+# Context documentation requires CODEOWNER approval
+/.context/project/ @nsin08
+/.context/sprint/ @nsin08
 
-# Core application paths (adjust based on your project structure)
-# Uncomment and modify as needed:
-# /src/core/ @[GITHUB_USERNAME]
-# /lib/ @[GITHUB_USERNAME]
+# Core application paths
+/src/ @nsin08
+/tests/ @nsin08
 # /config/ @[GITHUB_USERNAME]
