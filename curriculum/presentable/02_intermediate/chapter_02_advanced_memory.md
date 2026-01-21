@@ -24,6 +24,12 @@ This chapter explores the memory architecture implemented in `src/agent_labs/mem
 
 **Key Insight:** Memory isn't just storage—it's a retrieval strategy. The right memory architecture depends on *what* you need to remember and *how quickly* you need to access it.
 
+## Hands-on (Lane A)
+
+- Primary: Lab 04 (memory tiers): `../../../labs/04/README.md`
+- Extension: Lab 10 (vector retrieval + context packing): `../../../labs/10/README.md`
+- Related code: `../../../src/agent_labs/memory/`, `../../../src/agent_labs/retrieval/`, `../../../src/agent_labs/context/manifest.py`
+
 ---
 
 ## 1. Memory Architecture Overview
@@ -32,33 +38,33 @@ This chapter explores the memory architecture implemented in `src/agent_labs/mem
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                      MEMORY ARCHITECTURE                             │
+│                      MEMORY ARCHITECTURE                            │
 ├─────────────────────────────────────────────────────────────────────┤
-│                                                                      │
+│                                                                     │
 │  ┌────────────────────────────────────────────────────────────┐     │
-│  │                   SHORT-TERM MEMORY                         │     │
+│  │                   SHORT-TERM MEMORY                        │     │
 │  │  • Bounded conversational context (FIFO)                   │     │
 │  │  • Fast access: O(1) append, O(n) search                   │     │
 │  │  • Capacity: 10-50 items typical                           │     │
 │  │  • Use case: Recent conversation turns                     │     │
 │  └────────────────────────────────────────────────────────────┘     │
-│                          ↓ overflow / summarize                      │
+│                          ↓ overflow / summarize                     │
 │  ┌────────────────────────────────────────────────────────────┐     │
-│  │                   LONG-TERM MEMORY                          │     │
+│  │                   LONG-TERM MEMORY                         │     │
 │  │  • Persistent facts with confidence scores                 │     │
 │  │  • Key-value storage with search                           │     │
 │  │  • Capacity: Unlimited (backend-dependent)                 │     │
 │  │  • Use case: User preferences, extracted entities          │     │
 │  └────────────────────────────────────────────────────────────┘     │
-│                          ↓ semantic queries                          │
+│                          ↓ semantic queries                         │
 │  ┌────────────────────────────────────────────────────────────┐     │
-│  │                    RAG MEMORY (Future)                      │     │
+│  │                    RAG MEMORY (Future)                     │     │
 │  │  • Vector embeddings for semantic search                   │     │
 │  │  • Similarity-based retrieval                              │     │
 │  │  • Capacity: Documents, knowledge bases                    │     │
 │  │  • Use case: Complex knowledge retrieval                   │     │
 │  └────────────────────────────────────────────────────────────┘     │
-│                                                                      │
+│                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 

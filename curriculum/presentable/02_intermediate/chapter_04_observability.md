@@ -32,33 +32,33 @@ This chapter covers the observability patterns implemented in Lab 6 and `src/age
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                   THREE PILLARS OF OBSERVABILITY                     │
+│                   THREE PILLARS OF OBSERVABILITY                    │
 ├─────────────────────────────────────────────────────────────────────┤
-│                                                                      │
+│                                                                     │
 │  ┌────────────────────────────────────────────────────────────┐     │
-│  │                        LOGS                                 │     │
+│  │                        LOGS                                │     │
 │  │  • Discrete events with timestamps                         │     │
 │  │  • "What happened at this moment"                          │     │
 │  │  • JSON format for machine parsing                         │     │
 │  │  • Example: {"event": "tool_called", "tool": "calculator"} │     │
 │  └────────────────────────────────────────────────────────────┘     │
-│                                                                      │
+│                                                                     │
 │  ┌────────────────────────────────────────────────────────────┐     │
-│  │                       METRICS                               │     │
+│  │                       METRICS                              │     │
 │  │  • Aggregated measurements over time                       │     │
 │  │  • "How much / how fast / how often"                       │     │
 │  │  • Counters, gauges, histograms                            │     │
 │  │  • Example: llm_calls_total: 1523, avg_latency_ms: 245     │     │
 │  └────────────────────────────────────────────────────────────┘     │
-│                                                                      │
+│                                                                     │
 │  ┌────────────────────────────────────────────────────────────┐     │
-│  │                       TRACES                                │     │
+│  │                       TRACES                               │     │
 │  │  • Request lifecycle across components                     │     │
 │  │  • "How did this request flow through the system"          │     │
 │  │  • Spans with parent-child relationships                   │     │
 │  │  • Example: agent_run → llm_call → tool_execution          │     │
 │  └────────────────────────────────────────────────────────────┘     │
-│                                                                      │
+│                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 

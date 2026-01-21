@@ -74,7 +74,7 @@ Labs are the hands-on companion to the knowledge base and curriculum:
 
 - `Agents/` — Canonical reference documents (the truth layer)
 - `.context/review/` — Critical review notes and identified gaps
-- `.context/curriculum/presentable/` — Presentation-ready curriculum, organized by level + projects
+- `curriculum/presentable/` — Presentation-ready curriculum, organized by level + projects
   - `00_overview/`, `01_beginner/`, `02_intermediate/`, `03_advanced/`, `04_pro/`
   - `projects/` — Project specs (P01–P12)
   - `90_supporting/` — Glossary and mappings
@@ -107,20 +107,23 @@ Typical lab contents:
 - `tests/` — deterministic tests (mock LLM)
 
 Suggested high-level modules:
-- `labs/00_setup/` — environment checks and “hello controller”
-- `labs/01_rag/` — retrieval + citations + eval basics
-- `labs/02_tools/` — schemas, validation, side effects, idempotency
-- `labs/03_controller/` — controller loop, retries, stop conditions
-- `labs/04_memory/` — memory layers + write/retrieval policy
-- `labs/05_context_engineering/` — packing, budgets, compression
-- `labs/06_observability/` — logs/metrics/cost events
-- `labs/07_safety/` — guardrails, prompt injection, approval gates
-- `labs/08_multi_agent/` — coordinator + roles + protocol
+- `labs/00/` - environment checks and setup
+- `labs/01/` - RAG fundamentals (retrieval + citations)
+- `labs/02/` - tool integration (schemas, validation, side effects)
+- `labs/03/` - orchestrator patterns (agent loop)
+- `labs/04/` - memory management (tiers, persistence basics)
+- `labs/05/` - context engineering (packing, budgets, compression)
+- `labs/06/` - observability and monitoring (logs/metrics/traces)
+- `labs/07/` - safety and guardrails
+- `labs/08/` - multi-agent systems
+- `labs/09/` - MCP tool servers (offline foundations)
+- `labs/10/` - vector retrieval + context packing + memory management (offline foundations)
 
 ## Curriculum Entry Point
 
 Start here:
-- `.context/curriculum/presentable/README.md`
+- `curriculum/presentable/README.md`
+- `labs/README.md` (Lane A lab index)
 
 ## Labs Configuration (Planned)
 

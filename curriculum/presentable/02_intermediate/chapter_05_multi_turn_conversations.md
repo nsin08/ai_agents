@@ -32,37 +32,37 @@ This chapter teaches you to design agents that feel like they're having a cohere
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                   MULTI-TURN CONVERSATION FLOW                       │
+│                   MULTI-TURN CONVERSATION FLOW                      │
 ├─────────────────────────────────────────────────────────────────────┤
-│                                                                      │
-│  Turn 1: User initiates                                              │
+│                                                                     │
+│  Turn 1: User initiates                                             │
 │  ┌──────────────────────────────────────────────────────────────┐   │
 │  │  User: "I want to book a flight to Seattle"                  │   │
 │  │  Agent: "Sure! When would you like to travel?"               │   │
 │  │  → State: {goal: flight_booking, destination: Seattle}       │   │
 │  └──────────────────────────────────────────────────────────────┘   │
-│                              ↓                                       │
-│  Turn 2: User provides detail                                        │
+│                              ↓                                      │
+│  Turn 2: User provides detail                                       │
 │  ┌──────────────────────────────────────────────────────────────┐   │
 │  │  User: "Next Friday"                                         │   │
 │  │  Agent: "One-way or round trip?"                             │   │
 │  │  → State: {..., date: next_friday, awaiting: trip_type}      │   │
 │  └──────────────────────────────────────────────────────────────┘   │
-│                              ↓                                       │
-│  Turn 3: User provides more detail                                   │
+│                              ↓                                      │
+│  Turn 3: User provides more detail                                  │
 │  ┌──────────────────────────────────────────────────────────────┐   │
 │  │  User: "Round trip, returning Sunday"                        │   │
 │  │  Agent: "Found 5 options. Here are the top 3..."             │   │
 │  │  → State: {..., trip_type: round_trip, return: sunday}       │   │
 │  └──────────────────────────────────────────────────────────────┘   │
-│                              ↓                                       │
-│  Turn 4: Goal achieved                                               │
+│                              ↓                                      │
+│  Turn 4: Goal achieved                                              │
 │  ┌──────────────────────────────────────────────────────────────┐   │
 │  │  User: "Book the second option"                              │   │
-│  │  Agent: "Booked! Confirmation #ABC123"                       │   │
+│  │  Agent: "Booked! Confirmation #ABC123"                     │   │
 │  │  → State: {status: completed, confirmation: ABC123}          │   │
 │  └──────────────────────────────────────────────────────────────┘   │
-│                                                                      │
+│                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
