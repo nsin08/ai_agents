@@ -3,7 +3,7 @@
 **Date:** 2026-01-20  
 **Scope:** Full repository scan (`src/`, `labs/`, `curriculum/`, `Agents/`)
 
-This document identifies gaps in the curriculum + labs and outlines a maturity model for core agent components. It also introduces a key packaging decision: keep `agent_labs` educational, and add `agent_core` as an importable, production-grade framework layer.
+This document identifies gaps in the curriculum + labs and outlines a maturity model for core agent components. It proposes a learning progression: start from scratch in `agent_labs`, productionize into `agent_core`, and optionally demonstrate industry adoption via adapter layers for popular ecosystems (e.g., LangChain/LangGraph).
 
 ---
 
@@ -17,6 +17,7 @@ The repository establishes a strong educational baseline (Levels 1-2) for buildi
 3. **Persistence needs a production path**: current defaults (`sqlite`, in-memory) are correct for learning but do not demonstrate scalable deployments (Postgres/Redis/pgvector or managed vector DB).
 4. **Evaluation is not a gate**: evaluation modules exist, but there is no repeatable "ship gate" workflow (golden sets + CI regression + stability tests).
 5. **Add a production-ready importable core**: introduce `src/agent_core/` as a configurable, scalable framework layer (factories/registries/policies, production backends, OTel export, evaluation gates, checkpoint/resume) that real projects can import directly.
+6. **Add optional ecosystem interop**: show how the same `agent_core` concepts map into LangChain (integration ecosystem) and LangGraph (workflow runtime) without making the learning path depend on those frameworks.
 
 ---
 
@@ -27,11 +28,14 @@ To keep learning code readable while enabling production readiness:
 - `src/agent_labs/`: educational/reference implementations (minimal dependencies, clarity-first).
 - `src/agent_core/` (proposed): production framework components (configurable, scalable, operable).
 - `src/agent_recipes/` (optional): composed workflows built from `agent_core` ("ready-made recipes").
+- `src/agent_lc/` (optional): LangChain adapters that wrap `agent_core` primitives as LangChain components (Tools/Retrievers/Callbacks).
+- `src/agent_lg/` (optional): LangGraph adapters that run `agent_core` steps as graph nodes with state + checkpoint/resume integration.
 - `labs/`: hands-on exercises that can start with `agent_labs`, then upgrade to `agent_core`.
 
 **Design pattern scope impact**
 - Implement "platform patterns" (factories, registries, routing, policies) primarily in `agent_core`.
 - Keep `agent_labs` mostly at Level 1-2 (interfaces + simple DI) unless a lab explicitly teaches refactoring patterns.
+- Keep LangChain/LangGraph usage (if any) at the edges (`agent_lc`/`agent_lg`) so the core stays vendor- and framework-neutral.
 
 ---
 
@@ -118,11 +122,14 @@ Maturity levels used below:
 ### 4.11 Framework interop examples (LangChain / LangGraph) (Medium)
 
 **Status:** not covered explicitly; the repo is intentionally framework-agnostic.  
-**Why it matters:** many teams evaluate agents via **LangChain** (components/chains/tools/retrievers) or orchestrate flows via **LangGraph** (graph/state execution). A small, well-framed example helps learners map concepts from this repo to the broader ecosystem and reduces “translation friction” when integrating into existing codebases.  
+**Why it matters:** teams often already run LangChain/LangGraph (or evaluate them) and will ask "how does this map?". A small, well-framed example reduces translation friction when integrating into existing codebases.  
+**What it solves in practice:**
+- **LangChain**: reduces "integration plumbing" by providing a large ecosystem of tool/retriever/document-loader integrations and common composition patterns.
+- **LangGraph**: reduces "workflow plumbing" by providing an explicit state-machine/graph runtime for multi-step flows (branching, retries, checkpoints/resume, human-in-the-loop).
 **Missing pieces (without creating a hard dependency):**
-- Concept mapping: `ToolRegistry` ↔ LangChain Tools, retrieval (`VectorIndex`/retrievers) ↔ LangChain Retrievers, orchestrator loop ↔ LangGraph nodes/edges/state.
-- Interop boundary guidance: keep `agent_core` as the stable production surface; treat LangChain/LangGraph as optional adapters at the edge.
-- One minimal adapter sample (optional): “wrap a LangChain tool as a repo `ToolContract`” and/or “run a repo agent step inside a LangGraph node”.
+- Concept mapping: `ToolRegistry` <-> LangChain Tools, retrieval (`VectorIndex`/retrievers) <-> LangChain Retrievers, orchestrator loop <-> LangGraph nodes/edges/state.
+- Boundary guidance: keep `agent_core` as the stable production surface; treat LangChain/LangGraph as optional adapters at the edge.
+- Minimal adapter examples (optional): "wrap a LangChain tool as a repo `ToolContract`" and/or "run a repo agent step inside a LangGraph node".
 
 ---
 
@@ -132,6 +139,7 @@ The presence of `agent_core` changes "where patterns belong":
 
 - `agent_labs`: show the simplest correct implementation (great for learning and labs).
 - `agent_core`: implement patterns consistently so production projects get stable interfaces and operational behavior.
+- `agent_lc`/`agent_lg` (optional): adapters that translate `agent_core` primitives into LangChain/LangGraph concepts; avoid putting core policies or business logic here.
 
 ### 5.1 Strategy pattern (algorithm selection)
 
@@ -183,6 +191,11 @@ Instead of refactoring every `agent_labs` module into factories/registries, the 
 - Add MCP client integration in `agent_core` (and an adapter for existing tool contracts).
 - Add remote tool boundary policy: allowlists, authZ hooks, audit events.
 
+### Phase 2.5: Ecosystem interop (optional, after Phase 0-2)
+- Add `agent_lc` and `agent_lg` as optional packages (extras/optional deps).
+- Add minimal adapters so projects can adopt LangChain/LangGraph without losing `agent_core` policies (audit, safety, eval, observability).
+- Add one optional lab showing the mapping and tradeoffs (see Lab E).
+
 ### Phase 3: Engineering discipline (Weeks 5-6)
 - Add evaluation gates (golden set runner + scorecard + CI gate).
 - Add OTel exporter + trace context propagation.
@@ -197,7 +210,7 @@ Instead of refactoring every `agent_labs` module into factories/registries, the 
 
 ## 7) Labs (What to Add or Upgrade)
 
-Goal: labs should teach the baseline (`agent_labs`) and then show how production teams use `agent_core`.
+Goal: labs should teach the baseline from scratch (`agent_labs`), then show how production teams standardize and scale it (`agent_core`), and finally show how those concepts map to industry-adopted runtimes (optional LangChain/LangGraph interop).
 
 ### Lab A: Vector DB + Context + Memory Management (recommended)
 
@@ -231,7 +244,7 @@ Golden set creation, stability tests (N runs), scorecard reporting, and "fail th
 
 ### Lab E: LangChain / LangGraph interop (optional)
 
-Goal: show how to integrate this repo’s primitives into common ecosystems without coupling core code to those frameworks.
+Goal: show how to integrate this repo's primitives into common ecosystems without coupling core code to those frameworks.
 
 Suggested exercises:
 1. LangChain: wrap one repo `ToolContract` as a LangChain Tool; demonstrate metadata/audit propagation.
@@ -239,7 +252,7 @@ Suggested exercises:
 3. LangGraph: model a simple multi-step workflow as a graph; use a repo orchestrator step as a node; persist/restore state.
 
 Deliverables:
-- Short curriculum appendix (“Interop patterns”) + one small optional lab folder + guidance on when to use `agent_core` vs framework code.
+- Short curriculum appendix ("Interop patterns") + one small optional lab folder + guidance on when to use `agent_core` vs framework code.
 
 ---
 
