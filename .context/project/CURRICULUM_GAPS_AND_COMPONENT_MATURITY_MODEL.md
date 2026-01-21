@@ -115,6 +115,15 @@ Maturity levels used below:
 **Status:** multiple providers exist; routing is not first-class.  
 **Missing pieces:** routing policy, capability registry, cost/latency-aware selection, health-based fallback (cloud -> local), eval-gated rollout.
 
+### 4.11 Framework interop examples (LangChain / LangGraph) (Medium)
+
+**Status:** not covered explicitly; the repo is intentionally framework-agnostic.  
+**Why it matters:** many teams evaluate agents via **LangChain** (components/chains/tools/retrievers) or orchestrate flows via **LangGraph** (graph/state execution). A small, well-framed example helps learners map concepts from this repo to the broader ecosystem and reduces “translation friction” when integrating into existing codebases.  
+**Missing pieces (without creating a hard dependency):**
+- Concept mapping: `ToolRegistry` ↔ LangChain Tools, retrieval (`VectorIndex`/retrievers) ↔ LangChain Retrievers, orchestrator loop ↔ LangGraph nodes/edges/state.
+- Interop boundary guidance: keep `agent_core` as the stable production surface; treat LangChain/LangGraph as optional adapters at the edge.
+- One minimal adapter sample (optional): “wrap a LangChain tool as a repo `ToolContract`” and/or “run a repo agent step inside a LangGraph node”.
+
 ---
 
 ## 5) Design Patterns: What to Implement Where (with `agent_core`)
@@ -220,6 +229,18 @@ Discovery -> allowlist -> execute -> observe, with telemetry correlation and saf
 
 Golden set creation, stability tests (N runs), scorecard reporting, and "fail the build on regression".
 
+### Lab E: LangChain / LangGraph interop (optional)
+
+Goal: show how to integrate this repo’s primitives into common ecosystems without coupling core code to those frameworks.
+
+Suggested exercises:
+1. LangChain: wrap one repo `ToolContract` as a LangChain Tool; demonstrate metadata/audit propagation.
+2. LangChain: expose a repo retrieval pipeline as a LangChain Retriever (provenance preserved).
+3. LangGraph: model a simple multi-step workflow as a graph; use a repo orchestrator step as a node; persist/restore state.
+
+Deliverables:
+- Short curriculum appendix (“Interop patterns”) + one small optional lab folder + guidance on when to use `agent_core` vs framework code.
+
 ---
 
 ## 8) Current Pattern Cross-Reference (Repo Reality Check)
@@ -237,4 +258,3 @@ Golden set creation, stability tests (N runs), scorecard reporting, and "fail th
 1. Confirm the `agent_core` layering decision (scope and naming).
 2. Decide which gap(s) become the first "production slice" (recommend: data + retrieval + eval gate).
 3. Convert Phase 0-1 into issues/stories under space_framework governance (story -> PR -> review -> merge).
-
