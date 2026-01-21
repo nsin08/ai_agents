@@ -24,6 +24,11 @@ This chapter teaches integration patterns that make agents production-ready: aut
 
 **Key Insight:** Integration code is where most agent failures occur. Robust error handling and retry logic are not optional—they're essential.
 
+## Hands-on (Lane A)
+
+- Lab 09: MCP tool servers (offline foundations): `../../../labs/09/README.md`
+- Related code: `../../../src/agent_labs/mcp/` and `../../../src/agent_labs/tools/`
+
 ---
 
 ## 1. Tool Architecture Overview
@@ -32,33 +37,33 @@ This chapter teaches integration patterns that make agents production-ready: aut
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                     TOOL ARCHITECTURE LAYERS                         │
+│                     TOOL ARCHITECTURE LAYERS                        │
 ├─────────────────────────────────────────────────────────────────────┤
-│                                                                      │
+│                                                                     │
 │  ┌────────────────────────────────────────────────────────────────┐ │
 │  │                      Agent Orchestrator                        │ │
 │  │                 (decides which tools to call)                  │ │
 │  └───────────────────────────┬────────────────────────────────────┘ │
-│                              │                                       │
-│                              ▼                                       │
+│                              │                                      │
+│                              ▼                                      │
 │  ┌────────────────────────────────────────────────────────────────┐ │
 │  │                      Tool Registry                             │ │
 │  │           (manages tools, validates inputs, executes)          │ │
 │  └───────────────────────────┬────────────────────────────────────┘ │
-│                              │                                       │
+│                              │                                      │
 │         ┌────────────────────┼────────────────────┐                 │
 │         ▼                    ▼                    ▼                 │
-│  ┌──────────────┐   ┌──────────────┐   ┌──────────────┐            │
-│  │   Tool A     │   │   Tool B     │   │   Tool C     │            │
-│  │ (Calculator) │   │ (Weather)    │   │ (Database)   │            │
-│  └──────────────┘   └──────────────┘   └──────────────┘            │
-│         │                    │                    │                  │
-│         ▼                    ▼                    ▼                  │
-│  ┌──────────────┐   ┌──────────────┐   ┌──────────────┐            │
-│  │   Internal   │   │   REST API   │   │  PostgreSQL  │            │
-│  │   Logic      │   │   (HTTP)     │   │   (Async)    │            │
-│  └──────────────┘   └──────────────┘   └──────────────┘            │
-│                                                                      │
+│  ┌──────────────┐   ┌──────────────┐   ┌──────────────┐             │
+│  │   Tool A     │   │   Tool B     │   │   Tool C     │             │
+│  │ (Calculator) │   │ (Weather)    │   │ (Database)   │             │
+│  └──────────────┘   └──────────────┘   └──────────────┘             │
+│         │                    │                    │                 │
+│         ▼                    ▼                    ▼                 │
+│  ┌──────────────┐   ┌──────────────┐   ┌──────────────┐             │
+│  │   Internal   │   │   REST API   │   │  PostgreSQL  │             │
+│  │   Logic      │   │   (HTTP)     │   │   (Async)    │             │
+│  └──────────────┘   └──────────────┘   └──────────────┘             │
+│                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 

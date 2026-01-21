@@ -271,3 +271,95 @@ Deliverables:
 1. Confirm the `agent_core` layering decision (scope and naming).
 2. Decide which gap(s) become the first "production slice" (recommend: data + retrieval + eval gate).
 3. Convert Phase 0-1 into issues/stories under space_framework governance (story -> PR -> review -> merge).
+
+---
+
+## 10) Proposed Progressive Learning Realignment Plan (Proposal Only)
+
+Goal: keep this repo a learning project that (1) teaches agents from scratch and (2) evolves into industry-adopted, production-ready examples without turning the fundamentals into framework-specific code.
+
+### 10.1 What we have today (current structure)
+
+Truth and reference:
+- `Agents/`: canonical architecture/pattern docs (truth layer).
+
+Teaching materials:
+- `curriculum/ai_agents_learning_curriculum.md`: long-form curriculum draft.
+- `curriculum/presentable/`: slides/workbooks/chapters/projects packaged by level.
+
+Hands-on:
+- `labs/00`..`labs/10`: runnable labs with their own READMEs and tests.
+- `src/agent_labs/`: shared educational code used by labs (framework-agnostic primitives).
+- `scripts/`: interactive playground scripts that exercise `src/agent_labs/`.
+
+### 10.2 The progressive learning model (recommended)
+
+Define three explicit "lanes" and keep boundaries clear:
+
+Lane A - Build from scratch (primary learning path)
+- Use `Agents/` + `curriculum/presentable/` to teach concepts.
+- Use `labs/` + `src/agent_labs/` to implement fundamentals (readable, minimal deps, deterministic tests).
+
+Lane B - Productionize (platform engineering path)
+- Introduce `src/agent_core/` as the stable import surface for production apps.
+- Add production backends/policies/operability (storage backends, OTel export, eval gates, checkpoint/resume).
+- Labs gain an "upgrade to agent_core" section (same lab, more operable implementation).
+
+Lane C - Industry adoption (optional ecosystem interop)
+- Add `src/agent_lc/` (LangChain adapters) and `src/agent_lg/` (LangGraph adapters) as optional packages.
+- Teach how to map concepts, not replace them: keep policies in `agent_core`, keep adapters thin.
+
+### 10.3 Proposed restructuring plan (no changes now)
+
+This is a plan for incremental PRs; it does not require a large one-shot re-org.
+
+Step 1 - Fix navigation and "single entry points"
+- Make root `README.md` link to the actual curriculum entry: `curriculum/presentable/README.md`.
+- Add (or update) a single lab index: `labs/README.md` with a table (Lab -> Concepts -> Curriculum chapter -> src modules).
+- Add an `Agents/README.md` index to explain "truth layer" and link to the core docs.
+
+Step 2 - Make curriculum-to-lab mapping authoritative
+- Treat `curriculum/presentable/05_supporting/41_lab_integration_guide.md` as the canonical mapping table.
+- Update it to include new labs (09 MCP, 10 vector/context/memory) and any future labs.
+- In each chapter, add a small "Hands-on" block that points to the lab and the relevant `src/agent_labs/*` modules.
+
+Step 3 - Standardize lab progression inside each lab folder
+- Add a consistent lab template (per-lab README sections):
+  - "From scratch" (use only `agent_labs`)
+  - "Production upgrade" (how it would look in `agent_core`)
+  - "Interop note" (optional: what LangChain/LangGraph would replace or simplify)
+- Keep tests deterministic; add optional "real mode" sections for live providers/backends.
+
+Step 4 - Clarify the role of `scripts/` as a progressive workbench
+- Keep `scripts/` as the interactive playground, but add a clear mapping:
+  - which script corresponds to which lab/level (beginner -> intermediate -> advanced).
+- Consider consolidating Python packaging (root `pyproject.toml` vs `scripts/pyproject.toml`) to reduce setup confusion, or explicitly document why `scripts/` is its own sandbox.
+
+Step 5 - Introduce `agent_core` in thin slices (when ready)
+- Create `src/agent_core/` as the production import surface, but start small:
+  - one config-driven factory example
+  - one production backend example (e.g., Postgres storage or persistent vector store)
+- Add one "production slice" lab that shows the delta between `agent_labs` and `agent_core`.
+
+Step 6 - Add optional ecosystem adapters (when ready)
+- Add `src/agent_lc/` and `src/agent_lg/` as optional extras (no hard dependency for the base repo).
+- Add one optional lab or appendix that demonstrates the mapping and tradeoffs (not a new default learning dependency).
+
+### 10.4 Proposed end-state structure (conceptual)
+
+This is the intended mental model, not an instruction to move files right now:
+
+- `Agents/` -> truth layer (architecture and patterns)
+- `curriculum/presentable/` -> teaching pack (slides/workbooks/chapters/projects)
+- `labs/` -> hands-on exercises (deterministic + optional real mode)
+- `src/agent_labs/` -> from-scratch educational primitives
+- `src/agent_core/` -> production-ready framework layer (configurable, scalable, operable)
+- `src/agent_recipes/` -> composed, reusable workflows built from `agent_core`
+- `src/agent_lc/` and `src/agent_lg/` -> optional adapters for LangChain/LangGraph
+
+### 10.5 Success criteria for the realignment
+
+You know the repo is aligned when:
+- A new learner can start from one place (root README) and follow a single path end-to-end.
+- Every curriculum chapter points to a lab, and every lab points back to curriculum and `src` modules.
+- The repo stays runnable without LangChain/LangGraph, but has a clear "interop path" for industry adoption.

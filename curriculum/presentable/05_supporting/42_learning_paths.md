@@ -13,8 +13,12 @@
 ## Path B: Mid-Level Engineers
 
 - Start: Beginner + Intermediate
-- Focus: Orchestrator, memory, context, observability
+- Focus: Orchestrator, memory, context, observability, integration patterns
 - Outcome: Production-ready single-agent system
+
+Optional extensions:
+- Lab 09 (MCP) for standardized tool servers and remote tool boundaries
+- Lab 10 (vector retrieval + context packing) for RAG-style memory at scale
 
 ## Path C: Architects
 

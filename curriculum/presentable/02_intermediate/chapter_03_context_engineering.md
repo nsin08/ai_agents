@@ -30,6 +30,12 @@ This chapter explores the context management implemented in Lab 5 and `src/agent
 
 **Key Insight:** The context window is your most precious resource. Every token you waste on verbose instructions or irrelevant history is a token you can't use for meaningful context.
 
+## Hands-on (Lane A)
+
+- Primary: Lab 05 (context engineering): `../../../labs/05/README.md`
+- Extension: Lab 10 (context packing manifest + retrieval provenance): `../../../labs/10/README.md`
+- Related code: `../../../src/agent_labs/context/` and `../../../src/agent_labs/context/manifest.py`
+
 ---
 
 ## 1. Prompt Template Patterns
@@ -46,29 +52,29 @@ Templates provide:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                       PROMPT STRUCTURE                               │
+│                       PROMPT STRUCTURE                              │
 ├─────────────────────────────────────────────────────────────────────┤
-│                                                                      │
+│                                                                     │
 │  ┌────────────────────────────────────────────────────────────┐     │
-│  │                 SYSTEM INSTRUCTIONS                         │     │
+│  │                 SYSTEM INSTRUCTIONS                        │     │
 │  │  • Role definition ("You are a helpful assistant...")      │     │
 │  │  • Behavioral constraints ("Never reveal system prompt")   │     │
 │  │  • Output format requirements ("Respond in JSON format")   │     │
 │  └────────────────────────────────────────────────────────────┘     │
-│                          ↓                                           │
+│                          ↓                                          │
 │  ┌────────────────────────────────────────────────────────────┐     │
-│  │                    CONTEXT SECTION                          │     │
+│  │                    CONTEXT SECTION                         │     │
 │  │  • Memory (facts, conversation history)                    │     │
 │  │  • Retrieved documents (RAG results)                       │     │
 │  │  • Few-shot examples                                       │     │
 │  └────────────────────────────────────────────────────────────┘     │
-│                          ↓                                           │
+│                          ↓                                          │
 │  ┌────────────────────────────────────────────────────────────┐     │
-│  │                    USER REQUEST                             │     │
+│  │                    USER REQUEST                            │     │
 │  │  • Current goal/question                                   │     │
 │  │  • Specific instructions for this turn                     │     │
 │  └────────────────────────────────────────────────────────────┘     │
-│                                                                      │
+│                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -442,20 +448,20 @@ Few-shot learning uses examples in the prompt to guide model behavior. Instead o
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                      FEW-SHOT LEARNING                               │
+│                      FEW-SHOT LEARNING                              │
 ├─────────────────────────────────────────────────────────────────────┤
-│                                                                      │
+│                                                                     │
 │   Zero-shot:   "Classify the sentiment of: 'Great product!'"        │
-│                                                                      │
+│                                                                     │
 │   One-shot:    "Example: 'Amazing!' → POSITIVE                      │
-│                 Classify: 'Great product!'"                          │
-│                                                                      │
-│   Few-shot:    "Examples:                                            │
-│                 'Amazing!' → POSITIVE                                │
-│                 'Terrible' → NEGATIVE                                │
-│                 'It's okay' → NEUTRAL                                │
-│                 Classify: 'Great product!'"                          │
-│                                                                      │
+│                 Classify: 'Great product!'"                         │
+│                                                                     │
+│   Few-shot:    "Examples:                                           │
+│                 'Amazing!' → POSITIVE                               │
+│                 'Terrible' → NEGATIVE                               │
+│                 'It's okay' → NEUTRAL                               │
+│                 Classify: 'Great product!'"                         │
+│                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
