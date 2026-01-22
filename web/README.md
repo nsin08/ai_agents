@@ -51,6 +51,10 @@ python -m uvicorn main:app --reload --port 8000
 cd web/frontend
 npm start
 # Opens http://localhost:3000
+
+# Or use the provided script to suppress deprecation warnings:
+./start.sh          # Linux/macOS
+start.bat           # Windows
 ```
 
 ## Verification Status ✅
