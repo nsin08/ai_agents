@@ -135,12 +135,25 @@ export class ChatPanel {
    * Handle reset session command
    */
   private async handleResetSession(): Promise<void> {
+    // Show confirmation dialog in VSCode (not in webview)
+    const response = await vscode.window.showWarningMessage(
+      'Are you sure you want to reset the conversation? This will clear all messages.',
+      { modal: true },
+      'Yes',
+      'No'
+    );
+
+    if (response !== 'Yes') {
+      return;
+    }
+
     try {
       await this.agentService.resetSession();
       await this.initializeSession();
       this.panel.webview.postMessage({
         type: 'sessionReset',
       });
+      vscode.window.showInformationMessage('Conversation reset successfully');
     } catch (error) {
       vscode.window.showErrorMessage(
         `Failed to reset session: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -236,9 +249,7 @@ export class ChatPanel {
 '            }' +
 '        }' +
 '        function resetSession() {' +
-'            if (confirm("Are you sure you want to reset the conversation?")) {' +
-'                vscode.postMessage({ command: "resetSession" });' +
-'            }' +
+'            vscode.postMessage({ command: "resetSession" });' +
 '        }' +
 '        function displayMessage(message) {' +
 '            const messagesDiv = document.getElementById("messages");' +
@@ -264,7 +275,7 @@ export class ChatPanel {
 '            switch (message.type) {' +
 '                case "messageReceived": displayMessage(message.message); break;' +
 '                case "sessionStarted": console.log("Session started:", message.sessionId); break;' +
-'                case "sessionReset": document.getElementById("messages").innerHTML = ""; showError("Conversation reset"); break;' +
+'                case "sessionReset": document.getElementById("messages").innerHTML = ""; break;' +
 '                case "error": showError(message.message); break;' +
 '                case "configData": console.log("Config:", message.config); break;' +
 '            }' +
