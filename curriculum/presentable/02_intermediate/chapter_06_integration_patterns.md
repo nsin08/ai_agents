@@ -958,6 +958,49 @@ class ToolDocumentation:
         }
 ```
 
+### 6.3 Standardized Tool Servers (MCP)
+
+As tool ecosystems grow, integrations become painful:
+
+- You end up re-implementing the same wrapper patterns for every system.
+- Tool discovery is ad-hoc ("what tools exist in this deployment?").
+- Remote tools blur security boundaries (auth, audit, tenant isolation).
+
+**Model Context Protocol (MCP)** is a standard that helps solve this by treating tools as **discoverable capabilities** exposed by a tool server.
+
+At a high level:
+
+- **MCP server**: publishes tools (name, description, input schema) and executes them.
+- **MCP client**: lists available tools and invokes them with structured arguments.
+- **Tool schema**: defines contracts similar to what we already do with `ToolContract`.
+
+#### Mapping MCP to this repo's tool system
+
+You can treat an MCP tool as a normal tool in your `ToolRegistry`:
+
+1. Discover tools via MCP (`list_tools()`).
+2. Convert tool schema to `ToolContract` (name/description/input schema).
+3. Wrap each MCP tool behind a local `Tool` implementation.
+4. Execute via `ToolRegistry.execute(...)` so you get validation, errors, and consistent results.
+
+#### Error taxonomy + observability
+
+For production-capable integrations, standardize these:
+
+- **Timeouts**: MCP call exceeds deadline -> `ExecutionStatus.TIMEOUT`
+- **Invalid input**: MCP server rejects args -> `ExecutionStatus.INVALID_INPUT`
+- **Not found**: tool name missing -> `ExecutionStatus.NOT_FOUND`
+- **Connection**: server unreachable -> `ExecutionStatus.FAILURE` (with clear error message)
+
+Always emit correlation fields around remote tool calls:
+
+- `request_id` / `run_id`
+- `tool_name`
+- `tool_call_id`
+- `tenant_id` (if multi-tenant)
+
+These are critical for debugging and audit.
+
 ---
 
 ## 7. Integration Testing

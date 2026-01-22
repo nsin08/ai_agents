@@ -778,6 +778,42 @@ The key is determinism: the agent should make the same decision every time given
 
 ---
 
+### 3.5.1 Context Packing Policy + Evidence Manifest
+
+In production, you want a *repeatable* answer to: "What did we put into the prompt, and why?"
+
+Start with a deterministic packing order (example):
+
+1. System instructions
+2. Current user request (goal + constraints)
+3. Tool contracts (names + schemas for tools available this run)
+4. Retrieved evidence (RAG results), **with provenance**
+5. Long-term memory (facts), **with confidence + provenance**
+6. Conversation history (recent turns)
+7. Summaries (only if needed to fit budget)
+
+Then produce a lightweight **evidence manifest** alongside the prompt. This is not sent to the user by default, but it is logged for debugging and evaluation.
+
+Example manifest shape:
+
+```json
+{
+  "request_id": "req-123",
+  "budget": {"max_tokens": 8000, "reserved_response_tokens": 1000},
+  "items": [
+    {"kind": "tool_schema", "name": "ticket_read", "tokens": 120, "reason": "tool available"},
+    {"kind": "evidence", "doc_id": "runbook-7", "chunk_id": "c12", "tokens": 260, "reason": "retrieval_top_k"},
+    {"kind": "memory_fact", "key": "user_pref", "tokens": 40, "reason": "high_confidence"}
+  ]
+}
+```
+
+This makes it easier to:
+
+- debug wrong answers ("what evidence did we include?")
+- evaluate changes ("did new chunking change evidence coverage?")
+- audit sensitive decisions ("did we include the right documents for this tenant?")
+
 ## Implementation Guide (using core modules)
 
 Use these repo assets to make the chapter actionable:
