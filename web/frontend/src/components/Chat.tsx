@@ -57,11 +57,14 @@ const Chat: React.FC = () => {
       return;
     }
 
+    // Store message before clearing input
+    const messageContent = inputValue;
+
     // Add user message
     const userMessage: Message = {
       id: `user-${Date.now()}`,
       role: "user",
-      content: inputValue,
+      content: messageContent,
       timestamp: new Date(),
     };
 
@@ -72,7 +75,7 @@ const Chat: React.FC = () => {
     try {
       // Send to API
       const response = await chatService.sendMessage({
-        message: inputValue,
+        message: messageContent,
         sessionId: sessionId || undefined,
       });
 
