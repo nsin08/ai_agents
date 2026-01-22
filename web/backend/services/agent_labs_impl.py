@@ -58,17 +58,11 @@ class AgentLabsService(AgentServiceInterface):
                     }
                 )
             
-            # Create Mock provider (MockProvider takes only name parameter)
-            llm_provider = MockProvider(name=model)
-            
-            # Create Mock provider (MockProvider takes only name parameter)
+            # Create Mock provider (deterministic for testing)
             llm_provider = MockProvider(name=model)
             
             # Create and run agent
-            agent = Agent(
-                provider=llm_provider,
-                model=model
-            )
+            agent = Agent(provider=llm_provider, model=model)
             
             # Run agent with the message as goal
             result = await agent.run(

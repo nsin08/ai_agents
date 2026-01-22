@@ -6,7 +6,7 @@ interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
-  timestamp: Date;
+  timestamp: string | Date;
   metadata?: Record<string, unknown>;
 }
 
@@ -208,7 +208,9 @@ const Chat: React.FC = () => {
                 )}
               </div>
               <span className="message-time">
-                {msg.timestamp.toLocaleTimeString()}
+                {typeof msg.timestamp === 'string' 
+                  ? new Date(msg.timestamp).toLocaleTimeString()
+                  : msg.timestamp.toLocaleTimeString()}
               </span>
             </div>
           ))
