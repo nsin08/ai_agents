@@ -1,0 +1,116 @@
+{
+  "name": "ai-agent-extension",
+  "displayName": "AI Agent Interaction",
+  "description": "Interact with AI agents directly from VSCode with integrated configuration management",
+  "version": "0.1.0",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["AI", "Developer Tools"],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "ai-agent.startConversation",
+        "title": "Agent: Start Conversation"
+      },
+      {
+        "command": "ai-agent.switchProvider",
+        "title": "Agent: Switch Provider"
+      },
+      {
+        "command": "ai-agent.switchModel",
+        "title": "Agent: Switch Model"
+      },
+      {
+        "command": "ai-agent.resetSession",
+        "title": "Agent: Reset Session"
+      }
+    ],
+    "configuration": {
+      "title": "AI Agent",
+      "properties": {
+        "aiAgent.provider": {
+          "type": "string",
+          "default": "mock",
+          "enum": ["mock", "ollama", "openai", "anthropic", "google", "azure-openai"],
+          "description": "LLM provider to use"
+        },
+        "aiAgent.model": {
+          "type": "string",
+          "default": "llama2",
+          "description": "Model name for the selected provider"
+        },
+        "aiAgent.baseUrl": {
+          "type": "string",
+          "default": "http://localhost:11434",
+          "description": "Base URL for Ollama (if using ollama provider)"
+        },
+        "aiAgent.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for cloud providers",
+          "markdownDescription": "API key for cloud providers (OpenAI, Anthropic, etc.)"
+        },
+        "aiAgent.maxTurns": {
+          "type": "number",
+          "default": 5,
+          "description": "Maximum conversation turns"
+        },
+        "aiAgent.timeout": {
+          "type": "number",
+          "default": 30,
+          "description": "Request timeout in seconds"
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "ai-agent-panel",
+          "title": "AI Agent",
+          "icon": "$(sparkle)"
+        }
+      ]
+    },
+    "views": {
+      "ai-agent-panel": [
+        {
+          "type": "webview",
+          "id": "ai-agent.chatPanel",
+          "name": "Chat"
+        },
+        {
+          "type": "webview",
+          "id": "ai-agent.configPanel",
+          "name": "Configuration"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "test": "jest",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.0.0",
+    "@types/jest": "^29.0.0",
+    "typescript": "^5.0.0",
+    "jest": "^29.0.0",
+    "ts-jest": "^29.0.0",
+    "eslint": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}
