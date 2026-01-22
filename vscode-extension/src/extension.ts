@@ -22,7 +22,12 @@ export function activate(context: vscode.ExtensionContext) {
     async () => {
       console.log('Starting conversation...');
       if (!chatPanel) {
-        chatPanel = new ChatPanel(context.extensionUri, agentService, configService);
+        chatPanel = new ChatPanel(
+          context.extensionUri,
+          agentService,
+          configService,
+          () => { chatPanel = undefined; }
+        );
       }
       chatPanel.show();
     }
@@ -34,7 +39,11 @@ export function activate(context: vscode.ExtensionContext) {
     async () => {
       console.log('Switching provider...');
       if (!configPanel) {
-        configPanel = new ConfigPanel(context.extensionUri, configService);
+        configPanel = new ConfigPanel(
+          context.extensionUri,
+          configService,
+          () => { configPanel = undefined; }
+        );
       }
       configPanel.show();
     }
@@ -46,7 +55,11 @@ export function activate(context: vscode.ExtensionContext) {
     async () => {
       console.log('Switching model...');
       if (!configPanel) {
-        configPanel = new ConfigPanel(context.extensionUri, configService);
+        configPanel = new ConfigPanel(
+          context.extensionUri,
+          configService,
+          () => { configPanel = undefined; }
+        );
       }
       configPanel.show();
     }

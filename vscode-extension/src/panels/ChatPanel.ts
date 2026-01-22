@@ -8,15 +8,18 @@ export class ChatPanel {
   private agentService: AgentService;
   private configService: ConfigService;
   private extensionUri: vscode.Uri;
+  private onDisposeCallback?: () => void;
 
   constructor(
     extensionUri: vscode.Uri,
     agentService: AgentService,
-    configService: ConfigService
+    configService: ConfigService,
+    onDispose?: () => void
   ) {
     this.extensionUri = extensionUri;
     this.agentService = agentService;
     this.configService = configService;
+    this.onDisposeCallback = onDispose;
 
     // Create webview panel
     this.panel = vscode.window.createWebviewPanel(
@@ -33,6 +36,14 @@ export class ChatPanel {
       (message) => this.handleMessage(message),
       undefined
     );
+
+    // Handle panel disposal
+    this.panel.onDidDispose(() => {
+      this.dispose();
+      if (this.onDisposeCallback) {
+        this.onDisposeCallback();
+      }
+    }, undefined);
 
     // Initialize session
     this.initializeSession();

@@ -6,10 +6,12 @@ export class ConfigPanel {
   private panel: vscode.WebviewPanel;
   private configService: ConfigService;
   private extensionUri: vscode.Uri;
+  private onDisposeCallback?: () => void;
 
-  constructor(extensionUri: vscode.Uri, configService: ConfigService) {
+  constructor(extensionUri: vscode.Uri, configService: ConfigService, onDispose?: () => void) {
     this.extensionUri = extensionUri;
     this.configService = configService;
+    this.onDisposeCallback = onDispose;
 
     // Create webview panel
     this.panel = vscode.window.createWebviewPanel(
@@ -26,6 +28,14 @@ export class ConfigPanel {
       (message) => this.handleMessage(message),
       undefined
     );
+
+    // Handle panel disposal
+    this.panel.onDidDispose(() => {
+      this.dispose();
+      if (this.onDisposeCallback) {
+        this.onDisposeCallback();
+      }
+    }, undefined);
 
     // Load and display current config
     this.loadConfiguration();
