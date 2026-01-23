@@ -62,6 +62,7 @@ export class AgentService {
 
     // Load from storage if exists
     const stored = await this.configService.loadSession(this.sessionId);
+
     // Initialize metrics and trace collection
     if (this.metricsService) {
       this.metricsService.startConversation(this.sessionId, config.provider, config.model);
@@ -79,6 +80,15 @@ export class AgentService {
     return this.currentSession;
   }
 
+  /**
+   * Send a message to the AI agent
+   */
+  public async sendMessage(userMessage: string): Promise<string> {
+    if (!this.currentSession) {
+      await this.startSession();
+    }
+
+    const config = this.configService.getConfig();
     this.currentTurn++;
     const turnStartTime = Date.now();
 
@@ -91,7 +101,7 @@ export class AgentService {
       content: userMessage,
       timestamp: turnStartTime,
     };
-    this.currentSession.messages.push(userMsg);
+    this.currentSession!.messages.push(userMsg);
 
     try {
       // Trace: Plan state (simulated - would come from actual orchestrator)
@@ -132,10 +142,10 @@ export class AgentService {
         },
         responseTime
       };
-      this.currentSession.messages.push(assistantMsg);
+      this.currentSession!.messages.push(assistantMsg);
 
       // Save session
-      await this.configService.saveSession(this.sessionId, this.currentSession);
+      await this.configService.saveSession(this.sessionId, this.currentSession!);
 
       return response;
     } catch (error) {
@@ -156,18 +166,9 @@ export class AgentService {
           }
         );
       }
-onse,
-        timestamp: Date.now(),
-      };
-      this.currentSession.messages.push(assistantMsg);
 
-      // Save session
-      await this.configService.saveSession(this.sessionId, this.currentSession);
-
-      return response;
-    } catch (error) {
       // Remove failed user message
-      this.currentSession.messages.pop();
+      this.currentSession!.messages.pop();
       throw error;
     }
   }
@@ -178,22 +179,33 @@ onse,
   private async callBackendAPI(message: string, config: AgentConfig): Promise<string> {
     const config_timeout = config.timeout * 1000; // Convert to milliseconds
 
+    // If mock provider, return mock response
+    if (config.provider === 'mock') {
+      return this.getMockResponse(message);
+    }
+
+    // Try to call web backend API
     try {
-    // End current session metrics/traces
-    if (this.metricsService && this.currentSession) {
-      this.metricsService.endConversation(this.sessionId);
-    }
-    if (this.traceService && this.currentSession) {
-      this.traceService.endTrace(this.sessionId);
-    }
+      const response = await this.httpClient.post(
+        'http://localhost:8000/api/chat/send',
+        {
+          message,
+          session_id: this.sessionId,
+        },
+        {
+          timeout: config_timeout,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
-    this.sessionId = this.generateSessionId();
-    this.currentSession = undefined;
-    this.currentTurn = 0') {
-        return this.getMockResponse(message);
-      }
-
-      // Try to call web backend API
+      return response.data.response || 'No response from agent';
+    } catch (error) {
+      console.error('Backend API error:', error);
+      throw new Error(`Failed to communicate with agent: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
 
   /**
    * Record trace entry for orchestrator state transition.
@@ -228,26 +240,6 @@ onse,
   private estimateTokens(text: string): number {
     return Math.ceil(text.length / 4);
   }
-      const response = await this.httpClient.post(
-        'http://localhost:8000/api/chat/send',
-        {
-          message,
-          session_id: this.sessionId,
-        },
-        {
-          timeout: config_timeout,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      return response.data.response || 'No response from agent';
-    } catch (error) {
-      console.error('Backend API error:', error);
-      throw new Error(`Failed to communicate with agent: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }
 
   /**
    * Get mock response for testing (when provider is 'mock')
@@ -274,8 +266,17 @@ onse,
    * Reset the current session
    */
   public async resetSession(): Promise<void> {
+    // End current session metrics/traces
+    if (this.metricsService && this.currentSession) {
+      this.metricsService.endConversation(this.sessionId);
+    }
+    if (this.traceService && this.currentSession) {
+      this.traceService.endTrace(this.sessionId);
+    }
+
     this.sessionId = this.generateSessionId();
     this.currentSession = undefined;
+    this.currentTurn = 0;
     console.log('Session reset');
   }
 

@@ -71,10 +71,14 @@ describe('AgentService', () => {
       expect(messages[0].content).toBe('Test message');
     });
 
-    it('should throw error if no active session', async () => {
-      await expect(agentService.sendMessage('Hello')).rejects.toThrow(
-        'No active session'
-      );
+    it('should auto-create session if none exists', async () => {
+      // sendMessage now automatically creates a session if needed
+      const response = await agentService.sendMessage('Hello');
+      expect(response).toContain('Mock Agent Response');
+      
+      const session = agentService.getCurrentSession();
+      expect(session).toBeDefined();
+      expect(session?.messages.length).toBe(2); // user + assistant
     });
   });
 

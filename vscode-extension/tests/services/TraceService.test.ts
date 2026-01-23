@@ -6,12 +6,16 @@ import { TraceService } from '../../src/services/TraceService';
 import { AgentState } from '../../src/models/Trace';
 
 // Mock vscode module
-const mockGlobalState = {
+const mockGlobalState: {
+  data: Map<string, any>;
+  get: jest.Mock;
+  update: jest.Mock;
+} = {
   data: new Map<string, any>(),
-  get: jest.fn((key: string, defaultValue?: any) => {
+  get: jest.fn((key: string, defaultValue?: any): any => {
     return mockGlobalState.data.get(key) || defaultValue;
   }),
-  update: jest.fn((key: string, value: any) => {
+  update: jest.fn((key: string, value: any): Promise<void> => {
     mockGlobalState.data.set(key, value);
     return Promise.resolve();
   }),
@@ -46,8 +50,10 @@ describe('TraceService', () => {
       traceService.startTrace('conv-1', 'openai', 'gpt-4');
       traceService.endTrace('conv-1');
 
+      // Trace should still be retrievable from storage after ending
       const trace = traceService.getTrace('conv-1');
-      expect(trace).toBeUndefined(); // Moved to storage
+      expect(trace).toBeDefined();
+      expect(trace?.endTime).toBeDefined();
     });
   });
 

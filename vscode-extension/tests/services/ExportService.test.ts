@@ -36,7 +36,7 @@ describe('ExportService', () => {
       expect(result.format).toBe('csv');
       expect(result.mimeType).toBe('text/csv');
       expect(result.filename).toContain('agent-metrics-');
-      expect(result.filename).toEndWith('.csv');
+      expect(result.filename).toMatch(/\.csv$/);
 
       // Check CSV content
       const lines = result.data.split('\n');
@@ -115,7 +115,7 @@ describe('ExportService', () => {
       expect(result.format).toBe('json');
       expect(result.mimeType).toBe('application/json');
       expect(result.filename).toContain('agent-metrics-');
-      expect(result.filename).toEndWith('.json');
+      expect(result.filename).toMatch(/\.json$/);
 
       // Check JSON parsing
       const parsed = JSON.parse(result.data);
@@ -176,7 +176,7 @@ describe('ExportService', () => {
       expect(result.format).toBe('json');
       expect(result.mimeType).toBe('application/json');
       expect(result.filename).toContain('agent-traces-');
-      expect(result.filename).toEndWith('.json');
+      expect(result.filename).toMatch(/\.json$/);
 
       const parsed = JSON.parse(result.data);
       expect(parsed).toHaveLength(1);
@@ -215,7 +215,7 @@ describe('ExportService', () => {
       expect(result.format).toBe('csv');
       expect(result.mimeType).toBe('text/csv');
       expect(result.filename).toContain('agent-traces-');
-      expect(result.filename).toEndWith('.csv');
+      expect(result.filename).toMatch(/\.csv$/);
 
       const lines = result.data.split('\n');
       expect(lines[0]).toContain('Trace ID');

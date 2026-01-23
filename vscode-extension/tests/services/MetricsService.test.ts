@@ -5,12 +5,16 @@
 import { MetricsService } from '../../src/services/MetricsService';
 
 // Mock vscode module
-const mockGlobalState = {
+const mockGlobalState: {
+  data: Map<string, any>;
+  get: jest.Mock;
+  update: jest.Mock;
+} = {
   data: new Map<string, any>(),
-  get: jest.fn((key: string, defaultValue?: any) => {
+  get: jest.fn((key: string, defaultValue?: any): any => {
     return mockGlobalState.data.get(key) || defaultValue;
   }),
-  update: jest.fn((key: string, value: any) => {
+  update: jest.fn((key: string, value: any): Promise<void> => {
     mockGlobalState.data.set(key, value);
     return Promise.resolve();
   }),
