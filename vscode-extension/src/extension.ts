@@ -1,20 +1,37 @@
 import * as vscode from 'vscode';
 import { ChatPanel } from './panels/ChatPanel';
 import { ConfigPanel } from './panels/ConfigPanel';
+import { StatisticsPanel } from './panels/StatisticsPanel';
+import { TraceViewerPanel } from './panels/TraceViewerPanel';
 import { AgentService } from './services/AgentService';
 import { ConfigService } from './services/ConfigService';
+import { MetricsService } from './services/MetricsService';
+import { TraceService } from './services/TraceService';
+import { ExportService } from './services/ExportService';
 
 let chatPanel: ChatPanel | undefined;
 let configPanel: ConfigPanel | undefined;
+let statisticsPanel: StatisticsPanel | undefined;
+let traceViewerPanel: TraceViewerPanel | undefined;
 let agentService: AgentService;
 let configService: ConfigService;
+let metricsService: MetricsService;
+let traceService: TraceService;
+let exportService: ExportService;
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('AI Agent Extension activating...');
 
   // Initialize services
   configService = new ConfigService(context);
+  metricsService = new MetricsService(context);
+  traceService = new TraceService(context);
+  exportService = new ExportService();
   agentService = new AgentService(configService);
+
+  // Initialize UI panels
+  statisticsPanel = new StatisticsPanel(context.extensionUri, metricsService, exportService);
+  traceViewerPanel = new TraceViewerPanel(context, traceService, exportService);
 
   // Register command: Start Conversation
   const startConversationCmd = vscode.commands.registerCommand(
@@ -75,6 +92,28 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  // Register command: Show Statistics (Phase 2)
+  const showStatisticsCmd = vscode.commands.registerCommand(
+    'ai-agent.showStatistics',
+    () => {
+      console.log('Showing statistics...');
+      if (statisticsPanel) {
+        statisticsPanel.show();
+      }
+    }
+  );
+
+  // Register command: Show Trace Viewer (Phase 2)
+  const showTraceViewerCmd = vscode.commands.registerCommand(
+    'ai-agent.showTraceViewer',
+    () => {
+      console.log('Showing trace viewer...');
+      if (traceViewerPanel) {
+        traceViewerPanel.refresh();
+      }
+    }
+  );
+
   // Subscribe to configuration changes
   vscode.workspace.onDidChangeConfiguration((event) => {
     if (event.affectsConfiguration('aiAgent')) {
@@ -87,7 +126,9 @@ export function activate(context: vscode.ExtensionContext) {
     startConversationCmd,
     switchProviderCmd,
     switchModelCmd,
-    resetSessionCmd
+    resetSessionCmd,
+    showStatisticsCmd,
+    showTraceViewerCmd
   );
 
   console.log('AI Agent Extension activated successfully');
@@ -100,5 +141,8 @@ export function deactivate() {
   }
   if (configPanel) {
     configPanel.dispose();
+  }
+  if (statisticsPanel) {
+    statisticsPanel.dispose();
   }
 }

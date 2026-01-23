@@ -28,6 +28,31 @@
       {
         "command": "ai-agent.resetSession",
         "title": "Agent: Reset Session"
+      },
+      {
+        "command": "ai-agent.showStatistics",
+        "title": "Agent: Show Statistics",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "ai-agent.showTraceViewer",
+        "title": "Agent: Show Trace Viewer",
+        "icon": "$(list-tree)"
+      },
+      {
+        "command": "ai-agent.refreshTraces",
+        "title": "Refresh Traces",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "ai-agent.exportTraces",
+        "title": "Export Traces",
+        "icon": "$(export)"
+      },
+      {
+        "command": "ai-agent.clearTraces",
+        "title": "Clear All Traces",
+        "icon": "$(trash)"
       }
     ],
     "configuration": {
@@ -87,6 +112,28 @@
           "type": "webview",
           "id": "ai-agent.configPanel",
           "name": "Configuration"
+        },
+        {
+          "id": "ai-agent.traceViewer",
+          "name": "Trace Viewer"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "ai-agent.refreshTraces",
+          "when": "view == ai-agent.traceViewer",
+          "group": "navigation"
+        },
+        {
+          "command": "ai-agent.exportTraces",
+          "when": "view == ai-agent.traceViewer",
+          "group": "navigation"
+        },
+        {
+          "command": "ai-agent.clearTraces",
+          "when": "view == ai-agent.traceViewer"
         }
       ]
     }
