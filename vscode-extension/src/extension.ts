@@ -27,7 +27,7 @@ export function activate(context: vscode.ExtensionContext) {
   metricsService = new MetricsService(context);
   traceService = new TraceService(context);
   exportService = new ExportService();
-  agentService = new AgentService(configService);
+  agentService = new AgentService(configService, metricsService, traceService);
 
   // Initialize UI panels
   statisticsPanel = new StatisticsPanel(context.extensionUri, metricsService, exportService);
