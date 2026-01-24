@@ -24,6 +24,9 @@ export class TraceViewerPanel implements vscode.TreeDataProvider<TraceTreeNode> 
   private exportService: ExportService;
   private treeView: vscode.TreeView<TraceTreeNode>;
   private currentConversationId: string | undefined;
+  private autoRefreshEnabled: boolean = false;
+  private autoRefreshInterval: NodeJS.Timeout | undefined;
+  private readonly REFRESH_INTERVAL_MS = 2000; // 2 seconds
 
   constructor(
     context: vscode.ExtensionContext,
@@ -46,10 +49,20 @@ export class TraceViewerPanel implements vscode.TreeDataProvider<TraceTreeNode> 
       vscode.commands.registerCommand('ai-agent.refreshTraces', () => this.refresh()),
       vscode.commands.registerCommand('ai-agent.exportTraces', () => this.exportTraces()),
       vscode.commands.registerCommand('ai-agent.clearTraces', () => this.clearTraces()),
+      vscode.commands.registerCommand('ai-agent.toggleAutoRefresh', () => this.toggleAutoRefresh()),
       vscode.commands.registerCommand('ai-agent.showTraceDetails', (node: TraceTreeNode) => 
         this.showTraceDetails(node)
       )
     );
+
+    // Clean up interval on disposal
+    context.subscriptions.push({
+      dispose: () => {
+        if (this.autoRefreshInterval) {
+          clearInterval(this.autoRefreshInterval);
+        }
+      }
+    });
   }
 
   /**
@@ -372,6 +385,29 @@ export class TraceViewerPanel implements vscode.TreeDataProvider<TraceTreeNode> 
       this.traceService.clearAllTraces();
       this.refresh();
       vscode.window.showInformationMessage('All traces cleared');
+    }
+  }
+
+  /**
+   * Toggle auto-refresh on/off.
+   */
+  private toggleAutoRefresh(): void {
+    this.autoRefreshEnabled = !this.autoRefreshEnabled;
+
+    if (this.autoRefreshEnabled) {
+      // Start auto-refresh
+      this.autoRefreshInterval = setInterval(() => {
+        this.refresh();
+      }, this.REFRESH_INTERVAL_MS);
+
+      vscode.window.showInformationMessage('Trace auto-refresh enabled (2s interval)');
+    } else {
+      // Stop auto-refresh
+      if (this.autoRefreshInterval) {
+        clearInterval(this.autoRefreshInterval);
+        this.autoRefreshInterval = undefined;
+      }
+      vscode.window.showInformationMessage('Trace auto-refresh disabled');
     }
   }
 
