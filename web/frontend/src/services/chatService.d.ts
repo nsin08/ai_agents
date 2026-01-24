@@ -2,6 +2,10 @@
 
 interface MessageData {
   message: string;
+  provider?: string;
+  model?: string;
+  apiKey?: string;
+  config?: Record<string, any>;
   sessionId?: string;
 }
 
