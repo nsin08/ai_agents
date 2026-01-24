@@ -1,6 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import "./Chat.css";
 import chatService from "../services/chatService";
+import ProviderSelector from "./ProviderSelector";
+import APIKeyInput from "./APIKeyInput";
+import type { ProviderType, ProviderInfo } from "../types/providers";
+import providerService from "../services/providerService";
 
 interface Message {
   id: string;
@@ -11,8 +15,9 @@ interface Message {
 }
 
 interface ProviderConfig {
-  provider: string;
+  provider: ProviderType;
   model: string;
+  apiKey?: string;
   maxTurns: number;
   timeout: number;
 }
@@ -22,19 +27,31 @@ const Chat: React.FC = () => {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string>("");
+  const [providers, setProviders] = useState<ProviderInfo[]>([]);
   const [config, setConfig] = useState<ProviderConfig>({
-    provider: "mock",
+    provider: "mock" as ProviderType,
     model: "mock-model",
+    apiKey: undefined,
     maxTurns: 3,
     timeout: 30,
   });
   const [showSettings, setShowSettings] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Initialize session on mount
+  // Initialize session and load providers on mount
   useEffect(() => {
     initializeSession();
+    loadProviders();
   }, []);
+
+  const loadProviders = async () => {
+    try {
+      const data = await providerService.listProviders(true);
+      setProviders(data);
+    } catch (error) {
+      console.error("Failed to load providers:", error);
+    }
+  };
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -73,9 +90,16 @@ const Chat: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Send to API
+      // Send to API with provider config
       const response = await chatService.sendMessage({
         message: messageContent,
+        provider: config.provider,
+        model: config.model,
+        apiKey: config.apiKey,
+        config: {
+          max_turns: config.maxTurns,
+          timeout: config.timeout,
+        },
         sessionId: sessionId || undefined,
       });
 
@@ -145,26 +169,30 @@ const Chat: React.FC = () => {
 
       {showSettings && (
         <div className="settings-panel">
-          <h3>Settings</h3>
+          <h3>Provider Settings</h3>
+          
+          <ProviderSelector
+            selectedProvider={config.provider}
+            selectedModel={config.model}
+            onProviderChange={(provider, model) => {
+              setConfig((prev) => ({ ...prev, provider, model, apiKey: undefined }));
+            }}
+            disabled={isLoading}
+          />
+
+          {providers.find((p) => p.id === config.provider)?.requires_api_key && (
+            <APIKeyInput
+              provider={config.provider}
+              model={config.model}
+              requiresKey={true}
+              onKeyChange={(apiKey) => {
+                setConfig((prev) => ({ ...prev, apiKey }));
+              }}
+              disabled={isLoading}
+            />
+          )}
+
           <div className="settings-grid">
-            <div className="setting-item">
-              <label>Provider</label>
-              <select
-                value={config.provider}
-                onChange={(e) => handleConfigChange("provider", e.target.value)}
-              >
-                <option value="mock">Mock</option>
-                <option value="ollama">Ollama</option>
-              </select>
-            </div>
-            <div className="setting-item">
-              <label>Model</label>
-              <input
-                type="text"
-                value={config.model}
-                onChange={(e) => handleConfigChange("model", e.target.value)}
-              />
-            </div>
             <div className="setting-item">
               <label>Max Turns</label>
               <input
