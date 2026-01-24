@@ -8,6 +8,9 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root / "src"))
 
+# Add backend to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from agent_labs.llm_providers import (
     Provider,
     MockProvider,
@@ -17,7 +20,7 @@ from agent_labs.llm_providers import (
     ProviderConfigError,
 )
 from agent_labs.config import ProviderConfig
-from ..models import ProviderEnum
+from models import ProviderEnum
 
 
 class ProviderFactory:
@@ -46,10 +49,7 @@ class ProviderFactory:
         """
         # Mock provider
         if provider_type == ProviderEnum.MOCK:
-            return MockProvider(
-                responses=["I'm a mock response"],
-                model=model,
-            )
+            return MockProvider(name=model)
         
         # Ollama provider (local)
         if provider_type == ProviderEnum.OLLAMA:

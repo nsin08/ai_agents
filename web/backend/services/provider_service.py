@@ -1,8 +1,14 @@
 """Provider service for managing LLM providers and API key validation."""
 from typing import Optional, Dict, List, Any
 import os
+import sys
 import logging
-from ..models import ProviderEnum, ProviderInfo, ValidateKeyResponse
+from pathlib import Path
+
+# Add backend to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from models import ProviderEnum, ProviderInfo, ValidateKeyResponse
 
 logger = logging.getLogger(__name__)
 
