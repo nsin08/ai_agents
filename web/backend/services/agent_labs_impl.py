@@ -2,15 +2,16 @@
 import time
 import sys
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 # Add paths for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "src"))
 
-from models import ChatResponse
+from models import ChatResponse, ProviderEnum
 from services.interfaces import AgentServiceInterface
-from agent_labs.llm_providers import MockProvider
+from services.provider_factory import ProviderFactory
+from agent_labs.llm_providers import ProviderConfigError
 from agent_labs.orchestrator import Agent
 
 
@@ -27,16 +28,18 @@ class AgentLabsService(AgentServiceInterface):
         message: str,
         provider: str,
         model: str,
-        config: Dict[str, Any]
+        config: Dict[str, Any],
+        api_key: Optional[str] = None
     ) -> ChatResponse:
         """
         Process message using agent_labs orchestrator.
         
         Args:
             message: User message
-            provider: Provider name (mock, ollama, etc.)
+            provider: Provider name (mock, ollama, openai, etc.)
             model: Model name
             config: Agent config (max_turns, temperature, etc.)
+            api_key: Optional API key override
             
         Returns:
             ChatResponse with agent reply and metadata
@@ -44,22 +47,42 @@ class AgentLabsService(AgentServiceInterface):
         start_time = time.time()
         
         try:
-            # For Phase 1, only Mock provider supported
-            if provider != "mock":
+            # Convert provider string to enum
+            try:
+                provider_enum = ProviderEnum(provider)
+            except ValueError:
                 return ChatResponse(
                     success=False,
-                    response=f"Provider '{provider}' not yet supported in Phase 1. Use 'mock' provider.",
+                    response=f"Unknown provider '{provider}'. Supported: {[p.value for p in ProviderEnum]}",
                     metadata={
                         "provider": provider,
                         "model": model,
                         "latency_ms": round((time.time() - start_time) * 1000, 2),
-                        "error": "Unsupported provider",
+                        "error": "Invalid provider",
                         "backend": "agent_labs"
                     }
                 )
             
-            # Create Mock provider (deterministic for testing)
-            llm_provider = MockProvider(name=model)
+            # Create provider using factory
+            try:
+                llm_provider = ProviderFactory.create_provider(
+                    provider_type=provider_enum,
+                    model=model,
+                    api_key=api_key,
+                    base_url=config.get("base_url"),
+                )
+            except ProviderConfigError as e:
+                return ChatResponse(
+                    success=False,
+                    response=f"Provider configuration error: {str(e)}",
+                    metadata={
+                        "provider": provider,
+                        "model": model,
+                        "latency_ms": round((time.time() - start_time) * 1000, 2),
+                        "error": str(e),
+                        "backend": "agent_labs"
+                    }
+                )
             
             # Create and run agent
             agent = Agent(provider=llm_provider, model=model)
