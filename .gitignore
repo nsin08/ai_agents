@@ -9,10 +9,11 @@
 # Git-Ignored: .context/temp/ (agent scratch, drafts)
 # Git-Ignored: .context/issues/ (issue workspaces)
 # Git-Ignored: .context/reports/ (generated reports)
+# Git-Ignored: .context/tasks-*__gh/ (task working files, per Rule 11)
 .context/temp/
 .context/issues/
 .context/reports/
-.context/tasks-*__gh/  # legacy (deprecated)
+.context/tasks-*__gh/
 
 # ============================================
 # Python
