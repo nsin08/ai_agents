@@ -70,33 +70,31 @@ class ProviderFactory:
                 base_url=base_url,
             )
         
-        # Anthropic provider
+        # Anthropic provider (Phase 2 - Coming Soon)
         if provider_type == ProviderEnum.ANTHROPIC:
             api_key_resolved = api_key or os.getenv("ANTHROPIC_API_KEY")
             if not api_key_resolved:
                 raise ProviderConfigError("Anthropic API key required but not provided")
             
-            return CloudProvider(
-                provider_name="anthropic",
-                api_key=api_key_resolved,
-                model=model,
-                base_url=base_url or "https://api.anthropic.com",
+            # TODO: Implement AnthropicProvider class
+            raise ProviderConfigError(
+                "Anthropic provider not yet implemented. "
+                "Use Mock, Ollama, or OpenAI providers for now."
             )
         
-        # Google provider
+        # Google provider (Phase 2 - Coming Soon)
         if provider_type == ProviderEnum.GOOGLE:
             api_key_resolved = api_key or os.getenv("GOOGLE_API_KEY")
             if not api_key_resolved:
                 raise ProviderConfigError("Google API key required but not provided")
             
-            return CloudProvider(
-                provider_name="google",
-                api_key=api_key_resolved,
-                model=model,
-                base_url=base_url or "https://generativelanguage.googleapis.com",
+            # TODO: Implement GoogleProvider class
+            raise ProviderConfigError(
+                "Google provider not yet implemented. "
+                "Use Mock, Ollama, or OpenAI providers for now."
             )
         
-        # Azure OpenAI provider
+        # Azure OpenAI provider (Phase 2 - Coming Soon)
         if provider_type == ProviderEnum.AZURE_OPENAI:
             api_key_resolved = api_key or os.getenv("AZURE_OPENAI_API_KEY")
             if not api_key_resolved:
@@ -107,11 +105,10 @@ class ProviderFactory:
             if not endpoint:
                 raise ProviderConfigError("Azure OpenAI endpoint required but not provided")
             
-            return CloudProvider(
-                provider_name="azure-openai",
-                api_key=api_key_resolved,
-                model=model,
-                base_url=endpoint,
+            # TODO: Implement AzureOpenAIProvider class
+            raise ProviderConfigError(
+                "Azure OpenAI provider not yet implemented. "
+                "Use Mock, Ollama, or OpenAI providers for now."
             )
         
         raise ProviderConfigError(f"Unknown provider type: {provider_type}")

@@ -23,36 +23,42 @@ class ProviderService:
             "requires_api_key": False,
             "supported_models": ["mock-model", "mock-advanced"],
             "api_key_env_var": None,
+            "status": "available",  # fully implemented
         },
         ProviderEnum.OLLAMA: {
             "name": "Ollama (Local)",
             "requires_api_key": False,
             "supported_models": ["llama3.2", "mistral", "codellama", "phi3"],
             "api_key_env_var": None,
+            "status": "available",  # fully implemented
         },
         ProviderEnum.OPENAI: {
             "name": "OpenAI",
             "requires_api_key": True,
             "supported_models": ["gpt-4", "gpt-4-turbo", "gpt-3.5-turbo"],
             "api_key_env_var": "OPENAI_API_KEY",
+            "status": "available",  # fully implemented
         },
         ProviderEnum.ANTHROPIC: {
             "name": "Anthropic Claude",
             "requires_api_key": True,
             "supported_models": ["claude-3-opus", "claude-3-sonnet", "claude-3-haiku"],
             "api_key_env_var": "ANTHROPIC_API_KEY",
+            "status": "coming_soon",  # TODO: implement AnthropicProvider
         },
         ProviderEnum.GOOGLE: {
             "name": "Google Gemini",
             "requires_api_key": True,
             "supported_models": ["gemini-pro", "gemini-pro-vision"],
             "api_key_env_var": "GOOGLE_API_KEY",
+            "status": "coming_soon",  # TODO: implement GoogleProvider
         },
         ProviderEnum.AZURE_OPENAI: {
             "name": "Azure OpenAI",
             "requires_api_key": True,
             "supported_models": ["gpt-4", "gpt-35-turbo"],
             "api_key_env_var": "AZURE_OPENAI_API_KEY",
+            "status": "coming_soon",  # TODO: implement AzureOpenAIProvider
         },
     }
     
@@ -73,6 +79,7 @@ class ProviderService:
                 requires_api_key=metadata["requires_api_key"],
                 supported_models=metadata["supported_models"] if include_models else [],
                 api_key_env_var=metadata["api_key_env_var"],
+                status=metadata.get("status", "available"),
             ))
         return providers
     
@@ -95,6 +102,7 @@ class ProviderService:
             requires_api_key=metadata["requires_api_key"],
             supported_models=metadata["supported_models"],
             api_key_env_var=metadata["api_key_env_var"],
+            status=metadata.get("status", "available"),
         )
     
     def get_api_key(self, provider: ProviderEnum, override_key: Optional[str] = None) -> Optional[str]:

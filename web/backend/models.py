@@ -21,6 +21,7 @@ class ProviderInfo(BaseModel):
     requires_api_key: bool = Field(..., description="Whether API key is required")
     supported_models: list[str] = Field(default_factory=list, description="Available models")
     api_key_env_var: Optional[str] = Field(None, description="Environment variable for API key")
+    status: str = Field(default="available", description="Provider status: available, coming_soon, deprecated")
 
 
 class ProviderRequest(BaseModel):
