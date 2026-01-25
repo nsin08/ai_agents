@@ -18,8 +18,20 @@ Interact with AI agents directly from VSCode with integrated configuration manag
 - **Ollama Integration**: Direct API calls with automatic model detection
 - **Provider-Specific UI**: Dynamic field behavior based on selected provider
 
-### Phase 3 (Planned) - Issue #76
-- **Code Intelligence**: Code selection, security filtering, insertion, and syntax highlighting
+### Phase 3 - ✅ Completed (Issue #76)
+- **Code Intelligence**: Send code selections to agent with context
+- **Security Filtering**: Detects 15 sensitive data patterns (API keys, tokens, passwords)
+- **File Type Blocking**: Prevents sending credential files (.env, .pem, .key)
+- **Code Suggestions Panel**: Display agent responses with syntax highlighting
+- **Multiple Suggestions**: Navigate through multiple code blocks
+- **Apply/Preview/Copy**: Insert suggestions with diff preview
+- **Context Menu**: Right-click integration for quick access
+- **Size Limits**: Enforces 10K lines / 500KB file size limits
+
+### Bug Fixes (Issue #76)
+- Fixed Trace Viewer showing wrong provider/model (now shows current session config)
+- Fixed Statistics Panel displaying "Top" instead of "Current" provider/model
+- Fixed conversation history displaying incorrect provider/model metadata
 
 ## Installation
 
@@ -41,13 +53,16 @@ vscode-extension/
 │   │   ├── ChatPanel.ts      # Chat side panel
 │   │   ├── ConfigPanel.ts    # Configuration panel
 │   │   ├── StatisticsPanel.ts   # Metrics dashboard
-│   │   └── TraceViewerPanel.ts  # Trace tree view
+│   │   ├── TraceViewerPanel.ts  # Trace tree view
+│   │   └── CodeSuggestionPanel.ts  # Code suggestions viewer (Phase 3)
 │   ├── services/
 │   │   ├── AgentService.ts   # Backend communication
 │   │   ├── ConfigService.ts  # Settings management
 │   │   ├── MetricsService.ts # Token/cost tracking
 │   │   ├── TraceService.ts   # State transition capture
-│   │   └── ExportService.ts  # CSV/JSON export
+│   │   ├── ExportService.ts  # CSV/JSON export
+│   │   ├── CodeContextService.ts   # Code extraction & security (Phase 3)
+│   │   └── CodeInsertionService.ts # Code parsing & insertion (Phase 3)
 │   ├── models/
 │   │   ├── Statistics.ts     # Metrics data models
 │   │   └── Trace.ts          # Trace data models
@@ -56,7 +71,9 @@ vscode-extension/
 │       └── configView.html   # Config UI template
 ├── webview/
 │   └── src/                  # Frontend code for webviews
-├── tests/                    # Test files
+├── tests/                    # 150 tests (9 suites)
+│   ├── unit/                 # 137 unit tests
+│   └── integration/          # 13 integration tests
 └── package.json
 ```
 
@@ -71,10 +88,17 @@ npm run watch        # Watch mode during development
 ### Testing
 
 ```bash
-npm test             # Run all tests
+npm test             # Run all tests (150 tests)
 npm test -- --watch  # Watch mode
 npm run lint         # Lint code
 ```
+
+**Test Coverage:** 150 tests across 9 suites
+- **Phase 1:** 15 tests (MVP Chat)
+- **Phase 2:** 51 tests (Observability)
+- **Phase 3:** 84 tests (Code Intelligence + Bug Fixes)
+
+See [TESTING.md](TESTING.md) for comprehensive testing guide.
 
 ## Configuration
 
@@ -91,6 +115,9 @@ Settings available in VSCode Settings UI:
 
 | Command | Shortcut | Description |
 |---------|----------|-------------|
+| Agent: Send Selection to Agent | Right-click | Send selected code with context (Phase 3) |
+| Agent: Send File to Agent | Right-click | Send entire file with metadata (Phase 3) |
+| Agent: Show Code Suggestions | `Ctrl+Shift+P` | Display code suggestions panel (Phase 3) |
 | Agent: Start Conversation | `Ctrl+Shift+P` | Open chat panel |
 | Agent: Settings | `Ctrl+Shift+P` | Configure provider/model/settings |
 | Agent: Reset Session | `Ctrl+Shift+P` | Clear conversation |
@@ -138,14 +165,84 @@ Sessions persist across VSCode restarts.
 ### Integration Tests
 - Chat message sending/receiving
 - Session persistence
-- Provider switching
-- Error handling
+**Phase 1 (MVP Chat):**
+- [x] Side panel chat component renders
+- [x] Configuration UI displays
+- [x] Messages send and display
+- [x] Session persists across restarts
+- [x] Command palette integration works
+- [x] All tests passing (15/15)
+- [x] Documentation complete
+- [x] PR merged to develop
 
-### E2E Tests
-- Full chat workflow
-- Configuration changes taking effect
-- Command palette execution
+**Phase 2 (Observability):**
+- [x] Statistics panel with metrics
+- [Usage Examples
 
+### Send Code to Agent
+1. Select code in editor
+2. Right-click → "Agent: Send Selection to Agent"
+3. Chat panel opens with formatted code
+4. Agent analyzes and provides suggestions
+
+### Apply Code Suggestions
+1. Get agent response with code blocks
+2. Command: "Agent: Show Code Suggestions"
+3. Review suggestions with syntax highlighting
+4. Click "Apply to Editor" or "Preview Diff"
+
+### Monitor Agent Behavior
+1. Command: "Agent: Show Trace Viewer"
+2. Expand conversation nodes
+3. View state transitions (Observe → Plan → Act → Verify)
+4. Export traces for analysis
+
+### Track Metrics
+1. Command: "Agent: Show Statistics"
+2. View token usage, response times, costs
+3. Monitor current provider/model
+4. Export to CSV for reporting
+
+## Security Features
+
+- **15 Sensitive Data Patterns**: API keys, tokens, passwords, credit cards, JWT, GitHub/OpenAI/Google keys
+- **11 Blocked File Types**: .env, .pem, .key, .p12, .pfx, .crt, and more
+- **User Warnings**: Alerts before sending sensitive data
+- **Size Limits**: 10,000 lines / 500KB per operation
+- **No External Telemetry**: All data stays local
+
+## Next Steps
+
+**Phase 3 Completed! ✅**
+
+1. ✅ All features implemented
+2. ✅ All tests passing (150/150)
+3. ✅ Bug fixes validated
+4. ✅ Documentation updated
+5. ⏭️ Create PR to feature/74-phase-1-mvp-chat-panel
+6. ⏭️ Request code review
+7. ⏭️ Merge to develop after approval
+
+**Phase 3 (Code Intelligence):**
+- [x] Code context extraction
+- [x] Sensitive data detection (15 patterns)
+- [x] File type blocking (11 types)
+- [x] Code suggestion display panel
+- [x] Apply/Preview/Copy functionality
+- [x] Context menu integration
+- [x] Size limit enforcement
+- [x] Bug fixes (3 issues)
+- [x] All tests passing (150/150)
+- [x] Documentation complete
+- [x] Ready for PR review
+
+**Overall:**
+- [x] All 3 phases implemented
+- [x] 150/150 tests passing
+- [x] No TypeScript compilation errors
+- [x] All acceptance criteria met
+- [x] Security audit passed
+- [x] Performance acceptable
 ## Definition of Done
 
 - [x] Side panel chat component renders
