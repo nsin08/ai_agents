@@ -175,8 +175,31 @@ def test_max_turns_preserves_system_messages():
 
     # Should have system message + last turn (3 total)
     assert len(messages) == 3
+    # System message should be in its original position (first)
     assert messages[0].role == "system"
     assert messages[0].content == "System prompt"
+    # Followed by last turn in chronological order
+    assert messages[1].content == "Turn 2 user"
+    assert messages[2].content == "Turn 2 assistant"
+
+
+def test_max_turns_preserves_chronological_order():
+    """Test that chronological order is maintained with system messages."""
+    store = InMemorySessionStore(max_turns=1)  # 1 turn = 2 messages
+
+    store.add_message("user", "Turn 1 user")
+    store.add_message("system", "System prompt added mid-conversation")
+    store.add_message("assistant", "Turn 1 assistant")
+    store.add_message("user", "Turn 2 user")
+    store.add_message("assistant", "Turn 2 assistant")
+
+    messages = store._messages
+
+    # Should have last turn + system message (3 total)
+    assert len(messages) == 3
+    # System message should remain in its original position (between turns)
+    assert messages[0].role == "system"
+    assert messages[0].content == "System prompt added mid-conversation"
     assert messages[1].content == "Turn 2 user"
     assert messages[2].content == "Turn 2 assistant"
 

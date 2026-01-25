@@ -132,6 +132,7 @@ class InMemorySessionStore(SessionStore):
         """Enforce max_turns limit by removing oldest messages.
 
         System messages are preserved. Only user/assistant pairs are counted as turns.
+        Chronological order is maintained.
         """
         # Count non-system messages (user/assistant exchanges)
         non_system_count = sum(1 for msg in self._messages if msg.role != "system")
@@ -139,15 +140,26 @@ class InMemorySessionStore(SessionStore):
         # If we exceed max_turns * 2 (each turn has user + assistant), remove oldest
         max_messages = self._max_turns * 2
         if non_system_count > max_messages:
-            # Build new list preserving system messages and newest messages
-            system_messages = [msg for msg in self._messages if msg.role == "system"]
-            non_system_messages = [msg for msg in self._messages if msg.role != "system"]
+            # Calculate how many non-system messages to remove
+            to_remove = non_system_count - max_messages
 
-            # Keep only the newest messages
-            kept_non_system = non_system_messages[-max_messages:]
+            # Build new list, preserving order but removing oldest non-system messages
+            new_messages = []
+            removed_count = 0
 
-            # Rebuild messages list with system messages first, then conversation
-            self._messages = system_messages + kept_non_system
+            for msg in self._messages:
+                # Always keep system messages
+                if msg.role == "system":
+                    new_messages.append(msg)
+                # Remove oldest non-system messages until we've removed enough
+                elif removed_count < to_remove:
+                    removed_count += 1
+                    continue
+                # Keep remaining non-system messages
+                else:
+                    new_messages.append(msg)
+
+            self._messages = new_messages
 
     def get_context(self, format: str = "list") -> Any:
         """Get conversation context (thread-safe).
