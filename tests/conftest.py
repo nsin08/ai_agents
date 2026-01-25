@@ -15,16 +15,17 @@ Usage:
         assert response.text is not None
 """
 
+from typing import Any, Dict, List
+
 import pytest
-from typing import List, Dict, Any
+
 from src.agent_labs.llm_providers import (
+    LLMResponse,
     MockProvider,
     OllamaProvider,
-    LLMResponse,
 )
 from src.agent_labs.orchestrator import Agent, AgentContext
 from src.agent_labs.tools import ToolRegistry
-
 
 # ============================================================================
 # Provider Fixtures (Fixture Factory Pattern)
@@ -35,9 +36,9 @@ from src.agent_labs.tools import ToolRegistry
 def mock_provider():
     """
     Create a MockProvider for deterministic testing.
-    
+
     Returns MockProvider with default responses.
-    
+
     Example:
         def test_agent(mock_provider):
             response = await mock_provider.generate("Hello")
@@ -50,9 +51,9 @@ def mock_provider():
 def custom_mock_provider():
     """
     Factory fixture for creating MockProvider with custom responses.
-    
+
     Returns a function that creates MockProvider with custom response map.
-    
+
     Example:
         def test_custom(custom_mock_provider):
             provider = custom_mock_provider({
@@ -61,9 +62,11 @@ def custom_mock_provider():
             response = await provider.generate("test")
             assert response.text == "custom response"
     """
+
     def _create_provider(responses: Dict[str, str] = None, name: str = "mock"):
         # Create provider with custom responses
         return MockProvider(name=name, responses=responses)
+
     return _create_provider
 
 
@@ -71,10 +74,10 @@ def custom_mock_provider():
 def ollama_provider():
     """
     Create an OllamaProvider for integration testing.
-    
+
     Requires Ollama running at http://localhost:11434.
     Tests using this fixture should be marked with @pytest.mark.ollama.
-    
+
     Example:
         @pytest.mark.ollama
         async def test_ollama(ollama_provider):
@@ -100,7 +103,7 @@ def ollama_provider():
 def mock_agent(mock_provider):
     """
     Create an Agent with MockProvider for testing.
-    
+
     Example:
         async def test_agent_run(mock_agent):
             result = await mock_agent.run("test prompt")
@@ -113,7 +116,7 @@ def mock_agent(mock_provider):
 def agent_context_factory():
     """
     Factory fixture for creating AgentContext instances.
-    
+
     Example:
         def test_context(agent_context_factory):
             context = agent_context_factory(
@@ -122,16 +125,12 @@ def agent_context_factory():
             )
             assert context.goal == "test goal"
     """
+
     def _create_context(
-        goal: str = "test goal",
-        inputs: Dict[str, Any] = None,
-        metadata: dict = None
+        goal: str = "test goal", inputs: Dict[str, Any] = None, metadata: dict = None
     ) -> AgentContext:
-        return AgentContext(
-            goal=goal,
-            inputs=inputs or {},
-            metadata=metadata or {}
-        )
+        return AgentContext(goal=goal, inputs=inputs or {}, metadata=metadata or {})
+
     return _create_context
 
 
@@ -144,7 +143,7 @@ def agent_context_factory():
 def tool_registry():
     """
     Create an empty ToolRegistry for testing.
-    
+
     Example:
         def test_tool(tool_registry):
             tool_registry.register(MyTool(), "my_tool")
@@ -162,7 +161,7 @@ def tool_registry():
 def sample_prompts() -> List[str]:
     """
     Provide common test prompts for consistent testing.
-    
+
     Example:
         def test_prompts(sample_prompts, mock_provider):
             for prompt in sample_prompts:
@@ -182,16 +181,12 @@ def sample_prompts() -> List[str]:
 def sample_llm_response() -> LLMResponse:
     """
     Provide a sample LLMResponse for testing.
-    
+
     Example:
         def test_response_handling(sample_llm_response):
             assert sample_llm_response.tokens_used > 0
     """
-    return LLMResponse(
-        text="This is a test response",
-        tokens_used=5,
-        model="mock"
-    )
+    return LLMResponse(text="This is a test response", tokens_used=5, model="mock")
 
 
 # ============================================================================
@@ -203,7 +198,7 @@ def sample_llm_response() -> LLMResponse:
 def test_config() -> Dict[str, any]:
     """
     Provide common test configuration.
-    
+
     Example:
         def test_with_config(test_config):
             assert test_config["max_tokens"] == 100
@@ -233,7 +228,7 @@ def pytest_configure(config):
 def pytest_collection_modifyitems(config, items):
     """
     Modify test collection to add markers based on test location.
-    
+
     Automatically marks tests based on their location:
     - tests/unit/* -> @pytest.mark.unit
     - tests/integration/* -> @pytest.mark.integration
@@ -241,11 +236,11 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         # Get the test file path
         test_path = str(item.fspath)
-        
+
         # Auto-mark unit tests
         if "/unit/" in test_path:
             item.add_marker(pytest.mark.unit)
-        
+
         # Auto-mark integration tests
         if "/integration/" in test_path:
             item.add_marker(pytest.mark.integration)

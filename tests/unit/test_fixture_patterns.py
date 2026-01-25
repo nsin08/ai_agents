@@ -15,9 +15,8 @@ Test Patterns Demonstrated:
 """
 
 import pytest
-from src.agent_labs.llm_providers import MockProvider, LLMResponse
-from src.agent_labs.orchestrator import Agent
 
+from src.agent_labs.llm_providers import LLMResponse, MockProvider
 
 # ============================================================================
 # Pattern 1: Basic Fixture Usage
@@ -32,7 +31,7 @@ class TestBasicFixtureUsage:
         """Demonstrate using the mock_provider fixture."""
         # The mock_provider fixture is automatically injected
         response = await mock_provider.generate("Hello, world!")
-        
+
         assert isinstance(response, LLMResponse)
         assert response.model == "mock"
         assert len(response.text) > 0
@@ -41,7 +40,7 @@ class TestBasicFixtureUsage:
         """Demonstrate using the mock_agent fixture."""
         # Agent is pre-configured with MockProvider
         result = await mock_agent.run("Test prompt")
-        
+
         assert result is not None
         assert isinstance(result, str)
 
@@ -65,33 +64,33 @@ class TestCustomMockResponses:
     async def test_custom_response_map(self, custom_mock_provider):
         """Create MockProvider with custom responses."""
         # Use the factory to create provider with custom responses
-        provider = custom_mock_provider({
-            "calculate": "The result is 42",
-            "greet": "Hello, user!",
-            "error": "This is an error message"
-        })
-        
+        provider = custom_mock_provider(
+            {
+                "calculate": "The result is 42",
+                "greet": "Hello, user!",
+                "error": "This is an error message",
+            }
+        )
+
         # Test each custom response
         calc_response = await provider.generate("calculate")
         assert calc_response.text == "The result is 42"
-        
+
         greet_response = await provider.generate("greet")
         assert greet_response.text == "Hello, user!"
 
     async def test_response_sequence_pattern(self):
         """Demonstrate response sequences for multi-turn conversations."""
         # Create provider with sequence of responses
-        provider = MockProvider(response_sequence=[
-            "First response",
-            "Second response",
-            "Third response"
-        ])
-        
+        provider = MockProvider(
+            response_sequence=["First response", "Second response", "Third response"]
+        )
+
         # Each call returns next response in sequence
         r1 = await provider.generate("any prompt 1")
         r2 = await provider.generate("any prompt 2")
         r3 = await provider.generate("any prompt 3")
-        
+
         assert r1.text == "First response"
         assert r2.text == "Second response"
         assert r3.text == "Third response"
@@ -102,11 +101,11 @@ class TestCustomMockResponses:
         provider = MockProvider(
             default_response="This is the default response for any unknown prompt"
         )
-        
+
         # Any prompt returns the default
         r1 = await provider.generate("unknown prompt 1")
         r2 = await provider.generate("unknown prompt 2")
-        
+
         assert r1.text == "This is the default response for any unknown prompt"
         assert r2.text == "This is the default response for any unknown prompt"
 
@@ -122,7 +121,7 @@ class TestAgentContextFactory:
     def test_create_basic_context(self, agent_context_factory):
         """Create agent context with default values."""
         context = agent_context_factory()
-        
+
         assert context.goal == "test goal"
         assert context.inputs == {}
         assert context.turn_count == 0
@@ -130,11 +129,9 @@ class TestAgentContextFactory:
     def test_create_custom_context(self, agent_context_factory):
         """Create agent context with custom values."""
         context = agent_context_factory(
-            goal="Custom goal",
-            inputs={"param": "value"},
-            metadata={"test": "value"}
+            goal="Custom goal", inputs={"param": "value"}, metadata={"test": "value"}
         )
-        
+
         assert context.goal == "Custom goal"
         assert context.inputs == {"param": "value"}
         assert context.metadata == {"test": "value"}
@@ -153,7 +150,7 @@ class TestToolRegistryPattern:
         """Demonstrate basic tool registry usage."""
         # tool_registry fixture provides empty registry
         assert isinstance(tool_registry, type(tool_registry))
-        
+
         # Can register and test tools
         # (This is a skeleton - actual tool registration would go here)
 
@@ -163,9 +160,9 @@ class TestToolRegistryPattern:
         response = await mock_provider.generate(
             "test prompt",
             max_tokens=test_config["max_tokens"],
-            temperature=test_config["temperature"]
+            temperature=test_config["temperature"],
         )
-        
+
         assert response.tokens_used <= test_config["max_tokens"]
 
 
@@ -178,20 +175,18 @@ class TestToolRegistryPattern:
 class TestParametrizedPatterns:
     """Examples of parametrized tests with fixtures."""
 
-    @pytest.mark.parametrize("prompt,expected_keywords", [
-        ("Hello, world!", ["Hello", "mock", "greeting"]),
-        ("Test prompt", ["deterministic", "test"]),
-        ("What is 2+2?", ["2+2", "4"]),
-    ])
-    async def test_parametrized_with_fixture(
-        self,
-        mock_provider,
-        prompt,
-        expected_keywords
-    ):
+    @pytest.mark.parametrize(
+        "prompt,expected_keywords",
+        [
+            ("Hello, world!", ["Hello", "mock", "greeting"]),
+            ("Test prompt", ["deterministic", "test"]),
+            ("What is 2+2?", ["2+2", "4"]),
+        ],
+    )
+    async def test_parametrized_with_fixture(self, mock_provider, prompt, expected_keywords):
         """Combine parametrize with fixtures."""
         response = await mock_provider.generate(prompt)
-        
+
         # Check that at least one expected keyword is in response
         response_lower = response.text.lower()
         assert any(keyword.lower() in response_lower for keyword in expected_keywords)
@@ -199,11 +194,8 @@ class TestParametrizedPatterns:
     @pytest.mark.parametrize("max_tokens", [10, 50, 100, 500])
     async def test_parametrized_max_tokens(self, mock_provider, max_tokens):
         """Test different configurations with same fixture."""
-        response = await mock_provider.generate(
-            "Test prompt",
-            max_tokens=max_tokens
-        )
-        
+        response = await mock_provider.generate("Test prompt", max_tokens=max_tokens)
+
         # Response should respect max_tokens
         assert response.tokens_used <= max_tokens
 
@@ -222,7 +214,7 @@ class TestIntegrationPatterns:
         """Integration test using mock provider (fast)."""
         # Full end-to-end flow with deterministic mock
         result = await mock_agent.run("Complex multi-step task")
-        
+
         assert result is not None
         # Integration test verifies full flow, not just components
 
@@ -238,13 +230,9 @@ class TestOllamaIntegrationPatterns:
         """Demonstrate Ollama integration test."""
         # This test requires Ollama running (marked with @pytest.mark.ollama)
         # Skip in CI with: pytest -m "not ollama"
-        
-        response = await ollama_provider.generate(
-            "Say 'hello'",
-            max_tokens=10,
-            temperature=0.0
-        )
-        
+
+        response = await ollama_provider.generate("Say 'hello'", max_tokens=10, temperature=0.0)
+
         assert response.text is not None
         assert len(response.text) > 0
 
@@ -260,7 +248,7 @@ class TestOrganizationPatterns:
     def test_descriptive_names_show_intent(self, mock_provider):
         """
         Test names should clearly describe what is being tested.
-        
+
         Good: test_mock_provider_returns_deterministic_response
         Bad: test_1, test_provider
         """
@@ -269,7 +257,7 @@ class TestOrganizationPatterns:
     def test_one_assertion_per_logical_concept(self, sample_llm_response):
         """
         Each test should verify one logical concept.
-        
+
         Multiple assertions are OK if they test the same concept.
         """
         # Testing response structure (one concept)
@@ -280,7 +268,7 @@ class TestOrganizationPatterns:
     def test_use_fixtures_to_avoid_duplication(self, mock_provider, test_config):
         """
         Use fixtures to avoid duplicating setup code.
-        
+
         Fixtures make tests more maintainable and consistent.
         """
         # No setup needed - fixtures handle it
@@ -300,7 +288,7 @@ class TestErrorPatterns:
     async def test_empty_prompt_handling(self, mock_provider):
         """Test provider handles empty prompts gracefully."""
         response = await mock_provider.generate("")
-        
+
         # Should not crash, should return something
         assert isinstance(response, LLMResponse)
 
@@ -308,7 +296,7 @@ class TestErrorPatterns:
         """Test provider handles very long prompts."""
         long_prompt = "test " * 10000
         response = await mock_provider.generate(long_prompt, max_tokens=100)
-        
+
         # Should handle gracefully and respect max_tokens
         assert response.tokens_used <= 100
 

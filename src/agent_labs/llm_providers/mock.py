@@ -9,9 +9,9 @@ Perfect for:
 - Reproducible test runs
 """
 
-from typing import AsyncIterator, List, Optional, Dict
+from typing import AsyncIterator, Dict, List, Optional
 
-from .base import Provider, LLMResponse
+from .base import LLMResponse, Provider
 
 
 class MockProvider(Provider):
@@ -20,25 +20,25 @@ class MockProvider(Provider):
 
     Returns fixed responses for testing without external API calls.
     Perfect for unit tests (deterministic output).
-    
+
     Supports three modes:
     1. Dictionary mapping (prompt -> response)
     2. Response sequence (returns responses in order)
     3. Default fallback (auto-generates response)
-    
+
     Examples:
         # Default mode
         >>> provider = MockProvider()
         >>> response = await provider.generate("Hello")
         >>> print(response.text)
         Mock response to: Hello
-        
+
         # Custom response map
         >>> provider = MockProvider(responses={"test": "custom"})
         >>> response = await provider.generate("test")
         >>> print(response.text)
         custom
-        
+
         # Response sequence for multi-turn conversations
         >>> provider = MockProvider(response_sequence=["First", "Second", "Third"])
         >>> r1 = await provider.generate("any prompt")
@@ -59,19 +59,20 @@ class MockProvider(Provider):
         name: str = "mock",
         responses: Optional[Dict[str, str]] = None,
         response_sequence: Optional[List[str]] = None,
-        default_response: Optional[str] = None
+        default_response: Optional[str] = None,
     ):
         """
         Initialize MockProvider.
-        
+
         Args:
             name: Model name to use in responses (default: "mock")
             responses: Custom prompt -> response mapping (overrides defaults)
             response_sequence: List of responses to return in sequence (for multi-turn)
             default_response: Default response when no match found (overrides auto-generation)
-        
+
         Note:
-            If both responses and response_sequence are provided, response_sequence takes precedence.
+            If both responses and response_sequence are provided,
+            response_sequence takes precedence.
         """
         self.name = name
         self._responses = responses if responses is not None else self._DEFAULT_RESPONSES.copy()
@@ -87,12 +88,12 @@ class MockProvider(Provider):
     ) -> LLMResponse:
         """
         Return fixed mock response.
-        
+
         Args:
             prompt: Input prompt (used to look up mock response)
             max_tokens: Maximum tokens to generate
             temperature: Sampling temperature (ignored for mock)
-            
+
         Returns:
             LLMResponse with mock text + metadata
         """
@@ -119,9 +120,9 @@ class MockProvider(Provider):
         tokens = min(tokens, max_tokens)  # Respect max_tokens
 
         return LLMResponse(
-            text=text[:max_tokens * 4],  # Rough estimate: 4 chars per token
+            text=text[: max_tokens * 4],  # Rough estimate: 4 chars per token
             tokens_used=tokens,
-            model=self.name
+            model=self.name,
         )
 
     async def stream(
@@ -131,11 +132,11 @@ class MockProvider(Provider):
     ) -> AsyncIterator[str]:
         """
         Stream mock response tokens.
-        
+
         Args:
             prompt: Input prompt
             max_tokens: Maximum tokens to generate
-            
+
         Yields:
             Chunks of generated text (words with spaces)
         """
@@ -149,10 +150,10 @@ class MockProvider(Provider):
     async def count_tokens(self, text: str) -> int:
         """
         Count tokens (mock: ~1 token per word).
-        
+
         Args:
             text: Text to count tokens for
-            
+
         Returns:
             Estimated token count
         """
