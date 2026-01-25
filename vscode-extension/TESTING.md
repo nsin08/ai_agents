@@ -194,12 +194,12 @@ Press **F5** or **Run → Start Debugging**
 
 **Steps:**
 1. `Ctrl+Shift+P`
-2. Type: `Agent: Switch Provider`
+2. Type: `Agent: Settings`
 3. Press Enter
 
 **Expected:**
 - ✅ Configuration panel opens
-- ✅ Title: "AI Agent Configuration"
+- ✅ Title: "Agent Settings"
 - ✅ 6 settings displayed:
   - Provider (dropdown) → "mock"
   - Model (text) → "llama2"
@@ -276,6 +276,50 @@ Press **F5** or **Run → Start Debugging**
   - Timeout → "30"
 - ✅ Success message: "Settings reset to defaults"
 
+#### TEST 4.6: Ollama Model Auto-Population
+
+**Steps:**
+1. Open `Agent: Settings`
+2. Change Provider to "Ollama"
+
+**Expected:**
+- ✅ Model field converts from text input to dropdown
+- ✅ Dropdown populated with installed models (e.g., llama2:latest, mistral:7b, phi:latest)
+- ✅ Status message: "Loaded X Ollama models"
+- ✅ Base URL field enabled
+- ✅ API Key field disabled/greyed out
+
+**Steps (continued):**
+3. Change Provider to "OpenAI"
+
+**Expected:**
+- ✅ Model field reverts to text input
+- ✅ Base URL disabled/greyed out
+- ✅ API Key enabled
+
+#### TEST 4.7: Provider-Specific Field Behavior
+
+**Mock Provider:**
+1. Select Provider: "Mock"
+2. **Expected:**
+   - ✅ Model: Disabled/greyed out
+   - ✅ Base URL: Disabled/greyed out
+   - ✅ API Key: Disabled/greyed out
+
+**Ollama Provider:**
+1. Select Provider: "Ollama"
+2. **Expected:**
+   - ✅ Model: Enabled (dropdown)
+   - ✅ Base URL: Enabled
+   - ✅ API Key: Disabled/greyed out
+
+**Cloud Provider (OpenAI/Anthropic/etc.):**
+1. Select Provider: "OpenAI"
+2. **Expected:**
+   - ✅ Model: Enabled (text input)
+   - ✅ Base URL: Disabled/greyed out
+   - ✅ API Key: Enabled
+
 ---
 
 ### Phase 5: Command Palette Testing (3 min)
@@ -286,7 +330,7 @@ Press **F5** or **Run → Start Debugging**
    
    **Expected: 4 commands appear:**
    - ✅ `Agent: Start Conversation` → Opens chat panel
-   - ✅ `Agent: Switch Provider` → Opens config panel
+   - ✅ `Agent: Settings` → Opens config panel
    - ✅ `Agent: Switch Model` → Opens config panel
    - ✅ `Agent: Reset Session` → Clears chat (no dialog)
 
@@ -297,7 +341,7 @@ Press **F5** or **Run → Start Debugging**
 #### TEST 6.1: Configuration Persistence
 
 **Step 1: Change Configuration**
-1. Open config: `Ctrl+Shift+P` → `Agent: Switch Provider`
+1. Open config: `Ctrl+Shift+P` → `Agent: Settings`
 2. Change:
    - Provider → "openai"
    - Model → "gpt-4"
@@ -315,7 +359,7 @@ Press **F5** or **Run → Start Debugging**
 4. Press **F5**
 
 **Step 3: Verify Settings Persisted**
-1. Open config: `Ctrl+Shift+P` → `Agent: Switch Provider`
+1. Open config: `Ctrl+Shift+P` → `Agent: Settings`
 2. Check values:
    - ✅ Provider → "openai" (NOT "mock")
    - ✅ Model → "gpt-4" (NOT "llama2")
@@ -496,7 +540,7 @@ Before submitting PR, verify:
 
 **Commands:**
 - [ ] Agent: Start Conversation works
-- [ ] Agent: Switch Provider works
+- [ ] Agent: Settings works
 - [ ] Agent: Switch Model works
 - [ ] Agent: Reset Session works
 
@@ -673,7 +717,7 @@ npm test
 ### TEST P2.3: Statistics Panel - Cost Calculation
 
 **Steps:**
-1. `Ctrl+Shift+P` → `Agent: Switch Provider`
+1. `Ctrl+Shift+P` → `Agent: Settings`
 2. Change Provider to "openai"
 3. Change Model to "gpt-4"
 4. Save Settings
@@ -1089,6 +1133,25 @@ npm test
 - ✅ Each instance has independent storage
 - ✅ No cross-contamination
 - ✅ Both can export without conflicts
+
+### TEST P2.28: Trace Auto-Refresh Toggle
+
+**Steps:**
+1. Open Trace Viewer sidebar (click "AI Agent" icon)
+2. Click "Toggle Auto-Refresh" button (sync icon in toolbar)
+3. **Expected:** Notification: "Trace auto-refresh enabled (2s interval)"
+4. Send a message to agent
+5. **Expected:** Traces update automatically every 2 seconds without manual refresh
+6. Click "Toggle Auto-Refresh" again
+7. **Expected:** Notification: "Trace auto-refresh disabled"
+8. Send another message
+9. **Expected:** Trace does not auto-update (manual refresh required)
+
+**Verification:**
+- ✅ Auto-refresh toggle works
+- ✅ 2-second interval refresh when enabled
+- ✅ Manual refresh only when disabled
+- ✅ No performance impact during auto-refresh
 
 ---
 

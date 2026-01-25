@@ -19,7 +19,7 @@
       },
       {
         "command": "ai-agent.switchProvider",
-        "title": "Agent: Switch Provider"
+        "title": "Agent: Settings"
       },
       {
         "command": "ai-agent.switchModel",
@@ -43,6 +43,11 @@
         "command": "ai-agent.refreshTraces",
         "title": "Refresh Traces",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "ai-agent.toggleAutoRefresh",
+        "title": "Toggle Auto-Refresh",
+        "icon": "$(sync)"
       },
       {
         "command": "ai-agent.exportTraces",
@@ -104,16 +109,6 @@
     "views": {
       "ai-agent-panel": [
         {
-          "type": "webview",
-          "id": "ai-agent.chatPanel",
-          "name": "Chat"
-        },
-        {
-          "type": "webview",
-          "id": "ai-agent.configPanel",
-          "name": "Configuration"
-        },
-        {
           "id": "ai-agent.traceViewer",
           "name": "Trace Viewer"
         }
@@ -123,6 +118,11 @@
       "view/title": [
         {
           "command": "ai-agent.refreshTraces",
+          "when": "view == ai-agent.traceViewer",
+          "group": "navigation"
+        },
+        {
+          "command": "ai-agent.toggleAutoRefresh",
           "when": "view == ai-agent.traceViewer",
           "group": "navigation"
         },

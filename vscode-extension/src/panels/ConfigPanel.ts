@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import axios from 'axios';
 import { ConfigService } from '../services/ConfigService';
 
 export class ConfigPanel {
@@ -16,7 +17,7 @@ export class ConfigPanel {
     // Create webview panel
     this.panel = vscode.window.createWebviewPanel(
       ConfigPanel.viewType,
-      'AI Agent Configuration',
+      'Agent Settings',
       vscode.ViewColumn.One,
       this.getWebviewOptions(extensionUri)
     );
@@ -93,6 +94,37 @@ export class ConfigPanel {
       case 'refreshConfig':
         this.loadConfiguration();
         break;
+      case 'fetchOllamaModels':
+        await this.fetchOllamaModels();
+        break;
+    }
+  }
+
+  /**
+   * Fetch available Ollama models from the local Ollama instance
+   */
+  private async fetchOllamaModels(): Promise<void> {
+    try {
+      const config = this.configService.getConfig();
+      const baseUrl = config.baseUrl || 'http://localhost:11434';
+      
+      const response = await axios.get(`${baseUrl}/api/tags`, {
+        timeout: 5000,
+      });
+
+      const models = response.data.models?.map((m: any) => m.name) || [];
+      
+      this.panel.webview.postMessage({
+        type: 'ollamaModels',
+        models,
+      });
+    } catch (error) {
+      console.error('Failed to fetch Ollama models:', error);
+      this.panel.webview.postMessage({
+        type: 'ollamaModels',
+        models: [],
+        error: 'Failed to connect to Ollama. Make sure Ollama is running.',
+      });
     }
   }
 
@@ -117,7 +149,7 @@ export class ConfigPanel {
 '<head>' +
 '    <meta charset="UTF-8">' +
 '    <meta name="viewport" content="width=device-width, initial-scale=1.0">' +
-'    <title>AI Agent Configuration</title>' +
+'    <title>Agent Settings</title>' +
 '    <style>' +
 '        * { margin: 0; padding: 0; box-sizing: border-box; }' +
 '        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: var(--vscode-editor-background); color: var(--vscode-editor-foreground); padding: 20px; }' +
@@ -139,7 +171,7 @@ export class ConfigPanel {
 '</head>' +
 '<body>' +
 '    <div class="container">' +
-'        <h1>AI Agent Configuration</h1>' +
+'        <h1>Agent Settings</h1>' +
 '        <div id="status" class="status"></div>' +
 '        <div class="setting-group">' +
 '            <label>Provider<span class="description">LLM provider to use</span></label>' +
@@ -155,7 +187,9 @@ export class ConfigPanel {
 '        </div>' +
 '        <div class="setting-group">' +
 '            <label>Model<span class="description">Model name for the selected provider</span></label>' +
-'            <input type="text" id="model" placeholder="e.g., llama2, gpt-4, claude-3-opus">' +
+'            <div id="model-container">' +
+'                <input type="text" id="model" placeholder="e.g., llama2, gpt-4, claude-3-opus">' +
+'            </div>' +
 '            <div class="help-text">Specific model name varies by provider.</div>' +
 '        </div>' +
 '        <div class="setting-group">' +
@@ -185,9 +219,11 @@ export class ConfigPanel {
 '    </div>' +
 '    <script>' +
 '        const vscode = acquireVsCodeApi();' +
+'        let currentProvider = "";' +
 '        function saveSettings() {' +
 '            const provider = document.getElementById("provider").value;' +
-'            const model = document.getElementById("model").value;' +
+'            const modelElement = document.getElementById("model");' +
+'            const model = modelElement.tagName === "SELECT" ? modelElement.value : modelElement.value;' +
 '            const baseUrl = document.getElementById("baseUrl").value;' +
 '            const apiKey = document.getElementById("apiKey").value;' +
 '            const maxTurns = parseInt(document.getElementById("maxTurns").value, 10);' +
@@ -201,6 +237,66 @@ export class ConfigPanel {
 '            vscode.postMessage({ command: "updateSetting", key: "timeout", value: timeout });' +
 '            showStatus("Settings saved successfully", "success");' +
 '        }' +
+'        function onProviderChange() {' +
+'            const provider = document.getElementById("provider").value;' +
+'            const baseUrlInput = document.getElementById("baseUrl");' +
+'            const apiKeyInput = document.getElementById("apiKey");' +
+'            if (provider === "mock") {' +
+'                baseUrlInput.disabled = true;' +
+'                apiKeyInput.disabled = true;' +
+'                baseUrlInput.style.opacity = "0.5";' +
+'                apiKeyInput.style.opacity = "0.5";' +
+'                switchToTextInput();' +
+'                const modelInput = document.getElementById("model");' +
+'                modelInput.disabled = true;' +
+'                modelInput.style.opacity = "0.5";' +
+'            } else if (provider === "ollama") {' +
+'                baseUrlInput.disabled = false;' +
+'                apiKeyInput.disabled = true;' +
+'                baseUrlInput.style.opacity = "1";' +
+'                apiKeyInput.style.opacity = "0.5";' +
+'                if (provider !== currentProvider) {' +
+'                    currentProvider = provider;' +
+'                    vscode.postMessage({ command: "fetchOllamaModels" });' +
+'                    showStatus("Fetching available Ollama models...", "success");' +
+'                }' +
+'            } else {' +
+'                baseUrlInput.disabled = true;' +
+'                apiKeyInput.disabled = false;' +
+'                baseUrlInput.style.opacity = "0.5";' +
+'                apiKeyInput.style.opacity = "1";' +
+'                if (currentProvider === "ollama") {' +
+'                    switchToTextInput();' +
+'                }' +
+'                const modelInput = document.getElementById("model");' +
+'                if (modelInput) {' +
+'                    modelInput.disabled = false;' +
+'                    modelInput.style.opacity = "1";' +
+'                }' +
+'            }' +
+'            currentProvider = provider;' +
+'        }' +
+'        function switchToTextInput() {' +
+'            const container = document.getElementById("model-container");' +
+'            const currentValue = document.getElementById("model").value || "";' +
+'            container.innerHTML = \'<input type="text" id="model" placeholder="e.g., gpt-4, claude-3-opus">\';' +
+'            document.getElementById("model").value = currentValue;' +
+'        }' +
+'        function switchToDropdown(models, currentModel) {' +
+'            const container = document.getElementById("model-container");' +
+'            let html = \'<select id="model">\';' +
+'            if (models.length === 0) {' +
+'                html += \'<option value="">No models found</option>\';' +
+'            } else {' +
+'                models.forEach(function(model) {' +
+'                    const selected = model === currentModel ? \' selected\' : \'\';' +
+'                    html += \'<option value="\' + model + \'"\' + selected + \'>\' + model + \'</option>\';' +
+'                });' +
+'            }' +
+'            html += \'</select>\';' +
+'            container.innerHTML = html;' +
+'        }' +
+'        document.getElementById("provider").addEventListener("change", onProviderChange);' +
 '        function resetSettings() {' +
 '            if (confirm("Are you sure you want to reset to default settings?")) {' +
 '                vscode.postMessage({ command: "updateSetting", key: "provider", value: "mock" });' +
@@ -221,12 +317,31 @@ export class ConfigPanel {
 '        window.addEventListener("message", function(event) {' +
 '            const message = event.data;' +
 '            if (message.type === "configLoaded") {' +
+'                currentProvider = message.config.provider;' +
 '                document.getElementById("provider").value = message.config.provider;' +
-'                document.getElementById("model").value = message.config.model;' +
 '                document.getElementById("baseUrl").value = message.config.baseUrl;' +
 '                document.getElementById("apiKey").value = message.config.apiKey;' +
 '                document.getElementById("maxTurns").value = message.config.maxTurns;' +
 '                document.getElementById("timeout").value = message.config.timeout;' +
+'                if (message.config.provider === "ollama") {' +
+'                    vscode.postMessage({ command: "fetchOllamaModels" });' +
+'                } else {' +
+'                    document.getElementById("model").value = message.config.model;' +
+'                }' +
+'                onProviderChange();' +
+'            } else if (message.type === "ollamaModels") {' +
+'                if (message.error) {' +
+'                    showStatus(message.error, "error");' +
+'                    switchToTextInput();' +
+'                } else if (message.models && message.models.length > 0) {' +
+'                    const modelInput = document.getElementById("model");' +
+'                    const currentModel = modelInput ? modelInput.value : message.models[0];' +
+'                    switchToDropdown(message.models, currentModel);' +
+'                    showStatus("Loaded " + message.models.length + " Ollama models", "success");' +
+'                } else {' +
+'                    showStatus("No Ollama models found. Pull a model with: ollama pull llama2", "error");' +
+'                    switchToTextInput();' +
+'                }' +
 '            }' +
 '        });' +
 '    </script>' +

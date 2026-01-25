@@ -184,7 +184,12 @@ export class AgentService {
       return this.getMockResponse(message);
     }
 
-    // Try to call web backend API
+    // Handle Ollama provider directly
+    if (config.provider === 'ollama') {
+      return this.callOllamaAPI(message, config);
+    }
+
+    // Try to call web backend API for other providers
     try {
       const response = await this.httpClient.post(
         'http://localhost:8000/api/chat/send',
@@ -204,6 +209,35 @@ export class AgentService {
     } catch (error) {
       console.error('Backend API error:', error);
       throw new Error(`Failed to communicate with agent: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Call Ollama API directly
+   */
+  private async callOllamaAPI(message: string, config: AgentConfig): Promise<string> {
+    const config_timeout = config.timeout * 1000;
+
+    try {
+      const response = await this.httpClient.post(
+        `${config.baseUrl}/api/generate`,
+        {
+          model: config.model,
+          prompt: message,
+          stream: false,
+        },
+        {
+          timeout: config_timeout,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      return response.data.response || 'No response from Ollama';
+    } catch (error) {
+      console.error('Ollama API error:', error);
+      throw new Error(`Failed to communicate with Ollama: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

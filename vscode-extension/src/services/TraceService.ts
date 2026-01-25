@@ -57,10 +57,12 @@ export class TraceService {
     error?: TraceError,
     metadata?: Record<string, any>
   ): void {
-    const trace = this.activeTraces.get(conversationId);
+    let trace = this.activeTraces.get(conversationId);
     if (!trace) {
-      console.warn(`No active trace found for conversation: ${conversationId}`);
-      return;
+      console.warn(`No active trace found for conversation: ${conversationId}, auto-restarting trace`);
+      // Auto-restart trace if it was cleared
+      this.startTrace(conversationId, 'unknown', 'unknown');
+      trace = this.activeTraces.get(conversationId)!;
     }
 
     const entry: TraceEntry = {

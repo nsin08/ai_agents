@@ -4,20 +4,22 @@ Interact with AI agents directly from VSCode with integrated configuration manag
 
 ## Features
 
-### Phase 1 (MVP) - Current
+### Phase 1 (MVP) - ✅ Completed
 - **Chat Panel**: Dedicated sidebar panel for agent conversations
 - **Configuration UI**: Switch providers, models, and settings without file editing
 - **Command Palette**: Quick access to agent commands (`Ctrl+Shift+P`)
 - **Session Management**: Conversation state persists across restarts
 
-### Phase 2 (Planned)
-- Statistics panel with token usage, response times, and cost tracking
-- Trace viewer for agent state transitions
+### Phase 2 - ✅ Completed
+- **Statistics Panel**: Token usage, response times, and cost tracking with multi-provider support
+- **Trace Viewer**: Agent state transition visualization (Observe → Plan → Act → Verify)
+- **Auto-Refresh**: Toggle-able 2-second interval refresh for live trace monitoring
+- **Export Functionality**: Export metrics and traces to CSV/JSON
+- **Ollama Integration**: Direct API calls with automatic model detection
+- **Provider-Specific UI**: Dynamic field behavior based on selected provider
 
-### Phase 3 (Planned)
-- Code context awareness (send selected code to agent)
-- Multi-agent orchestration dashboard
-- Conversation history search and replay
+### Phase 3 (Planned) - Issue #76
+- **Code Intelligence**: Code selection, security filtering, insertion, and syntax highlighting
 
 ## Installation
 
@@ -37,10 +39,18 @@ vscode-extension/
 │   ├── extension.ts          # Extension entry point
 │   ├── panels/
 │   │   ├── ChatPanel.ts      # Chat side panel
-│   │   └── ConfigPanel.ts    # Configuration panel
+│   │   ├── ConfigPanel.ts    # Configuration panel
+│   │   ├── StatisticsPanel.ts   # Metrics dashboard
+│   │   └── TraceViewerPanel.ts  # Trace tree view
 │   ├── services/
 │   │   ├── AgentService.ts   # Backend communication
-│   │   └── ConfigService.ts  # Settings management
+│   │   ├── ConfigService.ts  # Settings management
+│   │   ├── MetricsService.ts # Token/cost tracking
+│   │   ├── TraceService.ts   # State transition capture
+│   │   └── ExportService.ts  # CSV/JSON export
+│   ├── models/
+│   │   ├── Statistics.ts     # Metrics data models
+│   │   └── Trace.ts          # Trace data models
 │   └── views/
 │       ├── chatView.html     # Chat UI template
 │       └── configView.html   # Config UI template
@@ -82,17 +92,30 @@ Settings available in VSCode Settings UI:
 | Command | Shortcut | Description |
 |---------|----------|-------------|
 | Agent: Start Conversation | `Ctrl+Shift+P` | Open chat panel |
-| Agent: Switch Provider | `Ctrl+Shift+P` | Change LLM provider |
-| Agent: Switch Model | `Ctrl+Shift+P` | Change model |
+| Agent: Settings | `Ctrl+Shift+P` | Configure provider/model/settings |
 | Agent: Reset Session | `Ctrl+Shift+P` | Clear conversation |
+| Agent: Show Statistics | `Ctrl+Shift+P` | View metrics dashboard |
+| Agent: Show Trace Viewer | `Ctrl+Shift+P` | View execution traces |
 
 ## Architecture
 
+### Provider Support
+
+- **Mock Provider**: Built-in, no backend required (instant responses for testing)
+- **Ollama**: Direct API integration via `callOllamaAPI()` method
+  - Auto-detects installed models from `/api/tags` endpoint
+  - Dynamic dropdown model selection
+  - Default endpoint: `http://localhost:11434`
+- **Cloud Providers**: OpenAI, Anthropic, Google, Azure OpenAI
+  - Requires API key configuration
+  - Cost tracking per provider
+
 ### Backend Communication
 
-The extension communicates with the Python agent backend via:
-- **HTTP API** (web/backend from PR #73)
-- **Subprocess** (local agent_labs execution)
+The extension communicates with agents via:
+- **Direct Ollama API** (localhost:11434)
+- **HTTP API** (web/backend for other providers)
+- **Mock responses** (testing/development)
 - **LSP Protocol** (Language Server Protocol, future)
 
 ### Session Management
