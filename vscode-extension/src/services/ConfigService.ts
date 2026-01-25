@@ -59,6 +59,24 @@ export class ConfigService {
   }
 
   /**
+   * Update multiple configuration values at once (prevents race conditions)
+   */
+  public async updateSettings(settings: Partial<AgentConfig>): Promise<void> {
+    const workspaceConfig = vscode.workspace.getConfiguration('aiAgent');
+    
+    // Update all settings in parallel
+    const updates = Object.entries(settings).map(([key, value]) =>
+      workspaceConfig.update(key, value, vscode.ConfigurationTarget.Global)
+    );
+    
+    // Wait for all updates to complete
+    await Promise.all(updates);
+    
+    // Reload only once after all updates are done
+    this.reload();
+  }
+
+  /**
    * Get provider
    */
   public getProvider(): string {

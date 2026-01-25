@@ -74,10 +74,22 @@ export class ConfigPanel {
    * Handle messages from webview
    */
   private async handleMessage(message: unknown): Promise<void> {
-    const msg = message as { command: string; key?: string; value?: unknown };
+    const msg = message as { command: string; key?: string; value?: unknown; settings?: any };
 
     switch (msg.command) {
+      case 'updateSettings':
+        // Batch update all settings at once
+        if (msg.settings) {
+          await this.configService.updateSettings(msg.settings);
+          vscode.window.showInformationMessage(
+            `Settings saved: ${msg.settings.provider} / ${msg.settings.model}`
+          );
+          // Reload the configuration in the panel to confirm
+          this.loadConfiguration();
+        }
+        break;
       case 'updateSetting':
+        // Legacy single setting update (kept for compatibility)
         if (msg.key && msg.value !== undefined) {
           const validKeys = ['provider', 'model', 'baseUrl', 'apiKey', 'maxTurns', 'timeout'];
           if (validKeys.includes(msg.key)) {
@@ -229,12 +241,18 @@ export class ConfigPanel {
 '            const maxTurns = parseInt(document.getElementById("maxTurns").value, 10);' +
 '            const timeout = parseInt(document.getElementById("timeout").value, 10);' +
 '            if (!model.trim()) { showStatus("Model cannot be empty", "error"); return; }' +
-'            vscode.postMessage({ command: "updateSetting", key: "provider", value: provider });' +
-'            vscode.postMessage({ command: "updateSetting", key: "model", value: model });' +
-'            vscode.postMessage({ command: "updateSetting", key: "baseUrl", value: baseUrl });' +
-'            vscode.postMessage({ command: "updateSetting", key: "apiKey", value: apiKey });' +
-'            vscode.postMessage({ command: "updateSetting", key: "maxTurns", value: maxTurns });' +
-'            vscode.postMessage({ command: "updateSetting", key: "timeout", value: timeout });' +
+'            // Send all settings in one batch to prevent race conditions' +
+'            vscode.postMessage({' +
+'                command: "updateSettings",' +
+'                settings: {' +
+'                    provider: provider,' +
+'                    model: model,' +
+'                    baseUrl: baseUrl,' +
+'                    apiKey: apiKey,' +
+'                    maxTurns: maxTurns,' +
+'                    timeout: timeout' +
+'                }' +
+'            });' +
 '            showStatus("Settings saved successfully", "success");' +
 '        }' +
 '        function onProviderChange() {' +
@@ -299,12 +317,22 @@ export class ConfigPanel {
 '        document.getElementById("provider").addEventListener("change", onProviderChange);' +
 '        function resetSettings() {' +
 '            if (confirm("Are you sure you want to reset to default settings?")) {' +
-'                vscode.postMessage({ command: "updateSetting", key: "provider", value: "mock" });' +
-'                vscode.postMessage({ command: "updateSetting", key: "model", value: "llama2" });' +
-'                vscode.postMessage({ command: "updateSetting", key: "baseUrl", value: "http://localhost:11434" });' +
-'                vscode.postMessage({ command: "updateSetting", key: "maxTurns", value: 5 });' +
-'                vscode.postMessage({ command: "updateSetting", key: "timeout", value: 30 });' +
-'                vscode.postMessage({ command: "refreshConfig" });' +
+'                // Send all default settings in one batch' +
+'                vscode.postMessage({' +
+'                    command: "updateSettings",' +
+'                    settings: {' +
+'                        provider: "mock",' +
+'                        model: "llama2",' +
+'                        baseUrl: "http://localhost:11434",' +
+'                        apiKey: "",' +
+'                        maxTurns: 5,' +
+'                        timeout: 30' +
+'                    }' +
+'                });' +
+'                // Request config reload to update UI' +
+'                setTimeout(function() {' +
+'                    vscode.postMessage({ command: "refreshConfig" });' +
+'                }, 100);' +
 '                showStatus("Settings reset to defaults", "success");' +
 '            }' +
 '        }' +
