@@ -231,6 +231,10 @@ export function activate(context: vscode.ExtensionContext) {
     if (event.affectsConfiguration('aiAgent')) {
       configService.reload();
       agentService.updateConfiguration();
+      // Refresh all open panels with updated config
+      if (chatPanel) {
+        chatPanel.refreshConfig();
+      }
     }
   });
 

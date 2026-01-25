@@ -45,6 +45,13 @@ export class ChatPanel {
       }
     }, undefined);
 
+    // Handle panel becoming visible - refresh config
+    this.panel.onDidChangeViewState(() => {
+      if (this.panel.visible) {
+        this.refreshConfig();
+      }
+    }, undefined);
+
     // Initialize session
     this.initializeSession();
   }
@@ -191,6 +198,17 @@ export class ChatPanel {
   }
 
   /**
+   * Refresh config in webview (called when panel becomes visible or config changes)
+   */
+  public refreshConfig(): void {
+    const config = this.configService.getConfig();
+    this.panel.webview.postMessage({
+      type: 'configUpdated',
+      config,
+    });
+  }
+
+  /**
    * Get webview options
    */
   private getWebviewOptions(extensionUri: vscode.Uri): vscode.WebviewPanelOptions & vscode.WebviewOptions {
@@ -234,15 +252,21 @@ export class ChatPanel {
 '        .reset-btn { padding: 4px 12px; font-size: 0.85em; }' +
 '        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--vscode-input-border); }' +
 '        .header h2 { font-size: 1em; margin: 0; }' +
+'        .config-info { font-size: 0.75em; opacity: 0.8; }' +
 '        .error { color: var(--vscode-errorForeground); background-color: var(--vscode-inputValidation-errorBackground); padding: 8px; border-radius: 4px; margin-bottom: 12px; display: none; }' +
+'        .success { color: var(--vscode-testing-iconPassed); background-color: var(--vscode-inputValidation-infoBackground); padding: 8px; border-radius: 4px; margin-bottom: 12px; display: none; }' +
 '    </style>' +
 '</head>' +
 '<body>' +
 '    <div class="container">' +
 '        <div class="header">' +
-'            <h2>AI Agent Chat</h2>' +
+'            <div>' +
+'                <h2>AI Agent Chat</h2>' +
+'                <div class="config-info" id="configInfo">Provider: Loading...</div>' +
+'            </div>' +
 '            <button class="reset-btn" onclick="resetSession()">Reset</button>' +
 '        </div>' +
+'        <div id="success" class="success"></div>' +
 '        <div id="error" class="error"></div>' +
 '        <div class="messages" id="messages"></div>' +
 '        <div class="input-area">' +
@@ -288,14 +312,40 @@ export class ChatPanel {
 '            errorDiv.style.display = "block";' +
 '            setTimeout(function() { errorDiv.style.display = "none"; }, 5000);' +
 '        }' +
+'        function showSuccess(message) {' +
+'            const successDiv = document.getElementById("success");' +
+'            successDiv.textContent = message;' +
+'            successDiv.style.display = "block";' +
+'            setTimeout(function() { successDiv.style.display = "none"; }, 3000);' +
+'        }' +
+'        function updateConfigDisplay(config) {' +
+'            const configInfo = document.getElementById("configInfo");' +
+'            if (config) {' +
+'                configInfo.textContent = "Provider: " + config.provider + " | Model: " + config.model;' +
+'            }' +
+'        }' +
 '        window.addEventListener("message", function(event) {' +
 '            const message = event.data;' +
 '            switch (message.type) {' +
 '                case "messageReceived": displayMessage(message.message); break;' +
-'                case "sessionStarted": console.log("Session started:", message.sessionId); break;' +
-'                case "sessionReset": document.getElementById("messages").innerHTML = ""; break;' +
+'                case "sessionStarted":' +
+'                    console.log("Session started:", message.sessionId);' +
+'                    updateConfigDisplay(message.config);' +
+'                    break;' +
+'                case "sessionReset":' +
+'                    document.getElementById("messages").innerHTML = "";' +
+'                    showSuccess("Session reset successfully");' +
+'                    break;' +
 '                case "error": showError(message.message); break;' +
-'                case "configData": console.log("Config:", message.config); break;' +
+'                case "configData":' +
+'                    console.log("Config:", message.config);' +
+'                    updateConfigDisplay(message.config);' +
+'                    break;' +
+'                case "configUpdated":' +
+'                    console.log("Config updated:", message.config);' +
+'                    updateConfigDisplay(message.config);' +
+'                    showSuccess("Settings updated: " + message.config.provider + " / " + message.config.model);' +
+'                    break;' +
 '            }' +
 '        });' +
 '        document.getElementById("messageInput").focus();' +
