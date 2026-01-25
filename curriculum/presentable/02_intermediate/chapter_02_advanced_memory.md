@@ -24,6 +24,12 @@ This chapter explores the memory architecture implemented in `src/agent_labs/mem
 
 **Key Insight:** Memory isn't just storage—it's a retrieval strategy. The right memory architecture depends on *what* you need to remember and *how quickly* you need to access it.
 
+## Hands-on (Lane A)
+
+- Primary: Lab 04 (memory tiers): `../../../labs/04/README.md`
+- Extension: Lab 10 (vector retrieval + context packing): `../../../labs/10/README.md`
+- Related code: `../../../src/agent_labs/memory/`, `../../../src/agent_labs/retrieval/`, `../../../src/agent_labs/context/manifest.py`
+
 ---
 
 ## 1. Memory Architecture Overview
@@ -32,33 +38,33 @@ This chapter explores the memory architecture implemented in `src/agent_labs/mem
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                      MEMORY ARCHITECTURE                             │
+│                      MEMORY ARCHITECTURE                            │
 ├─────────────────────────────────────────────────────────────────────┤
-│                                                                      │
+│                                                                     │
 │  ┌────────────────────────────────────────────────────────────┐     │
-│  │                   SHORT-TERM MEMORY                         │     │
+│  │                   SHORT-TERM MEMORY                        │     │
 │  │  • Bounded conversational context (FIFO)                   │     │
 │  │  • Fast access: O(1) append, O(n) search                   │     │
 │  │  • Capacity: 10-50 items typical                           │     │
 │  │  • Use case: Recent conversation turns                     │     │
 │  └────────────────────────────────────────────────────────────┘     │
-│                          ↓ overflow / summarize                      │
+│                          ↓ overflow / summarize                     │
 │  ┌────────────────────────────────────────────────────────────┐     │
-│  │                   LONG-TERM MEMORY                          │     │
+│  │                   LONG-TERM MEMORY                         │     │
 │  │  • Persistent facts with confidence scores                 │     │
 │  │  • Key-value storage with search                           │     │
 │  │  • Capacity: Unlimited (backend-dependent)                 │     │
 │  │  • Use case: User preferences, extracted entities          │     │
 │  └────────────────────────────────────────────────────────────┘     │
-│                          ↓ semantic queries                          │
+│                          ↓ semantic queries                         │
 │  ┌────────────────────────────────────────────────────────────┐     │
-│  │                    RAG MEMORY (Future)                      │     │
+│  │                    RAG MEMORY (Future)                     │     │
 │  │  • Vector embeddings for semantic search                   │     │
 │  │  • Similarity-based retrieval                              │     │
 │  │  • Capacity: Documents, knowledge bases                    │     │
 │  │  • Use case: Complex knowledge retrieval                   │     │
 │  └────────────────────────────────────────────────────────────┘     │
-│                                                                      │
+│                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -697,7 +703,54 @@ save_session(agent, session_id)
 | > 100,000 | PostgreSQL/Redis | Need connection pooling |
 | Semantic search | Vector DB | Pinecone, Weaviate, etc. |
 
-### 8.3 Memory Optimization Tips
+### 8.3 Vector Retrieval Production Patterns (Metadata + Provenance + Fallbacks)
+
+The RAG tier is only production-grade when retrieval is:
+
+- **scoped** (tenant, ACL, doc type)
+- **observable** (provenance and logging)
+- **robust** (fallbacks when dependencies degrade)
+
+#### A) Store strong metadata per chunk
+
+Every chunk should carry enough provenance to explain why it was retrieved:
+
+- `doc_id`, `chunk_id`
+- `source` (kb, runbook, ticket, repo file)
+- `timestamp` / `version`
+- `tenant_id` (or workspace/project scope)
+- optional: `tags`, `owner`, `sensitivity`
+
+Without provenance, you cannot debug, audit, or evaluate retrieval behavior.
+
+#### B) Retrieval pipeline: filter -> retrieve -> rerank -> pack
+
+A practical default pipeline:
+
+1. Pre-filter by tenant + ACL + doc type
+2. Retrieve top-K (vector similarity, keyword, or hybrid)
+3. Optionally rerank the top-K (cheap heuristic or model-based reranker)
+4. Pack evidence into context with citations
+
+#### C) Hybrid retrieval (keyword + vector)
+
+Vector search is powerful, but keyword search still wins for:
+
+- exact identifiers (ticket IDs, error codes)
+- rare terms
+- structured names
+
+Hybrid retrieval (keyword + vector + merge/rerank) is common in production systems.
+
+#### D) Fallback modes
+
+External dependencies fail (vector DB, embedder, network). Your agent should have explicit fallback modes:
+
+- vector store down -> keyword-only retrieval
+- retrieval too slow -> "no retrieval" mode with clear user messaging
+- missing provenance -> drop the chunk (do not inject untrusted content)
+
+### 8.4 Memory Optimization Tips
 
 1. **Summarize before pruning:** Instead of discarding old short-term items, summarize them into a single "context summary" fact.
 

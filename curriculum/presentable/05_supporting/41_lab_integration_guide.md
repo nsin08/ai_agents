@@ -17,12 +17,15 @@
 | Lab 06 | Observability | - | Ch4 | Ch5 | - |
 | Lab 07 | Safety | - | - | Ch1 | - |
 | Lab 08 | Multi-agent systems | - | - | Ch2 | - |
+| Lab 09 | MCP tool servers | - | Ch6 | Ch6 (security boundary) | - |
+| Lab 10 | Vector retrieval + context packing | Ch5 (extension) | Ch2, Ch3 | - | - |
 
 ## Notes
 
 - Beginner labs (00-02) focus on foundations.
 - Intermediate labs (03-06) focus on production patterns.
 - Advanced labs (07-08) focus on safety and multi-agent coordination.
+- Labs 09-10 extend the intermediate track with modern integration patterns (MCP) and retrieval/context/memory management.
 
 ---
 

@@ -91,10 +91,10 @@ Connect agents to external APIs with proper authentication, retry logic, and cir
 |---------|-------------|-----------------|
 | Chapter 1 | Lab 03 | Lab 02 |
 | Chapter 2 | Lab 04 | Lab 02 |
-| Chapter 3 | Lab 05 | Lab 04 |
+| Chapter 3 | Lab 05 | Lab 04, Lab 10 |
 | Chapter 4 | Lab 06 | Lab 03 |
 | Chapter 5 | Lab 04 | Lab 05 |
-| Chapter 6 | Lab 03 | Lab 06 |
+| Chapter 6 | Lab 03 | Lab 06, Lab 09 |
 
 ---
 
@@ -109,6 +109,10 @@ Connect agents to external APIs with proper authentication, retry logic, and cir
 1. **Day 1-2:** Chapter 4 (Observability) + Lab 06 exercises
 2. **Day 3-4:** Chapter 5 (Multi-Turn) + combined lab exercises
 3. **Day 5:** Chapter 6 (Integration) + tool development
+
+Optional extensions:
+- Lab 09 (MCP): standardized tool discovery and remote tool boundaries
+- Lab 10 (Vector retrieval): metadata filters, provenance, and context packing manifest
 
 ### Week 3: Integration Project
 - Build a complete agent that combines all intermediate patterns

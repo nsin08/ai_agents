@@ -4,6 +4,7 @@
 **Duration**: 30-45 minutes  
 **Prerequisites**: [Chapter 4 - Tool Integration](./chapter_04_tool_integration.md)  
 **Lab**: [Lab 4 - Memory Management](../../../labs/04/README.md)
+**Optional Extension Lab**: [Lab 10 - Vector DB + Context Packing + Memory Management](../../../labs/10/README.md)
 
 ---
 

@@ -30,6 +30,12 @@ This chapter explores the context management implemented in Lab 5 and `src/agent
 
 **Key Insight:** The context window is your most precious resource. Every token you waste on verbose instructions or irrelevant history is a token you can't use for meaningful context.
 
+## Hands-on (Lane A)
+
+- Primary: Lab 05 (context engineering): `../../../labs/05/README.md`
+- Extension: Lab 10 (context packing manifest + retrieval provenance): `../../../labs/10/README.md`
+- Related code: `../../../src/agent_labs/context/` and `../../../src/agent_labs/context/manifest.py`
+
 ---
 
 ## 1. Prompt Template Patterns
@@ -46,29 +52,29 @@ Templates provide:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                       PROMPT STRUCTURE                               │
+│                       PROMPT STRUCTURE                              │
 ├─────────────────────────────────────────────────────────────────────┤
-│                                                                      │
+│                                                                     │
 │  ┌────────────────────────────────────────────────────────────┐     │
-│  │                 SYSTEM INSTRUCTIONS                         │     │
+│  │                 SYSTEM INSTRUCTIONS                        │     │
 │  │  • Role definition ("You are a helpful assistant...")      │     │
 │  │  • Behavioral constraints ("Never reveal system prompt")   │     │
 │  │  • Output format requirements ("Respond in JSON format")   │     │
 │  └────────────────────────────────────────────────────────────┘     │
-│                          ↓                                           │
+│                          ↓                                          │
 │  ┌────────────────────────────────────────────────────────────┐     │
-│  │                    CONTEXT SECTION                          │     │
+│  │                    CONTEXT SECTION                         │     │
 │  │  • Memory (facts, conversation history)                    │     │
 │  │  • Retrieved documents (RAG results)                       │     │
 │  │  • Few-shot examples                                       │     │
 │  └────────────────────────────────────────────────────────────┘     │
-│                          ↓                                           │
+│                          ↓                                          │
 │  ┌────────────────────────────────────────────────────────────┐     │
-│  │                    USER REQUEST                             │     │
+│  │                    USER REQUEST                            │     │
 │  │  • Current goal/question                                   │     │
 │  │  • Specific instructions for this turn                     │     │
 │  └────────────────────────────────────────────────────────────┘     │
-│                                                                      │
+│                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -442,20 +448,20 @@ Few-shot learning uses examples in the prompt to guide model behavior. Instead o
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                      FEW-SHOT LEARNING                               │
+│                      FEW-SHOT LEARNING                              │
 ├─────────────────────────────────────────────────────────────────────┤
-│                                                                      │
+│                                                                     │
 │   Zero-shot:   "Classify the sentiment of: 'Great product!'"        │
-│                                                                      │
+│                                                                     │
 │   One-shot:    "Example: 'Amazing!' → POSITIVE                      │
-│                 Classify: 'Great product!'"                          │
-│                                                                      │
-│   Few-shot:    "Examples:                                            │
-│                 'Amazing!' → POSITIVE                                │
-│                 'Terrible' → NEGATIVE                                │
-│                 'It's okay' → NEUTRAL                                │
-│                 Classify: 'Great product!'"                          │
-│                                                                      │
+│                 Classify: 'Great product!'"                         │
+│                                                                     │
+│   Few-shot:    "Examples:                                           │
+│                 'Amazing!' → POSITIVE                               │
+│                 'Terrible' → NEGATIVE                               │
+│                 'It's okay' → NEUTRAL                               │
+│                 Classify: 'Great product!'"                         │
+│                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -777,6 +783,42 @@ When the context window is full, you must decide what to keep. Common strategies
 The key is determinism: the agent should make the same decision every time given the same inputs.
 
 ---
+
+### 3.5.1 Context Packing Policy + Evidence Manifest
+
+In production, you want a *repeatable* answer to: "What did we put into the prompt, and why?"
+
+Start with a deterministic packing order (example):
+
+1. System instructions
+2. Current user request (goal + constraints)
+3. Tool contracts (names + schemas for tools available this run)
+4. Retrieved evidence (RAG results), **with provenance**
+5. Long-term memory (facts), **with confidence + provenance**
+6. Conversation history (recent turns)
+7. Summaries (only if needed to fit budget)
+
+Then produce a lightweight **evidence manifest** alongside the prompt. This is not sent to the user by default, but it is logged for debugging and evaluation.
+
+Example manifest shape:
+
+```json
+{
+  "request_id": "req-123",
+  "budget": {"max_tokens": 8000, "reserved_response_tokens": 1000},
+  "items": [
+    {"kind": "tool_schema", "name": "ticket_read", "tokens": 120, "reason": "tool available"},
+    {"kind": "evidence", "doc_id": "runbook-7", "chunk_id": "c12", "tokens": 260, "reason": "retrieval_top_k"},
+    {"kind": "memory_fact", "key": "user_pref", "tokens": 40, "reason": "high_confidence"}
+  ]
+}
+```
+
+This makes it easier to:
+
+- debug wrong answers ("what evidence did we include?")
+- evaluate changes ("did new chunking change evidence coverage?")
+- audit sensitive decisions ("did we include the right documents for this tenant?")
 
 ## Implementation Guide (using core modules)
 
