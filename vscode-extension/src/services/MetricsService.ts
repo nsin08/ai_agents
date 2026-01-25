@@ -99,12 +99,12 @@ export class MetricsService {
   /**
    * End a conversation and persist final metrics.
    */
-  public endConversation(conversationId: string): void {
+  public async endConversation(conversationId: string): Promise<void> {
     const metrics = this.activeConversations.get(conversationId);
     if (metrics) {
       metrics.endTime = new Date();
+      await this.saveMetrics();
       this.activeConversations.delete(conversationId);
-      this.saveMetrics();
     }
   }
 
@@ -150,8 +150,16 @@ export class MetricsService {
    */
   public getAllMetrics(): ConversationMetrics[] {
     const stored = this.context.globalState.get<ConversationMetrics[]>(MetricsService.STORAGE_KEY, []);
+    
+    // Convert date strings back to Date objects
+    const restoredStored = stored.map(m => ({
+      ...m,
+      startTime: new Date(m.startTime),
+      endTime: m.endTime ? new Date(m.endTime) : undefined
+    }));
+    
     const active = Array.from(this.activeConversations.values());
-    return [...stored, ...active];
+    return [...restoredStored, ...active];
   }
 
   /**

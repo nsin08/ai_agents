@@ -31,6 +31,8 @@ export class AgentService {
   private httpClient: AxiosInstance;
   private sessionId: string;
   private currentTurn: number = 0;
+  private activeProvider: string = '';
+  private activeModel: string = '';
 
   constructor(configService: ConfigService, metricsService?: MetricsService, traceService?: TraceService) {
     this.configService = configService;
@@ -53,6 +55,10 @@ export class AgentService {
   public async startSession(): Promise<ChatSession> {
     const config = this.configService.getConfig();
 
+    // Track active config for change detection
+    this.activeProvider = config.provider;
+    this.activeModel = config.model;
+
     this.currentSession = {
       id: this.sessionId,
       messages: [],
@@ -60,7 +66,7 @@ export class AgentService {
       createdAt: Date.now(),
     };
 
-    // Load from storage if exists
+    // Load from storage if exists (only restore messages, not config)
     const stored = await this.configService.loadSession(this.sessionId);
 
     // Initialize metrics and trace collection
@@ -73,7 +79,8 @@ export class AgentService {
     this.currentTurn = 0;
 
     if (stored) {
-      this.currentSession = stored as ChatSession;
+      // Only restore messages, keep new config
+      this.currentSession.messages = (stored as ChatSession).messages;
       console.log('Session restored from storage:', this.sessionId);
     }
 
@@ -90,12 +97,23 @@ export class AgentService {
 
     const config = this.configService.getConfig();
     
-    // Update session config to reflect current provider/model
-    this.currentSession!.config = config;
-    
-    // Update trace config to reflect current provider/model (handles mid-session switches)
-    if (this.traceService) {
-      this.traceService.updateTraceConfig(this.sessionId, config.provider, config.model);
+    // Check if provider/model changed - if so, end current and start new conversation
+    if (this.currentSession && 
+        (this.activeProvider !== config.provider || 
+         this.activeModel !== config.model)) {
+      
+      // End current conversation
+      if (this.metricsService) {
+        await this.metricsService.endConversation(this.sessionId);
+      }
+      if (this.traceService) {
+        this.traceService.endTrace(this.sessionId);
+      }
+      
+      // Start new conversation with new config
+      this.sessionId = this.generateSessionId();
+      this.currentTurn = 0;
+      await this.startSession();
     }
     
     this.currentTurn++;

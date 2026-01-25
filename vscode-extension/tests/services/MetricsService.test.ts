@@ -45,9 +45,9 @@ describe('MetricsService', () => {
       expect(metrics?.messageCount).toBe(0);
     });
 
-    test('should end a conversation', () => {
+    test('should end a conversation', async () => {
       metricsService.startConversation('conv-1', 'openai', 'gpt-4');
-      metricsService.endConversation('conv-1');
+      await metricsService.endConversation('conv-1');
 
       const metrics = metricsService.getConversationMetrics('conv-1');
       expect(metrics).toBeUndefined(); // Moved to storage
@@ -207,11 +207,9 @@ describe('MetricsService', () => {
       consoleSpy.mockRestore();
     });
 
-    test('should handle ending non-existent conversation', () => {
+    test('should handle ending non-existent conversation', async () => {
       // Should not throw
-      expect(() => {
-        metricsService.endConversation('non-existent');
-      }).not.toThrow();
+      await expect(metricsService.endConversation('non-existent')).resolves.not.toThrow();
     });
   });
 });
