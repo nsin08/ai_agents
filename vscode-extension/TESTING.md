@@ -1,9 +1,10 @@
 # Testing Guide - AI Agent VSCode Extension
 
-Complete guide for testing Phase 1 (Story #74) + Phase 2 (Story #75) implementation.
+Complete guide for testing Phase 1 (Story #74) + Phase 2 (Story #75) + Phase 3 (Story #76) implementation.
 
-**Current Branch:** `feature/75-phase-2-statistics-trace`  
-**Base Branch:** `feature/74-phase-1-mvp-chat-panel`
+**Current Branch:** `feature/76-phase-3-code-intelligence`  
+**Base Branch:** `feature/74-phase-1-mvp-chat-panel`  
+**Test Count:** 150 tests (Phase 1: 15, Phase 2: 51, Phase 3: 84)
 
 ---
 
@@ -20,7 +21,10 @@ npm run compile
 ```bash
 npm test
 ```
-Expected: ✅ **66/66 tests passing** (Phase 1: 15 tests, Phase 2: 51 tests)
+Expected: ✅ **150/150 tests passing**
+- Phase 1: 15 tests (MVP Chat)
+- Phase 2: 51 tests (Observability)
+- Phase 3: 84 tests (Code Intelligence)
 
 ### 3. Launch Extension
 ```bash
@@ -1249,15 +1253,611 @@ Before PR to Phase 1 branch, verify:
 
 ---
 
+## Phase 3: Code Intelligence Testing (Issue #76)
+
+**Features Added:**
+- CodeContextService: Extract code with security filtering
+- CodeInsertionService: Parse and apply code suggestions
+- CodeSuggestionPanel: Display suggestions with syntax highlighting
+- Commands: sendSelection, sendFile, showCodeSuggestions
+- Context menu integration
+- Sensitive data detection (15 patterns)
+- File type blocking
+
+### Phase 3 Automated Tests (84 tests)
+
+**CodeContextService (29 tests):**
+- Sensitive data detection (10 tests)
+- File type blocking (9 tests)
+- Code formatting (2 tests)
+- Helper methods (8 tests)
+
+**CodeInsertionService (23 tests):**
+- Code parsing from markdown (8 tests)
+- Suggestion counting (3 tests)
+- Explanation extraction (2 tests)
+- Application modes (2 tests)
+- Position/range validation (2 tests)
+- Diff preview (2 tests)
+- Edge cases (4 tests)
+
+**CodeSuggestionPanel (19 tests):**
+- Panel creation (2 tests)
+- Suggestion parsing (3 tests)
+- Navigation (5 tests)
+- User actions (2 tests)
+- HTML generation (5 tests)
+- Lifecycle (2 tests)
+
+**Integration Tests (13 tests):**
+- End-to-end flow (3 tests)
+- Security integration (3 tests)
+- Code formatting (2 tests)
+- Size limit enforcement (2 tests)
+- Error handling (3 tests)
+
+### Phase 3 Manual E2E Tests
+
+#### Test 3.1: Send Selection to Agent (5 min)
+
+**Setup:**
+1. Open TypeScript file
+2. Create function:
+```typescript
+function calculateTotal(price: number, tax: number): number {
+  return price + (price * tax);
+}
+```
+
+**Steps:**
+1. Select the function
+2. Right-click → "Agent: Send Selection to Agent"
+
+**Expected Results:**
+- ✅ Context menu shows command
+- ✅ Chat panel opens automatically
+- ✅ Code formatted with metadata:
+  ```
+  **File:** filename.ts
+  **Language:** typescript
+  **Lines:** 1-3
+  **Size:** 3 lines
+  ```typescript
+  function calculateTotal...
+  ```
+  ```
+- ✅ Message sent automatically
+- ✅ Agent receives code context
+
+**Time:** ~2 minutes
+
+---
+
+#### Test 3.2: Send File to Agent (5 min)
+
+**Setup:**
+1. Create Python file with 50+ lines
+2. Include imports, functions, classes
+
+**Steps:**
+1. Open the file (no selection needed)
+2. Right-click anywhere → "Agent: Send File to Agent"
+
+**Expected Results:**
+- ✅ Command available without selection
+- ✅ Chat panel opens
+- ✅ Full file sent with metadata
+- ✅ File size shown (e.g., "Size: 50 lines")
+
+**Time:** ~2 minutes
+
+---
+
+#### Test 3.3: Sensitive Data Warning (10 min)
+
+**Setup: Create test file with sensitive data**
+```python
+# config.py
+API_KEY = "sk-123456789012345678901234567890123456789012345678"
+PASSWORD = "MySecret123!"
+GITHUB_TOKEN = "ghp_123456789012345678901234567890123456"
+```
+
+**Test All 15 Patterns:**
+
+| # | Pattern | Test Code | Should Warn |
+|---|---------|-----------|-------------|
+| 1 | API Key | `API_KEY="12345678901234567890"` | ✅ |
+| 2 | Bearer Token | `Authorization: Bearer abc123xyz` | ✅ |
+| 3 | Password | `PASSWORD="secret123"` | ✅ |
+| 4 | Secret Key | `SECRET_KEY="12345678901234567890"` | ✅ |
+| 5 | Private Key | `PRIVATE_KEY="abc123"` | ✅ |
+| 6 | Access Token | `ACCESS_TOKEN="12345678901234567890"` | ✅ |
+| 7 | Auth Token | `AUTH_TOKEN="12345678901234567890"` | ✅ |
+| 8 | Client Secret | `CLIENT_SECRET="12345678901234567890"` | ✅ |
+| 9 | Credit Card | `4532-1234-5678-9010` | ✅ |
+| 10 | Email | `user@example.com` | ✅ |
+| 11 | Private Key Block | `-----BEGIN PRIVATE KEY-----` | ✅ |
+| 12 | JWT | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.abc` | ✅ |
+| 13 | GitHub Token | `ghp_123456789012345678901234567890123456` | ✅ |
+| 14 | OpenAI Key | `sk-123456789012345678901234567890123456789012345678` | ✅ |
+| 15 | Google Key | `AIzaSyAbCdEfGhIjKlMnOpQrStUvWxYz12345678` | ✅ |
+
+**Steps for Each Pattern:**
+1. Select code with pattern
+2. Right-click → "Send Selection to Agent"
+
+**Expected Results:**
+- ✅ Warning dialog appears
+- ✅ Message: "Warning: Sensitive data detected ([Pattern Name]). Continue?"
+- ✅ Options: "Yes" / "No"
+- ✅ If "No" → Operation cancelled
+- ✅ If "Yes" → Code sent with warning logged
+
+**Time:** ~5 minutes (test 3-4 patterns)
+
+---
+
+#### Test 3.4: Blocked File Types (10 min)
+
+**Test All Blocked Extensions:**
+
+| Extension | Purpose | Should Block |
+|-----------|---------|--------------|
+| .env | Environment variables | ✅ |
+| .pem | Certificate | ✅ |
+| .key | Private key | ✅ |
+| .p12 | PKCS#12 archive | ✅ |
+| .pfx | Personal exchange | ✅ |
+| .crt | Certificate | ✅ |
+| .cert | Certificate | ✅ |
+| .der | DER certificate | ✅ |
+| .pkcs12 | PKCS#12 | ✅ |
+| .jks | Java keystore | ✅ |
+| .keystore | Keystore | ✅ |
+
+**Steps:**
+1. Create `.env` file:
+   ```
+   API_KEY=secret123
+   DATABASE_URL=postgres://...
+   ```
+2. Try: "Agent: Send File to Agent"
+
+**Expected Results:**
+- ✅ Error message appears
+- ✅ Message: "Cannot send .env files (may contain sensitive data)"
+- ✅ Lists blocked extensions
+- ✅ No code sent to agent
+- ✅ No crash or exception
+
+**Repeat for:** .pem, .key, .p12 (sample 3-4 extensions)
+
+**Time:** ~3 minutes
+
+---
+
+#### Test 3.5: Code Suggestions Display (10 min)
+
+**Setup: Get agent response with code**
+```markdown
+Here's how to fix the bug:
+
+```typescript
+function calculateTotal(price: number, tax: number): number {
+  // Add input validation
+  if (price < 0 || tax < 0) {
+    throw new Error("Price and tax must be non-negative");
+  }
+  return price + (price * tax);
+}
+```
+
+This adds proper error handling.
+```
+
+**Steps:**
+1. Copy the agent response above
+2. `Ctrl+Shift+P` → "Agent: Show Code Suggestions"
+3. Paste response → Enter
+
+**Expected Results:**
+- ✅ Code Suggestion panel opens (column 2)
+- ✅ Title: "Code Suggestion"
+- ✅ Counter: "1 of 1"
+- ✅ Explanation shown: "This adds proper error handling."
+- ✅ Metadata visible:
+  - Language: typescript
+  - File: (none if no context)
+- ✅ Code displayed with syntax highlighting
+- ✅ Action buttons visible:
+  - ✓ Apply to Editor
+  - 👁 Preview Diff
+  - 📋 Copy Code
+  - ✕ Close
+
+**Time:** ~3 minutes
+
+---
+
+#### Test 3.6: Multiple Suggestions Navigation (10 min)
+
+**Setup: Agent response with 3 code blocks**
+```markdown
+Let me provide three solutions:
+
+1. First, add the import:
+```typescript
+import { validateInput } from './validators';
+```
+
+2. Then, use the validator:
+```typescript
+function calculateTotal(price: number, tax: number): number {
+  validateInput(price, tax);
+  return price + (price * tax);
+}
+```
+
+3. Finally, add the validator:
+```typescript
+export function validateInput(price: number, tax: number): void {
+  if (price < 0 || tax < 0) {
+    throw new Error("Values must be non-negative");
+  }
+}
+```
+```
+
+**Steps:**
+1. Show code suggestions with above response
+2. Click "Next →" button
+3. Click "← Previous" button
+4. Navigate through all 3 suggestions
+
+**Expected Results:**
+- ✅ Counter updates: "1 of 3", "2 of 3", "3 of 3"
+- ✅ Code content changes for each suggestion
+- ✅ Explanation changes per suggestion
+- ✅ Previous disabled at first suggestion
+- ✅ Next disabled at last suggestion
+- ✅ Navigation smooth, no flicker
+
+**Time:** ~3 minutes
+
+---
+
+#### Test 3.7: Apply Code Suggestion (10 min)
+
+**Setup:**
+1. Open TypeScript file
+2. Place cursor at desired insertion point
+
+**Steps:**
+1. Get suggestion with code:
+   ```typescript
+   const result = calculateTotal(100, 0.08);
+   console.log(`Total: ${result}`);
+   ```
+2. Open Code Suggestion panel
+3. Click "✓ Apply to Editor"
+
+**Expected Results:**
+- ✅ Success notification: "Code suggestion applied successfully!"
+- ✅ Code inserted at cursor position
+- ✅ Formatting preserved (indentation, newlines)
+- ✅ Auto-format triggered (if formatter available)
+- ✅ Panel stays open (can apply multiple times)
+- ✅ No duplicate application
+
+**Time:** ~3 minutes
+
+---
+
+#### Test 3.8: Preview Diff (10 min)
+
+**Setup:**
+1. Create file with original code:
+```typescript
+function greet(name) {
+  console.log("Hello " + name);
+}
+```
+
+**Steps:**
+1. Get suggestion with improved version:
+```typescript
+function greet(name: string): void {
+  console.log(`Hello ${name}!`);
+}
+```
+2. Click "👁 Preview Diff"
+
+**Expected Results:**
+- ✅ Diff editor opens (split view)
+- ✅ Left: Original code (or empty)
+- ✅ Right: Suggested code
+- ✅ Changes highlighted (additions/deletions)
+- ✅ Can close diff without applying
+
+**Note:** If no original code, left side shows empty/placeholder
+
+**Time:** ~3 minutes
+
+---
+
+#### Test 3.9: Copy Code to Clipboard (5 min)
+
+**Steps:**
+1. Open Code Suggestion panel
+2. Click "📋 Copy Code"
+3. Open new editor tab
+4. Paste with `Ctrl+V`
+
+**Expected Results:**
+- ✅ Success message: "Code copied to clipboard!"
+- ✅ Code pastes correctly
+- ✅ Formatting preserved
+- ✅ No extra whitespace
+- ✅ All newlines intact
+
+**Time:** ~2 minutes
+
+---
+
+#### Test 3.10: Size Limit Enforcement (10 min)
+
+**Test 1: Line Count Limit**
+
+**Setup:**
+```python
+# Generate large file
+with open('large.py', 'w') as f:
+    for i in range(11000):
+        f.write(f'# Line {i}\n')
+```
+
+**Steps:**
+1. Open `large.py` (11,000 lines)
+2. Select all (`Ctrl+A`)
+3. Try "Send Selection to Agent"
+
+**Expected Results:**
+- ✅ Error appears immediately
+- ✅ Message: "Code too large (11000 lines). Maximum: 10000 lines."
+- ✅ No agent invocation
+- ✅ No timeout/freeze
+
+**Test 2: File Size Limit**
+
+**Setup:**
+```python
+# Generate 600KB file
+with open('huge.py', 'w') as f:
+    f.write('x' * 600000)
+```
+
+**Steps:**
+1. Open `huge.py` (600KB)
+2. Try "Send File to Agent"
+
+**Expected Results:**
+- ✅ Error: "File too large (0.58MB). Maximum: 500KB."
+- ✅ No agent invocation
+
+**Time:** ~5 minutes
+
+---
+
+#### Test 3.11: Error Handling (10 min)
+
+**Test 1: No Active Editor**
+
+**Steps:**
+1. Close all editor tabs
+2. `Ctrl+Shift+P` → "Agent: Send Selection to Agent"
+
+**Expected:**
+- ✅ Warning: "No active editor. Please open a file and select code."
+- ✅ No crash
+
+**Test 2: Empty Selection**
+
+**Steps:**
+1. Open file
+2. Place cursor (no selection)
+3. Try "Send Selection to Agent"
+
+**Expected:**
+- ✅ Warning: "No code selected. Please select code and try again."
+- ✅ Command exits gracefully
+
+**Test 3: No Code Blocks in Response**
+
+**Steps:**
+1. Show Code Suggestions with: "Here is some text without code blocks."
+
+**Expected:**
+- ✅ Info message: "No code suggestions found in the response."
+- ✅ Panel shows empty state
+- ✅ Message: "No code suggestions found"
+- ✅ Hint: "Ask the agent to provide code suggestions using markdown code blocks"
+
+**Time:** ~3 minutes
+
+---
+
+### Phase 3 Bug Fix Validation (Issue #76)
+
+**Bug Fix 1: Trace Viewer - Model Display**
+
+**Before Fix:**
+- Trace showed historical top provider/model
+
+**After Fix:**
+- Trace shows current session config
+
+**Test:**
+1. Start conversation with mock/llama2
+2. Send 2 messages
+3. Open Trace Viewer
+4. Check conversation details
+
+**Expected:**
+- ✅ Shows "mock" / "llama2"
+- ✅ NOT historical "most used" provider
+
+---
+
+**Bug Fix 2: Statistics Panel - Current Config**
+
+**Before Fix:**
+- Showed "Top Provider: X" (historical)
+- Showed "Top Model: Y" (historical)
+
+**After Fix:**
+- Shows "Current Provider: X"
+- Shows "Current Model: Y"
+
+**Test:**
+1. Send 3-4 messages
+2. Open Statistics Panel
+3. Check labels
+
+**Expected:**
+- ✅ Label: "Current Provider" (not "Top")
+- ✅ Label: "Current Model" (not "Top")
+- ✅ Values match active config
+
+---
+
+**Bug Fix 3: Conversation History - Config Display**
+
+**Test:**
+1. Start conversation
+2. Send message
+3. Check metadata shown in chat
+
+**Expected:**
+- ✅ Provider/model shown correctly per message
+- ✅ Config updates reflected in real-time
+
+---
+
+## Phase 3 Regression Testing
+
+After Phase 3 changes, verify Phase 1 & 2 still work:
+
+### Phase 1 Quick Check (5 min)
+- [ ] Chat panel opens
+- [ ] Messages send/receive
+- [ ] Session reset works
+- [ ] Config changes apply
+
+### Phase 2 Quick Check (5 min)
+- [ ] Statistics panel shows metrics
+- [ ] Trace viewer displays conversations
+- [ ] Export functions work
+- [ ] Bug fixes still applied
+
+---
+
+## Performance Testing (Phase 3)
+
+### Test 3.12: Large Selection Performance
+
+**Steps:**
+1. Select 9,500 lines of code
+2. Send to agent
+3. Measure time
+
+**Expected:**
+- ✅ Extraction completes <1 second
+- ✅ Sensitive data scan <500ms
+- ✅ Formatting <200ms
+- ✅ Total <2 seconds
+
+### Test 3.13: Multiple Suggestions Performance
+
+**Steps:**
+1. Agent response with 10 code blocks
+2. Open Code Suggestion panel
+3. Navigate through all
+
+**Expected:**
+- ✅ Panel opens <500ms
+- ✅ Navigation instant (<100ms)
+- ✅ HTML rendering smooth
+- ✅ No lag or stuttering
+
+---
+
+## Security Audit Checklist
+
+### Data Protection
+- [ ] Sensitive data patterns detected (15/15)
+- [ ] Credential files blocked (11/11)
+- [ ] User warned before sending sensitive data
+- [ ] No credentials in logs/traces
+- [ ] No credentials in exported data
+
+### Input Validation
+- [ ] Size limits enforced
+- [ ] File type validation
+- [ ] HTML escaping in webviews
+- [ ] No code injection possible
+- [ ] No path traversal possible
+
+### Privacy
+- [ ] No telemetry without consent
+- [ ] No data sent to external servers (mock mode)
+- [ ] Session data cleared on reset
+- [ ] Exported data user-controlled
+
+---
+
+## Test Coverage Summary
+
+### Phase 3 Test Breakdown
+
+**Unit Tests: 71 tests**
+- CodeContextService: 29 tests
+- CodeInsertionService: 23 tests
+- CodeSuggestionPanel: 19 tests
+
+**Integration Tests: 13 tests**
+- E2E flow: 3 tests
+- Security: 3 tests
+- Formatting: 2 tests
+- Size limits: 2 tests
+- Error handling: 3 tests
+
+**Total: 84 Phase 3 tests**
+**Grand Total: 150 tests (Phases 1+2+3)**
+
+---
+
 ## Ready for PR!
 
-Once all Phase 1 + Phase 2 tests pass:
+Once all Phase 1 + Phase 2 + Phase 3 tests pass:
 
-1. ✅ Commit Phase 2 changes
-2. ✅ Push to `feature/75-phase-2-statistics-trace`
-3. ✅ Create PR to merge into `feature/74-phase-1-mvp-chat-panel`
-4. ✅ Link to Issue #75
-5. ✅ Request review
-6. ✅ After approval, Phase 1 + Phase 2 merge to `develop`
+1. ✅ All 150 automated tests passing
+2. ✅ Manual E2E tests completed (11 Phase 3 tests)
+3. ✅ Bug fixes validated (3 fixes)
+4. ✅ Security audit passed
+5. ✅ Performance acceptable
+6. ✅ Regression tests passed
+7. ✅ Commit Phase 3 changes
+8. ✅ Push to `feature/76-phase-3-code-intelligence`
+9. ✅ Create PR to merge into `feature/74-phase-1-mvp-chat-panel`
+10. ✅ Link to Issue #76
+11. ✅ Request review
+12. ✅ After approval, all phases merge to `develop`
 
-**🎉 Phase 2 Complete!**
+**🎉 Phase 3 Complete!**
+
+**Total Implementation:**
+- ✅ Phase 1: MVP Chat Panel (15 tests)
+- ✅ Phase 2: Observability & Metrics (51 tests)
+- ✅ Phase 3: Code Intelligence + Bug Fixes (84 tests)
+- ✅ **150/150 tests passing**
