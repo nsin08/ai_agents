@@ -37,6 +37,20 @@ dev = [
     "ruff>=0.1",
 ]
 
+# Plugin entry points - examples for extension
+# External packages can define their own entry points in these groups
+[project.entry-points."agent_labs.tools"]
+# Example: my_tool = "my_package.tools:MyTool"
+
+[project.entry-points."agent_labs.models"]
+# Example: my_provider = "my_package.providers:MyProvider"
+
+[project.entry-points."agent_labs.engines"]
+# Example: my_engine = "my_package.engines:MyEngine"
+
+[project.entry-points."agent_labs.exporters"]
+# Example: my_exporter = "my_package.exporters:MyExporter"
+
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = "-ra -q"
