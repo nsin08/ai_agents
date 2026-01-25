@@ -84,15 +84,17 @@ class AgentLabsService(AgentServiceInterface):
                     }
                 )
             
-            # Create and run agent
+            # Create and run agent with full orchestrator (Observe → Plan → Act → Verify)
             agent = Agent(provider=llm_provider, model=model)
             
-            # Run agent with the message as goal
+            # Run agent - it will reason through the goal and generate response
             result = await agent.run(
                 goal=message,
-                max_turns=config.get("max_turns", 3),
-                inputs=config
+                max_turns=config.get("max_turns", 3)
             )
+            
+            # Agent handles the full reasoning loop internally
+            # Debug mode (Phase 3) will expose the reasoning chain via context
             
             # Calculate metrics
             latency_ms = (time.time() - start_time) * 1000

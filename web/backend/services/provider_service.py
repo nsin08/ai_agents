@@ -3,6 +3,7 @@ from typing import Optional, Dict, List, Any
 import os
 import sys
 import logging
+import httpx
 from pathlib import Path
 
 # Add backend to path
@@ -16,53 +17,128 @@ logger = logging.getLogger(__name__)
 class ProviderService:
     """Service for managing LLM providers."""
     
+    def __init__(self):
+        """Initialize provider service."""
+        self._ollama_base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+    
+    async def _fetch_ollama_models(self) -> List[str]:
+        """Fetch available models from Ollama API.
+        
+        Returns:
+            List of model names from running Ollama instance
+        """
+        try:
+            async with httpx.AsyncClient(timeout=2.0) as client:
+                response = await client.get(f"{self._ollama_base_url}/api/tags")
+                if response.status_code == 200:
+                    data = response.json()
+                    models = data.get("models", [])
+                    # Extract model names (format: "name:tag" or just "name")
+                    model_names = []
+                    for model in models:
+                        name = model.get("name", "")
+                        if name:
+                            # Remove ":latest" suffix for cleaner display
+                            if name.endswith(":latest"):
+                                name = name[:-7]
+                            model_names.append(name)
+                    if model_names:
+                        logger.info(f"Fetched {len(model_names)} models from Ollama: {model_names}")
+                        return model_names
+        except Exception as e:
+            logger.warning(f"Could not fetch Ollama models: {e}")
+        
+        # Fallback to env var or default
+        return self._get_models_from_env("OLLAMA_MODELS", ["llama3.2", "mistral", "codellama", "phi3"])
+    
+    @staticmethod
+    def _get_models_from_env(env_var: str, default: List[str]) -> List[str]:
+        """Get model list from environment variable or use default.
+        
+        Args:
+            env_var: Environment variable name (e.g., "OPENAI_MODELS")
+            default: Default models if env var not set
+            
+        Returns:
+            List of model names
+        """
+        env_value = os.getenv(env_var)
+        if env_value:
+            # Support comma-separated list
+            return [m.strip() for m in env_value.split(",") if m.strip()]
+        return default
+    
     # Provider metadata
     PROVIDER_METADATA: Dict[ProviderEnum, Dict[str, Any]] = {
         ProviderEnum.MOCK: {
             "name": "Mock Provider",
             "requires_api_key": False,
-            "supported_models": ["mock-model", "mock-advanced"],
+            "supported_models": None,  # Will be populated dynamically
             "api_key_env_var": None,
             "status": "available",  # fully implemented
         },
         ProviderEnum.OLLAMA: {
             "name": "Ollama (Local)",
             "requires_api_key": False,
-            "supported_models": ["llama3.2", "mistral", "codellama", "phi3"],
+            "supported_models": None,  # Will be fetched from Ollama API
             "api_key_env_var": None,
             "status": "available",  # fully implemented
         },
         ProviderEnum.OPENAI: {
             "name": "OpenAI",
             "requires_api_key": True,
-            "supported_models": ["gpt-4", "gpt-4-turbo", "gpt-3.5-turbo"],
+            "supported_models": None,  # Will be populated dynamically
             "api_key_env_var": "OPENAI_API_KEY",
             "status": "available",  # fully implemented
         },
         ProviderEnum.ANTHROPIC: {
             "name": "Anthropic Claude",
             "requires_api_key": True,
-            "supported_models": ["claude-3-opus", "claude-3-sonnet", "claude-3-haiku"],
+            "supported_models": None,  # Will be populated dynamically
             "api_key_env_var": "ANTHROPIC_API_KEY",
             "status": "coming_soon",  # TODO: implement AnthropicProvider
         },
         ProviderEnum.GOOGLE: {
             "name": "Google Gemini",
             "requires_api_key": True,
-            "supported_models": ["gemini-pro", "gemini-pro-vision"],
+            "supported_models": None,  # Will be populated dynamically
             "api_key_env_var": "GOOGLE_API_KEY",
             "status": "coming_soon",  # TODO: implement GoogleProvider
         },
         ProviderEnum.AZURE_OPENAI: {
             "name": "Azure OpenAI",
             "requires_api_key": True,
-            "supported_models": ["gpt-4", "gpt-35-turbo"],
+            "supported_models": None,  # Will be populated dynamically
             "api_key_env_var": "AZURE_OPENAI_API_KEY",
             "status": "coming_soon",  # TODO: implement AzureOpenAIProvider
         },
     }
     
-    def list_providers(self, include_models: bool = False) -> list[ProviderInfo]:
+    async def _get_provider_models(self, provider: ProviderEnum) -> List[str]:
+        """Get models for a specific provider dynamically.
+        
+        Args:
+            provider: Provider to get models for
+            
+        Returns:
+            List of model names
+        """
+        if provider == ProviderEnum.OLLAMA:
+            return await self._fetch_ollama_models()
+        elif provider == ProviderEnum.MOCK:
+            return self._get_models_from_env("MOCK_MODELS", ["mock-model", "mock-advanced"])
+        elif provider == ProviderEnum.OPENAI:
+            return self._get_models_from_env("OPENAI_MODELS", ["gpt-4", "gpt-4-turbo", "gpt-3.5-turbo"])
+        elif provider == ProviderEnum.ANTHROPIC:
+            return self._get_models_from_env("ANTHROPIC_MODELS", ["claude-3-opus", "claude-3-sonnet", "claude-3-haiku"])
+        elif provider == ProviderEnum.GOOGLE:
+            return self._get_models_from_env("GOOGLE_MODELS", ["gemini-pro", "gemini-pro-vision"])
+        elif provider == ProviderEnum.AZURE_OPENAI:
+            return self._get_models_from_env("AZURE_OPENAI_MODELS", ["gpt-4", "gpt-35-turbo"])
+        else:
+            return []
+    
+    async def list_providers(self, include_models: bool = False) -> list[ProviderInfo]:
         """Get list of available providers.
         
         Args:
@@ -73,17 +149,21 @@ class ProviderService:
         """
         providers = []
         for provider_id, metadata in self.PROVIDER_METADATA.items():
+            models = []
+            if include_models:
+                models = await self._get_provider_models(provider_id)
+            
             providers.append(ProviderInfo(
                 id=provider_id.value,
                 name=metadata["name"],
                 requires_api_key=metadata["requires_api_key"],
-                supported_models=metadata["supported_models"] if include_models else [],
+                supported_models=models,
                 api_key_env_var=metadata["api_key_env_var"],
                 status=metadata.get("status", "available"),
             ))
         return providers
     
-    def get_provider_info(self, provider: ProviderEnum) -> Optional[ProviderInfo]:
+    async def get_provider_info(self, provider: ProviderEnum) -> Optional[ProviderInfo]:
         """Get information about a specific provider.
         
         Args:
@@ -95,12 +175,14 @@ class ProviderService:
         metadata = self.PROVIDER_METADATA.get(provider)
         if not metadata:
             return None
+        
+        models = await self._get_provider_models(provider)
             
         return ProviderInfo(
             id=provider.value,
             name=metadata["name"],
             requires_api_key=metadata["requires_api_key"],
-            supported_models=metadata["supported_models"],
+            supported_models=models,
             api_key_env_var=metadata["api_key_env_var"],
             status=metadata.get("status", "available"),
         )
@@ -161,7 +243,7 @@ class ProviderService:
         
         # TODO: Implement actual provider-specific validation
         # This would involve making a test API call to the provider
-        provider_info = self.get_provider_info(provider)
+        provider_info = await self.get_provider_info(provider)
         
         return ValidateKeyResponse(
             valid=True,

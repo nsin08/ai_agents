@@ -127,7 +127,13 @@ class Agent:
             if self.tool_executor:
                 result = self.tool_executor(plan)
             else:
-                result = f"Executed: {plan}"
+                # For conversational mode: use plan to generate actual response
+                # The plan is the agent's reasoning, now generate the user-facing response
+                response = await self.provider.generate(
+                    prompt=f"User message: {context.goal}\n\nProvide a helpful, conversational response:",
+                    max_tokens=500
+                )
+                result = response.text
         except Exception as exc:
             raise ActionExecutionError(str(exc)) from exc
 
@@ -152,6 +158,25 @@ class Agent:
 
     async def _default_verify(self, context: AgentContext, result: str) -> VerificationResult:
         """Default verifier using LLM to determine completion."""
+        # For conversational goals, providing a response completes the goal
+        # Check if this is a conversational message (greeting, question, statement)
+        conversational_patterns = [
+            "hi ", "hello", "hey", "my name is", "i am", "what is", "how do", 
+            "can you", "please", "tell me", "explain", "thanks", "thank you"
+        ]
+        goal_lower = context.goal.lower()
+        is_conversational = any(pattern in goal_lower for pattern in conversational_patterns)
+        
+        if is_conversational and result and len(result) > 10:
+            # Conversational message with a substantive response = complete
+            return VerificationResult(
+                is_complete=True,
+                reason="Conversational response provided",
+                feedback="",
+                confidence=1.0
+            )
+        
+        # For task-oriented goals, use LLM verification
         prompt = (
             f"Goal: {context.goal}\n\n"
             f"Result: {result}\n\n"

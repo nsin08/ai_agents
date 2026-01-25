@@ -30,7 +30,7 @@ async def list_providers(include_models: bool = False):
     Returns:
         List of ProviderInfo objects
     """
-    return provider_service.list_providers(include_models=include_models)
+    return await provider_service.list_providers(include_models=include_models)
 
 
 @router.post("/validate", response_model=ValidateKeyResponse)

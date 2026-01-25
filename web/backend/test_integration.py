@@ -21,17 +21,17 @@ async def test_provider_service():
     service = ProviderService()
     
     # Test list_providers
-    providers = service.list_providers(include_models=False)
+    providers = await service.list_providers(include_models=False)
     print(f"✅ list_providers(include_models=False): {len(providers)} providers")
     
-    providers_with_models = service.list_providers(include_models=True)
+    providers_with_models = await service.list_providers(include_models=True)
     print(f"✅ list_providers(include_models=True): {sum(len(p.supported_models) for p in providers_with_models)} total models")
     
     # Test get_provider_info
-    mock_info = service.get_provider_info(ProviderEnum.MOCK)
+    mock_info = await service.get_provider_info(ProviderEnum.MOCK)
     print(f"✅ get_provider_info(MOCK): {mock_info.name}, requires_key={mock_info.requires_api_key}")
     
-    openai_info = service.get_provider_info(ProviderEnum.OPENAI)
+    openai_info = await service.get_provider_info(ProviderEnum.OPENAI)
     print(f"✅ get_provider_info(OPENAI): {openai_info.name}, requires_key={openai_info.requires_api_key}")
     
     # Test validate_api_key
@@ -105,7 +105,7 @@ async def test_all_providers():
     service = ProviderService()
     
     for provider_enum in ProviderEnum:
-        info = service.get_provider_info(provider_enum)
+        info = await service.get_provider_info(provider_enum)
         print(f"✅ {provider_enum.value:15} | {info.name:20} | API Key: {info.requires_api_key} | Models: {len(info.supported_models)}")
 
 

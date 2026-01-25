@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import "./Chat.css";
 import chatService from "../services/chatService";
-import ProviderSelector from "./ProviderSelector";
-import APIKeyInput from "./APIKeyInput";
+import SettingsDrawer from "./SettingsDrawer";
 import type { ProviderType, ProviderInfo } from "../types/providers";
 import providerService from "../services/providerService";
 
@@ -17,7 +16,6 @@ interface Message {
 interface ProviderConfig {
   provider: ProviderType;
   model: string;
-  apiKey?: string;
   maxTurns: number;
   timeout: number;
 }
@@ -28,10 +26,11 @@ const Chat: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string>("");
   const [providers, setProviders] = useState<ProviderInfo[]>([]);
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [isLoadingModels, setIsLoadingModels] = useState(false);
   const [config, setConfig] = useState<ProviderConfig>({
     provider: "mock" as ProviderType,
     model: "mock-model",
-    apiKey: undefined,
     maxTurns: 3,
     timeout: 30,
   });
@@ -44,9 +43,40 @@ const Chat: React.FC = () => {
     loadProviders();
   }, []);
 
+  // Load models when provider changes
+  useEffect(() => {
+    if (config.provider) {
+      (async () => {
+        setIsLoadingModels(true);
+        try {
+          const providerInfo = providers.find((p) => p.id === config.provider);
+          if (providerInfo && providerInfo.supported_models) {
+            setAvailableModels(providerInfo.supported_models);
+            // Set first model as default if current model not in list
+            if (!providerInfo.supported_models.includes(config.model)) {
+              setConfig((prev) => ({
+                ...prev,
+                model: providerInfo.supported_models![0],
+              }));
+            }
+          } else {
+            setAvailableModels([]);
+          }
+        } catch (error) {
+          console.error("Failed to load models:", error);
+          setAvailableModels([]);
+        } finally {
+          setIsLoadingModels(false);
+        }
+      })();
+    }
+  }, [config.provider, providers, config.model]);
+
   const loadProviders = async () => {
     try {
+      console.log("Loading providers...");
       const data = await providerService.listProviders(true);
+      console.log("Providers loaded:", data);
       setProviders(data);
     } catch (error) {
       console.error("Failed to load providers:", error);
@@ -90,12 +120,11 @@ const Chat: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Send to API with provider config
+      // Send to API with provider config (NO API KEY - loaded from backend env)
       const response = await chatService.sendMessage({
         message: messageContent,
         provider: config.provider,
         model: config.model,
-        apiKey: config.apiKey,
         config: {
           max_turns: config.maxTurns,
           timeout: config.timeout,
@@ -135,93 +164,56 @@ const Chat: React.FC = () => {
     initializeSession();
   };
 
-  const handleConfigChange = (
-    key: keyof ProviderConfig,
-    value: string | number
-  ) => {
-    setConfig((prev) => ({
-      ...prev,
-      [key]: typeof prev[key] === "number" ? Number(value) : value,
-    }));
-  };
-
   return (
     <div className="chat-container">
       <div className="chat-header">
-        <h1>Agent Chat</h1>
+        <div className="header-left">
+          <h1>Agent Chat</h1>
+          <div className="provider-badge">
+            {config.provider} {config.model && `→ ${config.model}`}
+          </div>
+        </div>
         <div className="header-actions">
           <button
             className="settings-btn"
-            onClick={() => setShowSettings(!showSettings)}
-            title="Settings"
+            onClick={() => setShowSettings(true)}
+            title="Configuration Settings"
+            aria-label="Open settings"
           >
-            ⚙️
+            ⚙️ Settings
           </button>
           <button
             className="clear-btn"
             onClick={handleClearChat}
             title="Clear chat"
+            aria-label="Clear chat"
           >
             🗑️
           </button>
         </div>
       </div>
 
-      {showSettings && (
-        <div className="settings-panel">
-          <h3>Provider Settings</h3>
-          
-          <ProviderSelector
-            selectedProvider={config.provider}
-            selectedModel={config.model}
-            onProviderChange={(provider, model) => {
-              setConfig((prev) => ({ ...prev, provider, model, apiKey: undefined }));
-            }}
-            disabled={isLoading}
-          />
-
-          {providers.find((p) => p.id === config.provider)?.requires_api_key && (
-            <APIKeyInput
-              provider={config.provider}
-              model={config.model}
-              requiresKey={true}
-              onKeyChange={(apiKey) => {
-                setConfig((prev) => ({ ...prev, apiKey }));
-              }}
-              disabled={isLoading}
-            />
-          )}
-
-          <div className="settings-grid">
-            <div className="setting-item">
-              <label>Max Turns</label>
-              <input
-                type="number"
-                min="1"
-                max="10"
-                value={config.maxTurns}
-                onChange={(e) => handleConfigChange("maxTurns", e.target.value)}
-              />
-            </div>
-            <div className="setting-item">
-              <label>Timeout (s)</label>
-              <input
-                type="number"
-                min="5"
-                max="300"
-                value={config.timeout}
-                onChange={(e) => handleConfigChange("timeout", e.target.value)}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      <SettingsDrawer
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        selectedProvider={config.provider}
+        onProviderChange={(provider) => {
+          setConfig((prev) => ({ ...prev, provider: provider as ProviderType }));
+        }}
+        selectedModel={config.model}
+        onModelChange={(model) => {
+          setConfig((prev) => ({ ...prev, model }));
+        }}
+        availableProviders={providers}
+        availableModels={availableModels}
+        isLoadingModels={isLoadingModels}
+      />
 
       <div className="chat-messages">
         {messages.length === 0 ? (
           <div className="empty-state">
             <h2>Welcome to Agent Chat</h2>
-            <p>Start a conversation with the AI agent</p>
+            <p>Configure your provider using the Settings button →</p>
             {sessionId && (
               <p className="session-id">Session: {sessionId.slice(0, 8)}...</p>
             )}
@@ -267,12 +259,13 @@ const Chat: React.FC = () => {
           placeholder="Type your message..."
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          disabled={isLoading}
+          disabled={isLoading || !config.model}
         />
         <button
           type="submit"
           className="send-btn"
-          disabled={isLoading || !inputValue.trim()}
+          disabled={isLoading || !inputValue.trim() || !config.model}
+          title={!config.model ? "Select a model in settings first" : ""}
         >
           {isLoading ? "Sending..." : "Send"}
         </button>
