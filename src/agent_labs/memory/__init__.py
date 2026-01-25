@@ -12,6 +12,7 @@ from .storage import (
     VectorStoreBackend,
     ChromaVectorStore,
 )
+from .session import SessionStore, InMemorySessionStore, Message
 
 __all__ = [
     "Memory",
@@ -26,4 +27,7 @@ __all__ = [
     "VectorStoreBackend",
     "ChromaVectorStore",
     "sqlite_backend",
+    "SessionStore",
+    "InMemorySessionStore",
+    "Message",
 ]
