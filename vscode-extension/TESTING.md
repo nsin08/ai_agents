@@ -1255,6 +1255,10 @@ Before PR to Phase 1 branch, verify:
 
 ## Phase 3: Code Intelligence Testing (Issue #76)
 
+**Issue Link:** https://github.com/nsin08/ai_agents/issues/76  
+**Branch:** `feature/76-phase-3-code-intelligence`  
+**Acceptance Criteria:** 9 features + 3 bug fixes
+
 **Features Added:**
 - CodeContextService: Extract code with security filtering
 - CodeInsertionService: Parse and apply code suggestions
@@ -1262,7 +1266,483 @@ Before PR to Phase 1 branch, verify:
 - Commands: sendSelection, sendFile, showCodeSuggestions
 - Context menu integration
 - Sensitive data detection (15 patterns)
-- File type blocking
+- File type blocking (11 types)
+
+---
+
+### Quick Validation Checklist (Issue #76)
+
+**Before Review:**
+- [ ] All 150 tests passing (`npm test`)
+- [ ] No TypeScript errors (`npm run compile`)
+- [ ] Branch pushed to remote
+- [ ] 7 commits present (f6207ef → b7551c7)
+
+**Acceptance Criteria Validation:**
+- [ ] AC1: Code extraction with metadata ✅
+- [ ] AC2: 15 sensitive data patterns detected ✅
+- [ ] AC3: 11 file types blocked ✅
+- [ ] AC4: Code insertion service ✅
+- [ ] AC5: Suggestion panel with highlighting ✅
+- [ ] AC6: Commands integrated ✅
+- [ ] AC7: Bug fix - Trace Viewer config ✅
+- [ ] AC8: Bug fix - Statistics labels ✅
+- [ ] AC9: Bug fix - Conversation metadata ✅
+
+**Manual Tests (30 min):**
+- [ ] Test 3.1: Send Selection (security warning)
+- [ ] Test 3.2: Send File
+- [ ] Test 3.3: All 15 sensitive patterns
+- [ ] Test 3.4: All 11 blocked file types
+- [ ] Test 3.5: Code suggestions display
+- [ ] Test 3.6: Multiple suggestions navigation
+- [ ] Test 3.7: Apply code
+- [ ] Test 3.8: Preview diff
+- [ ] Test 3.9: Copy to clipboard
+- [ ] Test 3.10: Size limits
+- [ ] Test 3.11: Error handling
+
+---
+
+### Issue #76 Specific Test Procedures
+
+#### Procedure 1: Validate Bug Fixes (10 min)
+
+**Bug Fix #1: Trace Viewer Model Display**
+
+**Before:** Trace showed historical "top" provider/model  
+**After:** Trace shows current session config
+
+**Test Steps:**
+1. Start conversation with `mock` provider, `llama2` model
+2. Send 2-3 messages
+3. Open Trace Viewer (sidebar icon)
+4. Expand conversation node
+5. **Verify:** Shows "mock" and "llama2" in config
+6. **Verify:** Does NOT show any other provider/model
+
+**Bug Fix #2: Statistics Panel Labels**
+
+**Before:** "Top Provider" / "Top Model"  
+**After:** "Current Provider" / "Current Model"
+
+**Test Steps:**
+1. Send 3-4 messages in conversation
+2. Press `Ctrl+Shift+P` → "Agent: Show Statistics"
+3. Look at provider/model section
+4. **Verify:** Labels say "Current Provider" (not "Top Provider")
+5. **Verify:** Labels say "Current Model" (not "Top Model")
+6. **Verify:** Values match current configuration
+
+**Bug Fix #3: Conversation History Metadata**
+
+**Test Steps:**
+1. Start conversation
+2. Send message: "Hello"
+3. Check chat panel
+4. **Verify:** Provider/model displayed correctly per message
+5. Switch provider via Settings
+6. Send another message
+7. **Verify:** New message shows updated provider/model
+
+**Pass Criteria:** All 3 bug fixes working as expected
+
+---
+
+#### Procedure 2: Security Pattern Detection (15 min)
+
+**Objective:** Validate all 15 sensitive data patterns are detected
+
+**Setup:** Create test file `security_test.ts`
+
+**Test Data:**
+```typescript
+// Test all 15 patterns
+const API_KEY = "abcdefghij1234567890"; // Pattern 1: API Key
+const BEARER = "Authorization: Bearer xyz123abc"; // Pattern 2: Bearer Token
+const PASSWORD = "MySecretPassword123"; // Pattern 3: Password
+const SECRET_KEY = "abcdefghij1234567890"; // Pattern 4: Secret Key
+const PRIVATE_KEY = "xyz123"; // Pattern 5: Private Key
+const ACCESS_TOKEN = "abcdefghij1234567890"; // Pattern 6: Access Token
+const AUTH_TOKEN = "abcdefghij1234567890"; // Pattern 7: Auth Token
+const CLIENT_SECRET = "abcdefghij1234567890"; // Pattern 8: Client Secret
+const CARD = "4532-1234-5678-9010"; // Pattern 9: Credit Card
+const EMAIL = "user@example.com"; // Pattern 10: Email
+const PK_BLOCK = "-----BEGIN PRIVATE KEY-----"; // Pattern 11: Private Key Block
+const JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.abc"; // Pattern 12: JWT
+const GH_TOKEN = "ghp_123456789012345678901234567890123456"; // Pattern 13: GitHub Token
+const OPENAI_KEY = "sk-123456789012345678901234567890123456789012345678"; // Pattern 14: OpenAI Key
+const GOOGLE_KEY = "AIzaSyAbCdEfGhIjKlMnOpQrStUvWxYz12345678"; // Pattern 15: Google Key
+```
+
+**Test Steps (for each pattern):**
+1. Select ONE line at a time
+2. Right-click → "Agent: Send Selection to Agent"
+3. **Verify:** Warning dialog appears
+4. **Verify:** Warning message includes pattern name
+5. Click "No" → **Verify:** Operation cancelled
+6. Repeat with "Yes" → **Verify:** Code sent
+
+**Expected Results:**
+| Pattern # | Name | Detected | Warning Shows |
+|-----------|------|----------|---------------|
+| 1 | API Key | ✅ | ✅ |
+| 2 | Bearer Token | ✅ | ✅ |
+| 3 | Password | ✅ | ✅ |
+| 4 | Secret Key | ✅ | ✅ |
+| 5 | Private Key | ✅ | ✅ |
+| 6 | Access Token | ✅ | ✅ |
+| 7 | Auth Token | ✅ | ✅ |
+| 8 | Client Secret | ✅ | ✅ |
+| 9 | Credit Card | ✅ | ✅ |
+| 10 | Email | ✅ | ✅ |
+| 11 | Private Key Block | ✅ | ✅ |
+| 12 | JWT Token | ✅ | ✅ |
+| 13 | GitHub Token | ✅ | ✅ |
+| 14 | OpenAI API Key | ✅ | ✅ |
+| 15 | Google API Key | ✅ | ✅ |
+
+**Pass Criteria:** All 15 patterns detected with correct warnings
+
+---
+
+#### Procedure 3: File Type Blocking (10 min)
+
+**Objective:** Validate all 11 credential file types are blocked
+
+**Test Steps:**
+
+1. **Test .env file:**
+   - Create `.env` file with: `API_KEY=secret123`
+   - Try "Agent: Send File to Agent"
+   - **Verify:** Error message appears
+   - **Verify:** Message: "Cannot send .env files (may contain sensitive data)"
+   - **Verify:** No code sent to agent
+
+2. **Test .pem file:**
+   - Create `cert.pem` file with any content
+   - Try "Agent: Send File to Agent"
+   - **Verify:** Blocked
+
+3. **Test .key file:**
+   - Create `private.key` file
+   - Try "Agent: Send File to Agent"
+   - **Verify:** Blocked
+
+4. **Quick test remaining types:**
+   - Create files: `.p12`, `.pfx`, `.crt`, `.cert`, `.der`, `.pkcs12`, `.jks`, `.keystore`
+   - **Verify:** All blocked with appropriate error message
+
+**Expected Results:**
+| Extension | Blocked | Error Shown |
+|-----------|---------|-------------|
+| .env | ✅ | ✅ |
+| .pem | ✅ | ✅ |
+| .key | ✅ | ✅ |
+| .p12 | ✅ | ✅ |
+| .pfx | ✅ | ✅ |
+| .crt | ✅ | ✅ |
+| .cert | ✅ | ✅ |
+| .der | ✅ | ✅ |
+| .pkcs12 | ✅ | ✅ |
+| .jks | ✅ | ✅ |
+| .keystore | ✅ | ✅ |
+
+**Pass Criteria:** All 11 file types blocked, no false positives on normal files (.ts, .js, .py)
+
+---
+
+#### Procedure 4: Code Intelligence Workflow (15 min)
+
+**Objective:** Validate complete code intelligence workflow
+
+**Scenario: TypeScript Function Refactoring**
+
+**Setup:**
+```typescript
+// calculator.ts
+function calculate(a, b, op) {
+  if (op === '+') return a + b;
+  if (op === '-') return a - b;
+  if (op === '*') return a * b;
+  if (op === '/') return a / b;
+}
+```
+
+**Step 1: Send to Agent**
+1. Select the function
+2. Right-click → "Agent: Send Selection to Agent"
+3. **Verify:** Chat panel opens
+4. **Verify:** Code formatted with metadata:
+   - File: calculator.ts
+   - Language: typescript
+   - Lines: 1-6
+   - Code in markdown block
+
+**Step 2: Get Suggestion**
+Simulate agent response (paste into chat):
+```markdown
+Here's an improved version with TypeScript types:
+
+```typescript
+function calculate(a: number, b: number, op: string): number {
+  switch (op) {
+    case '+': return a + b;
+    case '-': return a - b;
+    case '*': return a * b;
+    case '/': 
+      if (b === 0) throw new Error('Division by zero');
+      return a / b;
+    default:
+      throw new Error(`Unknown operator: ${op}`);
+  }
+}
+```
+
+This adds type safety and error handling.
+```
+
+**Step 3: View Suggestion**
+1. Press `Ctrl+Shift+P` → "Agent: Show Code Suggestions"
+2. Paste the agent response
+3. **Verify:** Code Suggestion Panel opens
+4. **Verify:** Counter shows "1 of 1"
+5. **Verify:** Explanation shown: "This adds type safety and error handling."
+6. **Verify:** Code displayed with TypeScript syntax highlighting
+7. **Verify:** Metadata shows: Language: typescript
+
+**Step 4: Preview Diff**
+1. Click "👁 Preview Diff" button
+2. **Verify:** Diff editor opens (split view)
+3. **Verify:** Left side shows original (if available)
+4. **Verify:** Right side shows suggested code
+5. **Verify:** Changes highlighted
+6. Close diff view
+
+**Step 5: Copy Code**
+1. Click "📋 Copy Code" button
+2. **Verify:** Success message: "Code copied to clipboard!"
+3. Open new file, paste (Ctrl+V)
+4. **Verify:** Code pastes correctly with formatting
+
+**Step 6: Apply Code**
+1. Return to original file
+2. Place cursor at function location
+3. Click "✓ Apply to Editor" button
+4. **Verify:** Success message: "Code suggestion applied successfully!"
+5. **Verify:** Code inserted at cursor
+6. **Verify:** Formatting preserved
+7. **Verify:** Panel stays open (can apply multiple times)
+
+**Pass Criteria:** Complete workflow works end-to-end without errors
+
+---
+
+#### Procedure 5: Size Limit Enforcement (10 min)
+
+**Test 1: Line Count Limit**
+
+**Setup:**
+```python
+# Generate large file
+with open('large_test.py', 'w') as f:
+    for i in range(11000):
+        f.write(f'# Line {i}\\n')
+```
+
+**Steps:**
+1. Open `large_test.py` (11,000 lines)
+2. Select all (Ctrl+A)
+3. Right-click → "Agent: Send Selection to Agent"
+4. **Verify:** Error appears immediately (no delay/freeze)
+5. **Verify:** Message: "Code too large (11000 lines). Maximum: 10000 lines."
+6. **Verify:** No agent invocation
+7. **Verify:** Chat panel doesn't open
+8. **Verify:** No crash
+
+**Test 2: File Size Limit**
+
+**Setup:**
+```python
+# Generate 600KB file
+with open('huge_test.py', 'w') as f:
+    f.write('x' * 600000)
+```
+
+**Steps:**
+1. Open `huge_test.py`
+2. Right-click → "Agent: Send File to Agent"
+3. **Verify:** Error: "File too large (0.58MB). Maximum: 500KB."
+4. **Verify:** No agent invocation
+
+**Test 3: Boundary Testing**
+
+**Test 3a: Exactly 10,000 lines (should work)**
+```python
+# Generate exactly 10,000 lines
+with open('boundary_test.py', 'w') as f:
+    for i in range(10000):
+        f.write(f'# Line {i}\\n')
+```
+- Select all → Send Selection
+- **Verify:** Succeeds (no error)
+
+**Test 3b: Exactly 500KB (should work)**
+```python
+# Generate exactly 500KB
+with open('boundary_size.py', 'w') as f:
+    f.write('x' * 500000)
+```
+- Send File
+- **Verify:** Succeeds (no error)
+
+**Pass Criteria:** 
+- Over limits: Error shown, no processing
+- At limits: Succeeds
+- No performance issues
+
+---
+
+#### Procedure 6: Error Handling Validation (10 min)
+
+**Test 1: No Active Editor**
+1. Close all editor tabs
+2. Press `Ctrl+Shift+P`
+3. Run: "Agent: Send Selection to Agent"
+4. **Verify:** Warning: "No active editor. Please open a file and select code."
+5. **Verify:** No crash
+6. **Verify:** Command exits gracefully
+
+**Test 2: Empty Selection**
+1. Open any file
+2. Click to place cursor (no selection)
+3. Right-click → "Agent: Send Selection to Agent"
+4. **Verify:** Warning: "No code selected. Please select code and try again."
+5. **Verify:** No crash
+
+**Test 3: No Code Blocks in Response**
+1. Press `Ctrl+Shift+P` → "Agent: Show Code Suggestions"
+2. Enter text: "This is just plain text without code blocks"
+3. **Verify:** Info message: "No code suggestions found in the response."
+4. **Verify:** Panel shows empty state
+5. **Verify:** Icon and message displayed
+6. **Verify:** Hint: "Ask the agent to provide code suggestions using markdown code blocks"
+
+**Test 4: Invalid File Path**
+1. Create file, get path
+2. Delete file
+3. Try to send (if possible to trigger)
+4. **Verify:** Graceful error handling
+
+**Test 5: Network Error (if applicable)**
+1. Configure non-mock provider (if network available)
+2. Disconnect network
+3. Send message
+4. **Verify:** Error displayed in chat
+5. **Verify:** No crash
+6. **Verify:** Can retry
+
+**Pass Criteria:** All error cases handled gracefully with user-friendly messages
+
+---
+
+#### Procedure 7: Context Menu Integration (5 min)
+
+**Test 1: Selection Context**
+1. Open any code file
+2. Select 2-3 lines of code
+3. Right-click
+4. **Verify:** Context menu shows "Agent: Send Selection to Agent"
+5. **Verify:** Command has sparkle icon ✨
+6. Click command
+7. **Verify:** Works as expected
+
+**Test 2: File Context**
+1. Open any code file (no selection)
+2. Right-click anywhere
+3. **Verify:** Context menu shows "Agent: Send File to Agent"
+4. **Verify:** Command has file icon
+5. Click command
+6. **Verify:** Sends entire file
+
+**Test 3: Context Menu Visibility**
+1. Close all editors
+2. Right-click in explorer
+3. **Verify:** Agent commands NOT shown (only for editor)
+4. Open editor
+5. Right-click
+6. **Verify:** Commands now visible
+
+**Pass Criteria:** Context menus work correctly with proper visibility conditions
+
+---
+
+### Issue #76 Regression Tests
+
+**After completing Issue #76, verify Phase 1 & 2 still work:**
+
+#### Phase 1 Regression (5 min)
+- [ ] Chat panel opens without errors
+- [ ] Can send messages and receive responses
+- [ ] Session reset works
+- [ ] Configuration changes apply
+- [ ] Panel lifecycle (close/reopen) works
+
+#### Phase 2 Regression (5 min)
+- [ ] Statistics panel displays metrics
+- [ ] Trace viewer shows conversations
+- [ ] Export functions work (CSV/JSON)
+- [ ] Auto-refresh toggles correctly
+- [ ] All bug fixes still applied
+
+**Pass Criteria:** No Phase 1 or Phase 2 functionality broken
+
+---
+
+### Issue #76 Sign-Off Checklist
+
+**Code Quality:**
+- [ ] All 150 tests passing
+- [ ] No TypeScript compilation errors
+- [ ] No linting errors
+- [ ] Code follows project conventions
+
+**Functionality:**
+- [ ] All 9 acceptance criteria met
+- [ ] All 3 bug fixes validated
+- [ ] All 15 security patterns detected
+- [ ] All 11 file types blocked
+- [ ] All commands working
+- [ ] Context menus functional
+
+**Testing:**
+- [ ] All automated tests pass
+- [ ] All manual E2E tests completed
+- [ ] All error handling scenarios tested
+- [ ] Regression tests passed
+- [ ] Performance acceptable (<2s operations)
+
+**Documentation:**
+- [ ] TESTING.md updated with Issue #76 procedures
+- [ ] README.md updated with Phase 3 features
+- [ ] Code comments present
+- [ ] Commit messages clear
+
+**Ready for PR:**
+- [ ] All commits pushed to remote
+- [ ] Branch: feature/76-phase-3-code-intelligence
+- [ ] Target: feature/74-phase-1-mvp-chat-panel
+- [ ] Issue #76 will be linked in PR description
+
+**Reviewer Actions:**
+- [ ] Code review completed
+- [ ] Manual testing performed
+- [ ] Security audit passed
+- [ ] Performance acceptable
+- [ ] Documentation reviewed
+- [ ] Approved for merge
+
+---
 
 ### Phase 3 Automated Tests (84 tests)
 
