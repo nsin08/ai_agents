@@ -196,6 +196,7 @@ class InMemorySessionStore(SessionStore):
         """Get approximate token count for current context.
 
         Uses a simple heuristic: ~4 characters per token (typical for English text).
+        This is an optimistic estimate that may undercount actual tokens.
 
         Returns:
             Approximate number of tokens
@@ -203,5 +204,5 @@ class InMemorySessionStore(SessionStore):
         with self._lock:
             total_chars = sum(len(msg.content) for msg in self._messages)
 
-        # Approximate: 4 characters per token (conservative estimate)
+        # Approximate: 4 characters per token (optimistic estimate)
         return total_chars // 4

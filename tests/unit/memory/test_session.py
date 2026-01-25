@@ -212,11 +212,11 @@ def test_get_token_count():
     assert store.get_token_count() == 0
 
     # Add messages
-    store.add_message("user", "This is a test message")  # ~23 chars = ~5 tokens
-    store.add_message("assistant", "This is a response")  # ~18 chars = ~4 tokens
+    store.add_message("user", "This is a test message")  # 22 chars
+    store.add_message("assistant", "This is a response")  # 18 chars
 
     token_count = store.get_token_count()
-    # Total: ~41 chars = ~10 tokens (41 // 4 = 10)
+    # Total: 40 chars = 10 tokens (40 // 4 = 10)
     assert token_count == 10
 
 
