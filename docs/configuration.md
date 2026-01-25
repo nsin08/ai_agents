@@ -1,10 +1,53 @@
-# Configuration Quick Reference
+# Configuration System
 
 ## Overview
 
-All LLM provider configuration is centralized in `src/agent_labs/config.py`. Configuration is loaded from environment variables following 12-factor app principles.
+The AI Agents configuration system provides flexible, secure, and validated configuration management through multiple sources with clear precedence rules.
+
+**Features:**
+- **Multiple sources**: Explicit params, environment variables, YAML files, and defaults
+- **Precedence-based**: Explicit > Env > File > Default
+- **Pydantic v2 validation**: Type-safe with clear error messages
+- **JSON Schema export**: Automatic schema generation for documentation/validation
+- **Security-first**: API keys from environment only, never in files
+- **Config sections**: app, models, tools, memory, engine, observability
+
+**Configuration modules:**
+- `src/agent_labs/config_v2.py` - Enhanced config system (recommended for new code)
+- `src/agent_labs/config.py` - Legacy config (backward compatible)
 
 ## Quick Start
+
+### Method 1: Using YAML Configuration Files (Recommended)
+
+1. **Choose a configuration file:**
+   ```bash
+   # For local development with Ollama
+   export CONFIG_FILE=config/local.yaml
+   
+   # For staging with OpenAI GPT-3.5
+   export CONFIG_FILE=config/staging.yaml
+   
+   # For production with OpenAI GPT-4
+   export CONFIG_FILE=config/production.yaml
+   ```
+
+2. **Set required secrets (for cloud providers):**
+   ```bash
+   # Only for OpenAI configurations
+   export OPENAI_API_KEY=sk-proj-xxxxx
+   ```
+
+3. **Load and use configuration:**
+   ```python
+   from agent_labs.config_v2 import load_config
+   
+   config = load_config("config/local.yaml")
+   print(f"Provider: {config.models.provider}")
+   print(f"Model: {config.models.model}")
+   ```
+
+### Method 2: Using Environment Variables
 
 1. **Copy the example file:**
    ```bash
@@ -28,6 +71,17 @@ All LLM provider configuration is centralized in `src/agent_labs/config.py`. Con
    python scripts/interactive_agent.py
    ```
 
+### Method 3: Explicit Configuration (Testing)
+
+```python
+from agent_labs.config_v2 import AgentConfig
+
+config = AgentConfig(
+    models={"provider": "mock", "model": "test-model"},
+    engine={"max_turns": 5}
+)
+```
+
 ## Supported Providers
 
 | Provider | Value | Requires API Key | Base URL |
@@ -38,6 +92,221 @@ All LLM provider configuration is centralized in `src/agent_labs/config.py`. Con
 | Anthropic (Claude) | `anthropic` | Yes | https://api.anthropic.com/v1 |
 | Google (Gemini) | `google` | Yes | https://generativelanguage.googleapis.com/v1 |
 | Azure OpenAI | `azure-openai` | Yes | Custom |
+
+## Configuration Precedence
+
+The configuration system uses a clear precedence order when loading settings from multiple sources:
+
+**Precedence Order: Explicit > Environment > YAML File > Defaults**
+
+### Example: Understanding Precedence
+
+```python
+# config/staging.yaml contains:
+# models:
+#   provider: openai
+#   model: gpt-3.5-turbo
+#   timeout: 30
+
+# Environment has:
+# LLM_MODEL=gpt-4
+# AGENT_MAX_TURNS=20
+
+# Explicit override:
+config = load_config(
+    "config/staging.yaml",
+    models={"timeout": 60}
+)
+
+# Result:
+# - models.provider: "openai" (from YAML)
+# - models.model: "gpt-4" (from ENV, overrides YAML)
+# - models.timeout: 60 (from Explicit, overrides YAML)
+# - engine.max_turns: 20 (from ENV, overrides YAML defaults)
+```
+
+### Why Precedence Matters
+
+1. **Explicit parameters** - Unit tests and specific use cases
+2. **Environment variables** - Deployment-specific secrets and overrides
+3. **YAML files** - Environment profiles (local, staging, production)
+4. **Defaults** - Sensible defaults for all settings
+
+## Configuration Sections
+
+Configuration is organized into six logical sections:
+
+### 1. App Section (`app`)
+
+Application-level settings.
+
+**Fields:**
+- `name` (str): Application name (default: "ai_agent")
+- `mode` (enum): Execution mode - development, staging, production, test
+- `debug` (bool): Enable debug logging
+- `log_level` (str): Logging level (DEBUG, INFO, WARNING, ERROR)
+
+**Example:**
+```python
+config = AgentConfig(app={
+    "name": "my_agent",
+    "mode": "production",
+    "debug": False,
+    "log_level": "WARNING"
+})
+```
+
+**Environment Variables:**
+```bash
+APP_NAME=my_agent
+APP_MODE=production
+APP_DEBUG=false
+LOG_LEVEL=WARNING
+```
+
+### 2. Models Section (`models`)
+
+LLM provider and model configuration.
+
+**Fields:**
+- `provider` (enum): LLM provider (mock, ollama, openai, anthropic, google, azure-openai)
+- `model` (str): Model name/identifier (required for non-mock providers)
+- `base_url` (str): API base URL (auto-set for standard providers)
+- `timeout` (int): Request timeout in seconds (1-600, default: 60)
+- `temperature` (float): Generation temperature (0.0-2.0, default: 0.7)
+- `max_tokens` (int): Maximum tokens to generate (optional)
+
+**Example:**
+```python
+config = AgentConfig(models={
+    "provider": "openai",
+    "model": "gpt-4",
+    "timeout": 30,
+    "temperature": 0.7,
+    "max_tokens": 4096
+})
+```
+
+**Environment Variables:**
+```bash
+LLM_PROVIDER=openai  # or MODEL_PROVIDER
+LLM_MODEL=gpt-4
+LLM_BASE_URL=https://api.openai.com/v1
+LLM_TIMEOUT=30
+LLM_TEMPERATURE=0.7
+LLM_MAX_TOKENS=4096
+
+# Provider-specific (overrides LLM_MODEL):
+OPENAI_MODEL=gpt-4
+ANTHROPIC_MODEL=claude-3-opus
+OLLAMA_MODEL=llama2
+```
+
+### 3. Tools Section (`tools`)
+
+Tool execution configuration.
+
+**Fields:**
+- `timeout` (int): Tool execution timeout in seconds (1-300, default: 30)
+- `temperature` (float): Temperature for tool-related LLM calls (0.0-2.0, default: 0.3)
+- `max_length` (int): Maximum tool output length in characters (default: 500)
+- `allowlist` (list): Optional list of allowed tool names
+
+**Example:**
+```python
+config = AgentConfig(tools={
+    "timeout": 45,
+    "temperature": 0.2,
+    "max_length": 1000,
+    "allowlist": ["calculator", "web_search"]
+})
+```
+
+**Environment Variables:**
+```bash
+TOOL_TIMEOUT=45
+TOOL_TEMPERATURE=0.2
+TOOL_MAX_LENGTH=1000
+TOOL_ALLOWLIST=calculator,web_search,file_read
+```
+
+### 4. Memory Section (`memory`)
+
+Memory and context management configuration.
+
+**Fields:**
+- `short_term_size` (int): Number of conversation turns to keep (default: 10)
+- `long_term_enabled` (bool): Enable long-term/RAG memory (default: false)
+- `context_window` (int): Context window size in tokens (default: 4096)
+
+**Example:**
+```python
+config = AgentConfig(memory={
+    "short_term_size": 20,
+    "long_term_enabled": True,
+    "context_window": 8192
+})
+```
+
+**Environment Variables:**
+```bash
+MEMORY_SHORT_TERM_SIZE=20
+MEMORY_LONG_TERM_ENABLED=true
+MEMORY_CONTEXT_WINDOW=8192
+```
+
+### 5. Engine Section (`engine`)
+
+Agent orchestration engine configuration.
+
+**Fields:**
+- `max_turns` (int): Maximum reasoning turns before stopping (1-100, default: 10)
+- `timeout` (int): Agent execution timeout in seconds (1-3600, default: 300)
+- `enable_reflection` (bool): Enable reflection step (default: true)
+
+**Example:**
+```python
+config = AgentConfig(engine={
+    "max_turns": 20,
+    "timeout": 600,
+    "enable_reflection": True
+})
+```
+
+**Environment Variables:**
+```bash
+AGENT_MAX_TURNS=20
+AGENT_TIMEOUT=600
+AGENT_ENABLE_REFLECTION=true
+```
+
+### 6. Observability Section (`observability`)
+
+Monitoring, tracing, and logging configuration.
+
+**Fields:**
+- `enable_tracing` (bool): Enable distributed tracing (default: false)
+- `enable_metrics` (bool): Enable metrics collection (default: false)
+- `log_prompts` (bool): Log LLM prompts (default: false)
+- `log_responses` (bool): Log LLM responses (default: false)
+
+**Example:**
+```python
+config = AgentConfig(observability={
+    "enable_tracing": True,
+    "enable_metrics": True,
+    "log_prompts": False,
+    "log_responses": False
+})
+```
+
+**Environment Variables:**
+```bash
+OBSERVABILITY_ENABLE_TRACING=true
+OBSERVABILITY_ENABLE_METRICS=true
+OBSERVABILITY_LOG_PROMPTS=false
+OBSERVABILITY_LOG_RESPONSES=false
+```
 
 ## Environment Variables
 
@@ -135,6 +404,190 @@ from labs.hello_agent import main
 
 # Automatically uses LLM_PROVIDER and provider-specific settings
 asyncio.run(main())
+```
+
+## YAML Configuration Files
+
+YAML files provide environment-specific profiles for easy deployment.
+
+### Local Development (config/local.yaml)
+
+```yaml
+# Optimized for local development with Ollama
+app:
+  name: ai_agent_local
+  mode: development
+  debug: true
+  log_level: DEBUG
+
+models:
+  provider: ollama
+  model: llama2
+  base_url: http://localhost:11434
+  timeout: 60
+  temperature: 0.7
+
+tools:
+  timeout: 30
+  temperature: 0.3
+  max_length: 500
+
+memory:
+  short_term_size: 10
+  long_term_enabled: false
+  context_window: 4096
+
+engine:
+  max_turns: 10
+  timeout: 300
+  enable_reflection: true
+
+observability:
+  enable_tracing: true
+  enable_metrics: false
+  log_prompts: true
+  log_responses: true
+```
+
+### Staging Environment (config/staging.yaml)
+
+```yaml
+# Uses OpenAI GPT-3.5-turbo for cost-effective testing
+app:
+  name: ai_agent_staging
+  mode: staging
+  debug: false
+  log_level: INFO
+
+models:
+  provider: openai
+  model: gpt-3.5-turbo
+  timeout: 30
+  temperature: 0.7
+  max_tokens: 2048
+
+tools:
+  timeout: 30
+
+memory:
+  short_term_size: 15
+  long_term_enabled: true
+
+engine:
+  max_turns: 15
+
+observability:
+  enable_tracing: true
+  enable_metrics: true
+
+# Note: Set OPENAI_API_KEY environment variable
+# Never store API keys in configuration files!
+```
+
+### Production Environment (config/production.yaml)
+
+```yaml
+# Uses OpenAI GPT-4 for maximum capability
+app:
+  name: ai_agent_production
+  mode: production
+  debug: false
+  log_level: WARNING
+
+models:
+  provider: openai
+  model: gpt-4
+  timeout: 60
+  temperature: 0.7
+  max_tokens: 4096
+
+tools:
+  timeout: 60
+  temperature: 0.2
+  max_length: 1000
+
+memory:
+  short_term_size: 20
+  long_term_enabled: true
+  context_window: 8192
+
+engine:
+  max_turns: 20
+  timeout: 600
+
+observability:
+  enable_tracing: true
+  enable_metrics: true
+```
+
+### Loading YAML Configurations
+
+```python
+from agent_labs.config_v2 import load_config
+
+# Load specific environment config
+config = load_config("config/local.yaml")
+
+# Load with environment variable overrides
+# (OPENAI_API_KEY from env overrides anything in file)
+config = load_config("config/staging.yaml")
+
+# Load with explicit overrides for testing
+config = load_config(
+    "config/production.yaml",
+    models={"model": "gpt-4-turbo"},  # Override model
+    engine={"max_turns": 30}          # Override max_turns
+)
+```
+
+## JSON Schema Export
+
+Generate JSON Schema for validation, documentation, or IDE autocomplete.
+
+```python
+from agent_labs.config_v2 import AgentConfig
+
+# Export complete schema
+schema = AgentConfig().to_json_schema()
+
+# Save to file for documentation
+import json
+with open("config-schema.json", "w") as f:
+    json.dump(schema, f, indent=2)
+
+# Use in validation tools
+# - IDE autocomplete
+# - Pre-commit hooks
+# - API documentation
+# - Config file validation
+```
+
+### Example Schema Output
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "app": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string", "default": "ai_agent"},
+        "mode": {"enum": ["development", "staging", "production", "test"]},
+        "debug": {"type": "boolean"},
+        "log_level": {"type": "string"}
+      }
+    },
+    "models": {
+      "type": "object",
+      "properties": {
+        "provider": {"enum": ["mock", "ollama", "openai", "anthropic", "google", "azure-openai"]},
+        "model": {"type": "string"},
+        "timeout": {"type": "integer", "minimum": 1, "maximum": 600}
+      },
+      "required": ["provider"]
+    }
+  }
+}
 ```
 
 ## Common Scenarios
