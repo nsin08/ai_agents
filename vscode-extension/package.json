@@ -58,6 +58,21 @@
         "command": "ai-agent.clearTraces",
         "title": "Clear All Traces",
         "icon": "$(trash)"
+      },
+      {
+        "command": "ai-agent.sendSelection",
+        "title": "Agent: Send Selection to Agent",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "ai-agent.sendFile",
+        "title": "Agent: Send File to Agent",
+        "icon": "$(file-code)"
+      },
+      {
+        "command": "ai-agent.showCodeSuggestions",
+        "title": "Agent: Show Code Suggestions",
+        "icon": "$(lightbulb)"
       }
     ],
     "configuration": {
@@ -134,6 +149,31 @@
         {
           "command": "ai-agent.clearTraces",
           "when": "view == ai-agent.traceViewer"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "ai-agent.sendSelection",
+          "when": "editorHasSelection",
+          "group": "aiAgent@1"
+        },
+        {
+          "command": "ai-agent.sendFile",
+          "when": "editorTextFocus",
+          "group": "aiAgent@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "ai-agent.sendSelection",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "ai-agent.sendFile",
+          "when": "editorIsOpen"
+        },
+        {
+          "command": "ai-agent.showCodeSuggestions"
         }
       ]
     }

@@ -173,6 +173,13 @@ export class ChatPanel {
   }
 
   /**
+   * Public method to send a message (used by external commands)
+   */
+  public async sendMessage(message: string): Promise<void> {
+    await this.handleSendMessage(message);
+  }
+
+  /**
    * Handle get config command
    */
   private handleGetConfig(): void {
