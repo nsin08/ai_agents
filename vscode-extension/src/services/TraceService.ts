@@ -280,4 +280,15 @@ export class TraceService {
     
     await this.context.globalState.update(TraceService.STORAGE_KEY, updated);
   }
+
+  /**
+   * Update provider and model for active trace (for mid-session config changes)
+   */
+  public updateTraceConfig(conversationId: string, provider: string, model: string): void {
+    const trace = this.activeTraces.get(conversationId);
+    if (trace) {
+      trace.provider = provider;
+      trace.model = model;
+    }
+  }
 }

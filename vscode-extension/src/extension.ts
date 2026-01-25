@@ -30,7 +30,7 @@ export function activate(context: vscode.ExtensionContext) {
   agentService = new AgentService(configService, metricsService, traceService);
 
   // Initialize UI panels
-  statisticsPanel = new StatisticsPanel(context.extensionUri, metricsService, exportService);
+  statisticsPanel = new StatisticsPanel(context.extensionUri, metricsService, exportService, configService);
   traceViewerPanel = new TraceViewerPanel(context, traceService, exportService);
 
   // Register command: Start Conversation

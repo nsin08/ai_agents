@@ -89,6 +89,15 @@ export class AgentService {
     }
 
     const config = this.configService.getConfig();
+    
+    // Update session config to reflect current provider/model
+    this.currentSession!.config = config;
+    
+    // Update trace config to reflect current provider/model (handles mid-session switches)
+    if (this.traceService) {
+      this.traceService.updateTraceConfig(this.sessionId, config.provider, config.model);
+    }
+    
     this.currentTurn++;
     const turnStartTime = Date.now();
 
@@ -107,6 +116,7 @@ export class AgentService {
       // Trace: Plan state (simulated - would come from actual orchestrator)
       const planStartTime = Date.now();
       this.recordTrace('Plan', userMessage, 'Planning response strategy', planStartTime);
+
 
       // Trace: Act state (call backend)
       const actStartTime = Date.now();

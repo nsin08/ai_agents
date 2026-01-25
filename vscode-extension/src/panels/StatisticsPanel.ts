@@ -6,6 +6,7 @@
 import * as vscode from 'vscode';
 import { MetricsService } from '../services/MetricsService';
 import { ExportService } from '../services/ExportService';
+import { ConfigService } from '../services/ConfigService';
 import { ConversationMetrics, StatisticsSummary } from '../models/Statistics';
 
 export class StatisticsPanel {
@@ -13,17 +14,20 @@ export class StatisticsPanel {
   private panel: vscode.WebviewPanel | undefined;
   private metricsService: MetricsService;
   private exportService: ExportService;
+  private configService: ConfigService;
   private extensionUri: vscode.Uri;
   private updateInterval: NodeJS.Timeout | undefined;
 
   constructor(
     extensionUri: vscode.Uri,
     metricsService: MetricsService,
-    exportService: ExportService
+    exportService: ExportService,
+    configService: ConfigService
   ) {
     this.extensionUri = extensionUri;
     this.metricsService = metricsService;
     this.exportService = exportService;
+    this.configService = configService;
   }
 
   /**
@@ -95,11 +99,13 @@ export class StatisticsPanel {
 
     const summary = this.metricsService.getSummary();
     const allMetrics = this.metricsService.getAllMetrics();
+    const currentConfig = this.configService.getConfig();
 
     this.panel.webview.postMessage({
       type: 'updateData',
       summary,
-      metrics: allMetrics
+      metrics: allMetrics,
+      currentConfig
     });
   }
 
@@ -340,12 +346,12 @@ export class StatisticsPanel {
     window.addEventListener('message', event => {
       const message = event.data;
       if (message.type === 'updateData') {
-        updateSummary(message.summary);
+        updateSummary(message.summary, message.currentConfig);
         updateMetricsTable(message.metrics);
       }
     });
 
-    function updateSummary(summary) {
+    function updateSummary(summary, currentConfig) {
       const grid = document.getElementById('summaryGrid');
       grid.innerHTML = \`
         <div class="metric-card">
@@ -369,12 +375,12 @@ export class StatisticsPanel {
           <div class="metric-value">\${summary.averageResponseTime.toFixed(0)}<span class="metric-unit">ms</span></div>
         </div>
         <div class="metric-card">
-          <div class="metric-label">Top Provider</div>
-          <div class="metric-value" style="font-size: 18px;">\${summary.topProvider}</div>
+          <div class="metric-label">Current Provider</div>
+          <div class="metric-value" style="font-size: 18px;">\${currentConfig.provider}</div>
         </div>
         <div class="metric-card">
-          <div class="metric-label">Top Model</div>
-          <div class="metric-value" style="font-size: 16px;">\${summary.topModel}</div>
+          <div class="metric-label">Current Model</div>
+          <div class="metric-value" style="font-size: 16px;">\${currentConfig.model}</div>
         </div>
       \`;
     }
