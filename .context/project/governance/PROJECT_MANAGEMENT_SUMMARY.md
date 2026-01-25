@@ -10,9 +10,9 @@
 ## ✅ Completed Setup
 
 ### 1. Branch Strategy
-- **Current Branch**: `release/0.1.0` (active)
-- **Base Branch**: All feature branches merge to `develop`
-- **Release Branch**: `develop` merges to `main` when ready
+- **Current Branch**: `release/0.1.0` (active Phase 1 MVP branch)
+- **Base Branch**: All feature branches merge to `release/0.1.0` (NOT develop)
+- **Release Branch**: `release/0.1.0` merges to `main` when Phase 1 complete
 - **Feature Branch Naming**: `feature/{story-#}/{descriptor}`
 
 ### 2. Kanban Board Automation ✅
