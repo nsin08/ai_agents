@@ -478,7 +478,7 @@ class PluginManager:
 
 ## Related Documentation
 
-- [Configuration Guide](configuration.md)
-- [Tool Development](../src/agent_labs/tools/README.md)
-- [Provider Development](../src/agent_labs/llm_providers/)
-- [API Reference](../docs/)
+- [Configuration Guide](configuration.md) - Configuration system documentation
+- [Registry Module](../src/agent_labs/registry/README.md) - Plugin registry API reference
+- [Tool System](../src/agent_labs/tools/) - Tool development
+- [LLM Providers](../src/agent_labs/llm_providers/) - Provider development

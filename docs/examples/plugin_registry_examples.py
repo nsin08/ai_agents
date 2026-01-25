@@ -3,8 +3,11 @@ Example: Integrating Plugin Registry with existing ToolRegistry.
 
 This example demonstrates how to extend the existing ToolRegistry
 with plugin capabilities for dynamic tool discovery.
+
+Note: This example is standalone and can be run directly.
 """
 
+from typing import List
 from agent_labs.registry import Registry, discover_plugins
 from agent_labs.tools import ToolRegistry as ExistingToolRegistry, Tool
 
@@ -80,7 +83,7 @@ class PluginableToolRegistry(Registry):
         # Fall back to traditional registry
         return self._traditional_tools.get(name)
 
-    def list_all_tools(self) -> list[str]:
+    def list_all_tools(self) -> List[str]:
         """
         List all available tools (plugins + traditional).
 

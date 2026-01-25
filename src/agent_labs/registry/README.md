@@ -9,7 +9,7 @@ A generic, extensible plugin system for AI Agents with entry point discovery and
 - **Lazy Loading**: Plugins loaded on first access for optimal performance
 - **Lifecycle Management**: Load, reload, and unload plugins at runtime
 - **Metadata Tracking**: Version, dependencies, author, and tags for each plugin
-- **Python 3.11+**: Modern type hints and async support
+- **Python 3.9+**: Compatible with Python 3.9+ (includes fallback for older entry_points API)
 
 ## Quick Start
 
