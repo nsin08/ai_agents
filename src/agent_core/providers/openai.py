@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import json
 import os
 import time
 from typing import Any, Mapping, Sequence
 
 import httpx
 
-from ..model import ModelMessage, ModelResponse, ModelUsage, normalize_messages
+from ..model import ModelMessage, ModelResponse, ModelUsage, ToolCall, normalize_messages
 
 
 class OpenAIProvider:
@@ -41,7 +42,7 @@ class OpenAIProvider:
         messages: Sequence[ModelMessage] | Sequence[Mapping[str, Any]],
         role: str,
     ) -> ModelResponse:
-        api_key = self.api_key or os.getenv(self.api_key_env, "")
+        api_key = self.api_key if self.api_key is not None else os.getenv(self.api_key_env, "")
         if not api_key:
             raise ValueError(f"Missing API key. Set {self.api_key_env}.")
 
@@ -71,9 +72,31 @@ class OpenAIProvider:
             latency_s=time.perf_counter() - start,
         )
 
+        tool_calls_data = message.get("tool_calls") or []
+        tool_calls: list[ToolCall] = []
+        for call in tool_calls_data:
+            function = call.get("function") or {}
+            arguments = function.get("arguments")
+            parsed_args: Any = {}
+            if isinstance(arguments, str) and arguments.strip():
+                try:
+                    parsed_args = json.loads(arguments)
+                except json.JSONDecodeError:
+                    parsed_args = {"raw": arguments}
+            elif isinstance(arguments, Mapping):
+                parsed_args = dict(arguments)
+            tool_calls.append(
+                ToolCall(
+                    name=function.get("name") or "",
+                    arguments=parsed_args if isinstance(parsed_args, Mapping) else {"value": parsed_args},
+                    call_id=call.get("id"),
+                )
+            )
+
         return ModelResponse(
             text=message.get("content") or "",
             role=message.get("role") or "assistant",
+            tool_calls=tool_calls or None,
             usage=usage,
         )
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 
+from agent_core.config.models import ModelSpec
 from agent_core.factories import ModelFactory
 from agent_core.registry import get_global_registry
 
@@ -18,6 +19,17 @@ def test_model_factory_build_role_map_builds_providers() -> None:
     providers = factory.build_role_map(roles)
 
     assert set(providers.keys()) == {"actor", "planner"}
+    assert providers["actor"].__class__.__name__ == "MockProvider"
+
+
+def test_model_factory_build_role_map_accepts_model_spec() -> None:
+    factory = ModelFactory(get_global_registry().model_providers)
+    roles = {
+        "actor": ModelSpec(provider="mock", model="deterministic"),
+    }
+
+    providers = factory.build_role_map(roles)
+
     assert providers["actor"].__class__.__name__ == "MockProvider"
 
 

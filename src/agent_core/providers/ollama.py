@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import json
 import time
 from typing import Any, Mapping, Sequence
 
 import httpx
 
-from ..model import ModelMessage, ModelResponse, ModelUsage, normalize_messages
+from ..model import ModelMessage, ModelResponse, ModelUsage, ToolCall, normalize_messages
 
 
 class OllamaProvider:
@@ -49,6 +50,7 @@ class OllamaProvider:
 
         data = response.json()
         message = data.get("message") or {}
+        tool_calls_data = message.get("tool_calls") or data.get("tool_calls") or []
         prompt_tokens = data.get("prompt_eval_count")
         completion_tokens = data.get("eval_count")
         total_tokens = None
@@ -62,9 +64,30 @@ class OllamaProvider:
             latency_s=time.perf_counter() - start,
         )
 
+        tool_calls: list[ToolCall] = []
+        for call in tool_calls_data:
+            function = call.get("function") or {}
+            arguments = function.get("arguments")
+            parsed_args: Any = {}
+            if isinstance(arguments, str) and arguments.strip():
+                try:
+                    parsed_args = json.loads(arguments)
+                except json.JSONDecodeError:
+                    parsed_args = {"raw": arguments}
+            elif isinstance(arguments, Mapping):
+                parsed_args = dict(arguments)
+            tool_calls.append(
+                ToolCall(
+                    name=function.get("name") or "",
+                    arguments=parsed_args if isinstance(parsed_args, Mapping) else {"value": parsed_args},
+                    call_id=call.get("id"),
+                )
+            )
+
         return ModelResponse(
             text=message.get("content") or "",
             role=message.get("role") or "assistant",
+            tool_calls=tool_calls or None,
             usage=usage,
         )
 

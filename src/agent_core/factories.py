@@ -40,12 +40,17 @@ class ModelFactory:
     def build_role_map(self, roles: Mapping[str, Any]) -> dict[str, Any]:
         providers: dict[str, Any] = {}
         for role, spec in roles.items():
-            if not isinstance(spec, Mapping):
+            spec_dict: Mapping[str, Any] | None = None
+            if isinstance(spec, Mapping):
+                spec_dict = spec
+            elif hasattr(spec, "model_dump"):
+                spec_dict = spec.model_dump()
+            if spec_dict is None:
                 raise ValueError(f"Model spec for role '{role}' must be a mapping.")
-            provider_key = str(spec.get("provider", "")).strip()
+            provider_key = str(spec_dict.get("provider", "")).strip()
             if not provider_key:
                 raise ValueError(f"Model spec for role '{role}' missing provider key.")
-            config = dict(spec)
+            config = dict(spec_dict)
             config.pop("provider", None)
             providers[role] = self.build(provider_key, config)
         return providers
