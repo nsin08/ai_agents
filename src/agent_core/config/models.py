@@ -125,3 +125,12 @@ class AgentCoreConfig(BaseModel):
                 "Deterministic mode requires fixture tool provider configuration. "
                 "Set tools.providers.fixture in config."
             )
+        fixture_config = self.tools.providers.get("fixture", {})
+        fixture_path = ""
+        if isinstance(fixture_config, dict):
+            fixture_path = str(fixture_config.get("path") or "").strip()
+        if not fixture_path:
+            raise ValueError(
+                "Deterministic mode requires fixture tool provider path. "
+                "Set tools.providers.fixture.path in config."
+            )

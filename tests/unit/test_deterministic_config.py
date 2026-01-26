@@ -25,6 +25,20 @@ def test_deterministic_requires_fixture_provider() -> None:
         config.validate_deterministic()
 
 
+def test_deterministic_requires_fixture_path() -> None:
+    config = AgentCoreConfig(
+        app=AppConfig(name="test", environment="local"),
+        mode="deterministic",
+        models=ModelsConfig(
+            roles={"actor": ModelSpec(provider="mock", model="deterministic")}
+        ),
+        tools=ToolsConfig(providers={"fixture": {}}),
+    )
+
+    with pytest.raises(ValueError, match="fixture tool provider path"):
+        config.validate_deterministic()
+
+
 def test_deterministic_requires_mock_models() -> None:
     config = AgentCoreConfig(
         app=AppConfig(name="test", environment="local"),
