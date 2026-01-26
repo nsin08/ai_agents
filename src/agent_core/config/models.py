@@ -120,3 +120,8 @@ class AgentCoreConfig(BaseModel):
                     f"Deterministic mode requires mock providers. "
                     f"Role '{role}' uses provider '{spec.provider}'."
                 )
+        if "fixture" not in self.tools.providers:
+            raise ValueError(
+                "Deterministic mode requires fixture tool provider configuration. "
+                "Set tools.providers.fixture in config."
+            )

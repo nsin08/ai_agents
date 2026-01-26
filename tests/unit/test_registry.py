@@ -45,4 +45,5 @@ def test_builtin_registrations_present() -> None:
     assert "openai" in registry.model_providers
     assert "native" in registry.tool_providers
     assert "mcp" in registry.tool_providers
+    assert "fixture" in registry.tool_providers
     assert "memory" in registry.vectorstores

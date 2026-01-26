@@ -1,14 +1,12 @@
-﻿"""Placeholder built-ins for agent_core registries."""
+﻿"""Built-in placeholders for agent_core registries."""
 
 from __future__ import annotations
+
+from .providers import FixtureToolProvider, MockProvider
 
 
 class LocalEngine:
     """Stub execution engine placeholder."""
-
-
-class MockProvider:
-    """Stub model provider placeholder."""
 
 
 class OllamaProvider:
@@ -41,3 +39,18 @@ class FileExporter:
 
 class MemoryExporter:
     """Stub exporter placeholder."""
+
+
+__all__ = [
+    "FileExporter",
+    "FixtureToolProvider",
+    "LocalEngine",
+    "McpToolProvider",
+    "MemoryExporter",
+    "MemoryVectorStore",
+    "MockProvider",
+    "NativeToolProvider",
+    "OllamaProvider",
+    "OpenAIProvider",
+    "StdoutExporter",
+]
