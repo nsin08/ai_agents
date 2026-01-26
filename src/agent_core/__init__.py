@@ -9,6 +9,7 @@ from .exceptions import (
     RegistryError,
 )
 from .factories import EngineFactory, ModelFactory, ToolExecutorFactory, ToolProviderFactory
+from .memory import InMemorySessionStore, SessionMessage, SessionStore, estimate_tokens
 from .model import ModelClient, ModelMessage, ModelResponse, ModelUsage, ToolCall, normalize_messages
 from .plugin_loader import ENTRY_POINT_GROUP, load_plugin
 from .registry import (
@@ -36,6 +37,10 @@ __all__ = [
     "ModelResponse",
     "ModelUsage",
     "ModelProviderRegistry",
+    "SessionMessage",
+    "SessionStore",
+    "InMemorySessionStore",
+    "estimate_tokens",
     "PluginDependencyError",
     "PluginLoadError",
     "PluginNotFoundError",

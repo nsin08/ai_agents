@@ -83,6 +83,24 @@ Labs are the hands-on companion to the knowledge base and curriculum:
 ## Agent Core Docs
 
 - Tool contracts and executor: `docs/tools.md`
+- Short-term memory: `docs/memory.md`
+
+Example (short-term session memory):
+```python
+import asyncio
+
+from agent_core.memory import InMemorySessionStore
+
+
+async def main() -> None:
+    store = InMemorySessionStore(max_tokens=200)
+    await store.add_message("user", "Hello")
+    context = await store.get_context()
+    print(context)
+
+
+asyncio.run(main())
+```
 
 
 ## Labs Architecture (Planned)
