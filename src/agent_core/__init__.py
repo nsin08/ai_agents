@@ -8,6 +8,7 @@ from .exceptions import (
     PluginNotFoundError,
     RegistryError,
 )
+from .engine import EngineComponents, ExecutionEngine, LocalEngine, RunRequest, RunResult, RunStatus
 from .factories import EngineFactory, ModelFactory, ToolExecutorFactory, ToolProviderFactory
 from .memory import InMemorySessionStore, SessionMessage, SessionStore, estimate_tokens
 from .model import ModelClient, ModelMessage, ModelResponse, ModelUsage, ToolCall, normalize_messages
@@ -27,10 +28,13 @@ __all__ = [
     "AgentCoreConfig",
     "AgentCoreRegistry",
     "ENTRY_POINT_GROUP",
+    "EngineComponents",
+    "ExecutionEngine",
     "EngineFactory",
     "ExecutionEngineRegistry",
     "ExporterRegistry",
     "ImplementationNotFoundError",
+    "LocalEngine",
     "ModelFactory",
     "ModelClient",
     "ModelMessage",
@@ -46,6 +50,9 @@ __all__ = [
     "PluginNotFoundError",
     "Registry",
     "RegistryError",
+    "RunRequest",
+    "RunResult",
+    "RunStatus",
     "ToolProviderFactory",
     "ToolExecutorFactory",
     "ToolCall",

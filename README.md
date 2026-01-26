@@ -82,6 +82,7 @@ Labs are the hands-on companion to the knowledge base and curriculum:
 
 ## Agent Core Docs
 
+- Execution engines: `docs/engine.md`
 - Tool contracts and executor: `docs/tools.md`
 - Short-term memory: `docs/memory.md`
 
