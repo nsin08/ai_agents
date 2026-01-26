@@ -4,15 +4,19 @@ import userEvent from "@testing-library/user-event";
 import Chat from "./Chat";
 import chatService from "../services/chatService";
 import providerService from "../services/providerService";
+import configService from "../services/configService";
 
 // Mock services
 jest.mock("../services/chatService");
 jest.mock("../services/providerService");
+jest.mock("../services/configService");
 
 describe("Chat Component", () => {
   const mockChatService = chatService as jest.Mocked<typeof chatService>;
   const mockProviderService =
     providerService as jest.Mocked<typeof providerService>;
+  const mockConfigService =
+    configService as jest.Mocked<typeof configService>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -47,6 +51,18 @@ describe("Chat Component", () => {
         status: "available",
       },
     ]);
+
+    mockConfigService.getDefaultConfig.mockResolvedValue({
+      config: {
+        provider: "mock",
+        model: "mock-model",
+        api_key: null,
+        temperature: 0.7,
+        max_tokens: 1000,
+        timeout: 30,
+      },
+      preset: "default",
+    });
   });
 
   test("renders chat component", async () => {
@@ -138,14 +154,17 @@ describe("Chat Component", () => {
     await user.type(input, "Test");
     await user.click(screen.getByRole("button", { name: /Send/i }));
 
-    // Check for loading indicator
+    // Check for loading indicator (button disabled, input cleared)
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /Send/i })).toBeDisabled();
+      const sendButton = screen.getByRole("button", { name: /Send/i });
+      const inputField = screen.getByPlaceholderText(/Type your message/i) as HTMLTextAreaElement;
+      expect(sendButton).toBeDisabled();
+      expect(inputField.value).toBe("");
     });
 
-    // Wait for response
+    // Wait for response to appear
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /Send/i })).not.toBeDisabled();
+      expect(screen.getByText("Delayed response")).toBeInTheDocument();
     });
   });
 

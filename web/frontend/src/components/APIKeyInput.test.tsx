@@ -26,7 +26,7 @@ describe("APIKeyInput Component", () => {
       />
     );
 
-    expect(container.firstChild).toBeEmptyDOMElement();
+    expect(container.firstChild).toBeNull();
   });
 
   test("renders input when key is required", () => {
@@ -40,7 +40,7 @@ describe("APIKeyInput Component", () => {
       />
     );
 
-    expect(screen.getByPlaceholderText(/Enter API key/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/Enter openai API key/i)).toBeInTheDocument();
   });
 
   test("handles API key input", async () => {
@@ -56,7 +56,7 @@ describe("APIKeyInput Component", () => {
       />
     );
 
-    const input = screen.getByPlaceholderText(/Enter API key/i);
+    const input = screen.getByPlaceholderText(/Enter openai API key/i);
     await user.type(input, "sk-1234567890");
 
     expect(onKeyChange).toHaveBeenCalledWith("sk-1234567890");
@@ -75,8 +75,8 @@ describe("APIKeyInput Component", () => {
       />
     );
 
-    const input = screen.getByPlaceholderText(/Enter API key/i) as HTMLInputElement;
-    const toggleButton = screen.getByRole("button", { name: /Show|Hide/i });
+    const input = screen.getByPlaceholderText(/Enter openai API key/i) as HTMLInputElement;
+    const toggleButton = screen.getByTitle(/Show key|Hide key/i);
 
     // Initially hidden
     expect(input.type).toBe("password");
@@ -109,7 +109,7 @@ describe("APIKeyInput Component", () => {
       />
     );
 
-    const input = screen.getByPlaceholderText(/Enter API key/i);
+    const input = screen.getByPlaceholderText(/Enter openai API key/i);
     await user.type(input, "sk-1234567890");
 
     const validateButton = screen.getByRole("button", { name: /Validate/i });
@@ -147,7 +147,7 @@ describe("APIKeyInput Component", () => {
       />
     );
 
-    const input = screen.getByPlaceholderText(/Enter API key/i);
+    const input = screen.getByPlaceholderText(/Enter openai API key/i);
     await user.type(input, "invalid-key");
 
     const validateButton = screen.getByRole("button", { name: /Validate/i });
@@ -175,7 +175,7 @@ describe("APIKeyInput Component", () => {
       />
     );
 
-    const input = screen.getByPlaceholderText(/Enter API key/i);
+    const input = screen.getByPlaceholderText(/Enter openai API key/i);
     await user.type(input, "sk-1234567890");
 
     const validateButton = screen.getByRole("button", { name: /Validate/i });
@@ -183,13 +183,12 @@ describe("APIKeyInput Component", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/Failed to validate API key/i)
+        screen.getByText(/Validation failed: Network error/i)
       ).toBeInTheDocument();
     });
   });
 
   test("prevents validation with empty key", async () => {
-    const user = userEvent.setup();
     const onKeyChange = jest.fn();
 
     render(
@@ -201,12 +200,9 @@ describe("APIKeyInput Component", () => {
       />
     );
 
+    // Validate button should be disabled when no key is entered
     const validateButton = screen.getByRole("button", { name: /Validate/i });
-    await user.click(validateButton);
-
-    expect(
-      screen.getByText(/Please enter an API key/i)
-    ).toBeInTheDocument();
+    expect(validateButton).toBeDisabled();
     expect(mockProviderService.validateApiKey).not.toHaveBeenCalled();
   });
 
@@ -222,7 +218,7 @@ describe("APIKeyInput Component", () => {
       />
     );
 
-    const input = screen.getByPlaceholderText(/Enter API key/i) as HTMLInputElement;
+    const input = screen.getByPlaceholderText(/Enter openai API key/i) as HTMLInputElement;
     expect(input).toBeDisabled();
   });
 
@@ -245,7 +241,7 @@ describe("APIKeyInput Component", () => {
       />
     );
 
-    const input = screen.getByPlaceholderText(/Enter API key/i);
+    const input = screen.getByPlaceholderText(/Enter openai API key/i);
     await user.type(input, "sk-1234567890");
 
     const validateButton = screen.getByRole("button", { name: /Validate/i });

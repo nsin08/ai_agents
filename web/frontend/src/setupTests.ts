@@ -18,3 +18,6 @@ Object.defineProperty(window, 'matchMedia', {
     dispatchEvent: jest.fn(),
   }),
 });
+
+// Mock scrollIntoView for Chat component tests
+Element.prototype.scrollIntoView = jest.fn();

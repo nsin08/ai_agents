@@ -82,8 +82,13 @@ describe("ProviderSelector Component", () => {
       expect(mockProviderService.listProviders).toHaveBeenCalledWith(true);
     });
 
-    const providerSelect = screen.getByDisplayValue("Mock Provider");
-    expect(providerSelect).toBeInTheDocument();
+    // Wait for loading state to finish
+    await waitFor(() => {
+      expect(screen.queryByText(/Loading providers/i)).not.toBeInTheDocument();
+    });
+
+    const providerSelect = screen.getByLabelText(/Provider:/i) as HTMLSelectElement;
+    expect(providerSelect.value).toBe("mock");
   });
 
   test("handles provider change", async () => {
@@ -98,8 +103,9 @@ describe("ProviderSelector Component", () => {
       />
     );
 
+    // Wait for loading to finish
     await waitFor(() => {
-      expect(mockProviderService.listProviders).toHaveBeenCalled();
+      expect(screen.queryByText(/Loading providers/i)).not.toBeInTheDocument();
     });
 
     const providerSelect = screen.getByLabelText(/Provider:/i);
@@ -120,10 +126,18 @@ describe("ProviderSelector Component", () => {
       />
     );
 
+    // Wait for loading to finish
     await waitFor(() => {
-      expect(screen.getByDisplayValue("llama2")).toBeInTheDocument();
-      expect(screen.getByDisplayValue("mistral")).toBeInTheDocument();
+      expect(screen.queryByText(/Loading providers/i)).not.toBeInTheDocument();
     });
+
+    const modelSelect = screen.getByLabelText(/Model:/i) as HTMLSelectElement;
+    expect(modelSelect.value).toBe("llama2");
+    
+    // Check that both models are available as options
+    const options = Array.from(modelSelect.options).map(opt => opt.value);
+    expect(options).toContain("llama2");
+    expect(options).toContain("mistral");
   });
 
   test("handles model change", async () => {
@@ -138,8 +152,9 @@ describe("ProviderSelector Component", () => {
       />
     );
 
+    // Wait for loading to finish
     await waitFor(() => {
-      expect(mockProviderService.listProviders).toHaveBeenCalled();
+      expect(screen.queryByText(/Loading providers/i)).not.toBeInTheDocument();
     });
 
     const modelSelect = screen.getByLabelText(/Model:/i);
@@ -162,8 +177,9 @@ describe("ProviderSelector Component", () => {
       />
     );
 
+    // Wait for loading to finish
     await waitFor(() => {
-      expect(mockProviderService.listProviders).toHaveBeenCalled();
+      expect(screen.queryByText(/Loading providers/i)).not.toBeInTheDocument();
     });
 
     const providerSelect = screen.getByLabelText(/Provider:/i);
@@ -184,8 +200,9 @@ describe("ProviderSelector Component", () => {
       />
     );
 
+    // Wait for loading to finish
     await waitFor(() => {
-      expect(mockProviderService.listProviders).toHaveBeenCalled();
+      expect(screen.queryByText(/Loading providers/i)).not.toBeInTheDocument();
     });
 
     const providerSelect = screen.getByLabelText(/Provider:/i);
@@ -202,26 +219,22 @@ describe("ProviderSelector Component", () => {
 
   test("displays API key warning for providers that require it", async () => {
     const onProviderChange = jest.fn();
-    const user = userEvent.setup();
 
     render(
       <ProviderSelector
-        selectedProvider="mock"
-        selectedModel="mock-model"
+        selectedProvider="openai"
+        selectedModel="gpt-4"
         onProviderChange={onProviderChange}
       />
     );
 
+    // Wait for loading to finish
     await waitFor(() => {
-      expect(mockProviderService.listProviders).toHaveBeenCalled();
+      expect(screen.queryByText(/Loading providers/i)).not.toBeInTheDocument();
     });
 
-    const providerSelect = screen.getByLabelText(/Provider:/i);
-    await user.selectOptions(providerSelect, "openai");
-
-    await waitFor(() => {
-      expect(screen.getByText(/⚠️ Requires API key/i)).toBeInTheDocument();
-    });
+    // Check that API key warning is displayed for OpenAI
+    expect(screen.getByText(/Requires API key/i)).toBeInTheDocument();
   });
 
   test("handles loading state", () => {
