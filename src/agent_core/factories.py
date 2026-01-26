@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from typing import Any, Callable, Mapping
 
 from .registry import ExecutionEngineRegistry, ModelProviderRegistry, ToolProviderRegistry
+from .tools import ToolExecutor
+from .config.models import AgentCoreConfig
 
 
 def _build_from_registry(
@@ -27,6 +29,21 @@ class EngineFactory:
     def build(self, key: str, config: Mapping[str, Any] | None = None) -> Any:
         return _build_from_registry(self._registry, key, config)
 
+    def build_with_config(
+        self,
+        config: AgentCoreConfig,
+        tool_executor_factory: "ToolExecutorFactory | None" = None,
+        emit_event: Callable[[Mapping[str, Any]], None] | None = None,
+    ) -> Any:
+        engine_key = config.engine.key
+        engine_config = dict(config.engine.config)
+        if tool_executor_factory is not None:
+            engine_config = dict(engine_config)
+            engine_config.setdefault(
+                "tool_executor",
+                tool_executor_factory.build(config, emit_event=emit_event),
+            )
+        return _build_from_registry(self._registry, engine_key, engine_config)
 
 class ModelFactory:
     """Build model providers from registry + config."""
@@ -66,4 +83,36 @@ class ToolProviderFactory:
         return _build_from_registry(self._registry, key, config)
 
 
-__all__ = ["EngineFactory", "ModelFactory", "ToolProviderFactory"]
+class ToolExecutorFactory:
+    """Build ToolExecutor from config and tool provider registry."""
+
+    def __init__(self, registry: ToolProviderRegistry) -> None:
+        self._provider_factory = ToolProviderFactory(registry)
+
+    def build(
+        self,
+        config: AgentCoreConfig,
+        emit_event: Callable[[Mapping[str, Any]], None] | None = None,
+    ) -> ToolExecutor:
+        tools_config = config.tools
+        providers: list[Any] = []
+
+        if tools_config.providers:
+            for key, provider_config in tools_config.providers.items():
+                provider_cfg: Mapping[str, Any] | None = None
+                if isinstance(provider_config, Mapping):
+                    provider_cfg = provider_config
+                providers.append(self._provider_factory.build(key, provider_cfg))
+        else:
+            providers.append(self._provider_factory.build("native"))
+
+        return ToolExecutor(
+            providers=providers,
+            allowlist=tools_config.allowlist,
+            policies=config.policies,
+            observability=config.observability,
+            emit_event=emit_event,
+        )
+
+
+__all__ = ["EngineFactory", "ModelFactory", "ToolProviderFactory", "ToolExecutorFactory"]

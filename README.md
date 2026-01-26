@@ -80,6 +80,11 @@ Labs are the hands-on companion to the knowledge base and curriculum:
   - `90_supporting/` — Glossary and mappings
 - `chapters/`, `curriculum/` — Additional/legacy structure (in progress)
 
+## Agent Core Docs
+
+- Tool contracts and executor: `docs/tools.md`
+
+
 ## Labs Architecture (Planned)
 
 ### Shared Core: `src/agent_labs/`

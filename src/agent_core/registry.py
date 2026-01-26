@@ -110,7 +110,7 @@ _MODEL_PROVIDER_REGISTRY.register("openai", builtins.OpenAIProvider)
 
 _TOOL_PROVIDER_REGISTRY.register("native", builtins.NativeToolProvider)
 _TOOL_PROVIDER_REGISTRY.register("mcp", builtins.McpToolProvider)
-_TOOL_PROVIDER_REGISTRY.register("fixture", builtins.FixtureToolProvider)
+_TOOL_PROVIDER_REGISTRY.register("fixture", builtins.FixtureToolProviderAdapter)
 
 _VECTORSTORE_REGISTRY.register("memory", builtins.MemoryVectorStore)
 

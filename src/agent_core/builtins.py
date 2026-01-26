@@ -2,19 +2,9 @@
 
 from __future__ import annotations
 
-from .providers import FixtureToolProvider, MockProvider, OllamaProvider, OpenAIProvider
-
-
-class LocalEngine:
-    """Stub execution engine placeholder."""
-
-
-class NativeToolProvider:
-    """Stub tool provider placeholder."""
-
-
-class McpToolProvider:
-    """Stub MCP tool provider placeholder."""
+from .engine import LocalEngine
+from .providers import MockProvider, OllamaProvider, OpenAIProvider
+from .tools import FixtureToolProviderAdapter, McpToolProvider, NativeToolProvider
 
 
 class MemoryVectorStore:
@@ -35,7 +25,7 @@ class MemoryExporter:
 
 __all__ = [
     "FileExporter",
-    "FixtureToolProvider",
+    "FixtureToolProviderAdapter",
     "LocalEngine",
     "McpToolProvider",
     "MemoryExporter",
