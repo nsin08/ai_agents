@@ -27,16 +27,16 @@ async def test_agent_labs_service_mock_provider():
 
 @pytest.mark.asyncio
 async def test_agent_labs_service_unsupported_provider():
-    """Test service rejects unsupported providers in Phase 1."""
+    """Test service handles invalid provider gracefully."""
     service = AgentLabsService()
     response = await service.process_message(
         message="Test",
-        provider="ollama",
-        model="llama2",
+        provider="invalid_provider_xyz",
+        model="some-model",
         config={},
     )
     assert response.success is False
-    assert "not yet supported" in response.response
+    assert "Unknown provider" in response.response
 
 
 @pytest.mark.asyncio

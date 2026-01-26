@@ -127,6 +127,8 @@ class Agent:
             if self.tool_executor:
                 result = self.tool_executor(plan)
             else:
+                # Default behavior: return the plan as the execution result
+                # For web chat use cases, integrate via tool_executor or custom _act override
                 result = f"Executed: {plan}"
         except Exception as exc:
             raise ActionExecutionError(str(exc)) from exc

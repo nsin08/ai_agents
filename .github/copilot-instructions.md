@@ -36,10 +36,19 @@ Agents MUST adapt to the user's environment and avoid guessing.
 ### Preflight (run once before GitHub/Git operations)
 
 - Detect which shell you are in and output commands for that shell only.
+- If the environment is unknown, ask the user: OS + shell (Windows PowerShell vs WSL bash vs macOS zsh).
+- If the repo includes helper scripts, prefer running one preflight:
+  - PowerShell: `scripts/env-preflight.ps1`
+  - bash/zsh (Linux/macOS/WSL): `scripts/env-preflight.sh`
 - Confirm `git` exists (`git --version`).
 - Confirm `gh` exists (`gh --version`).
 - If you will create/update Issues/PRs/labels: confirm auth (`gh auth status`).
   - If not authenticated: STOP and ask the user to authenticate. Do not attempt alternate methods.
+
+### Command emission rule (must-follow)
+
+- Emit exactly one command variant matching the detected shell (PowerShell OR bash). Do not mix syntaxes.
+- If the user explicitly asks for both, provide both variants labeled clearly.
 
 ### GitHub tooling policy
 

@@ -8,20 +8,36 @@ class ChatService {
    * Send a message to the agent
    * @param {Object} data - Request data
    * @param {string} data.message - The user message
+   * @param {string} [data.provider="mock"] - LLM provider to use
+   * @param {string} [data.model="mock-model"] - Model name
+   * @param {string} [data.apiKey] - Optional API key
+   * @param {Object} [data.config={}] - Agent configuration
    * @param {string} [data.sessionId] - Optional session ID
    * @returns {Promise<Object>} Chat response with success, response, and metadata
    */
   async sendMessage(data) {
     try {
+      const requestBody = {
+        message: data.message,
+        provider: data.provider || "mock",
+        model: data.model || "mock-model",
+        config: data.config || {},
+      };
+
+      // Add optional fields
+      if (data.apiKey) {
+        requestBody.api_key = data.apiKey;
+      }
+      if (data.sessionId) {
+        requestBody.session_id = data.sessionId;
+      }
+
       const response = await fetch(`${API_BASE_URL}/api/chat/send`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          message: data.message,
-          session_id: data.sessionId,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
