@@ -128,7 +128,7 @@ class ProviderService:
         elif provider == ProviderEnum.MOCK:
             return self._get_models_from_env("MOCK_MODELS", ["mock-model", "mock-advanced"])
         elif provider == ProviderEnum.OPENAI:
-            return self._get_models_from_env("OPENAI_MODELS", ["gpt-4", "gpt-4-turbo", "gpt-3.5-turbo"])
+            return self._get_models_from_env("OPENAI_MODELS", ["gpt-4o-mini", "gpt-3.5-turbo", "gpt-4", "gpt-4-turbo"])
         elif provider == ProviderEnum.ANTHROPIC:
             return self._get_models_from_env("ANTHROPIC_MODELS", ["claude-3-opus", "claude-3-sonnet", "claude-3-haiku"])
         elif provider == ProviderEnum.GOOGLE:

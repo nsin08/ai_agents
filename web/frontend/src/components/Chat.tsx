@@ -2,8 +2,14 @@ import React, { useState, useRef, useEffect } from "react";
 import "./Chat.css";
 import chatService from "../services/chatService";
 import SettingsDrawer from "./SettingsDrawer";
+import DebugPanel from "./DebugPanel";
+import ConfigPanel from "./ConfigPanel";
+import ConversationExport from "./ConversationExport";
+import ThemeToggle from "./ThemeToggle";
 import type { ProviderType, ProviderInfo } from "../types/providers";
+import type { AgentConfig, DebugMetadata } from "../types/config";
 import providerService from "../services/providerService";
+import configService from "../services/configService";
 
 interface Message {
   id: string;
@@ -11,6 +17,12 @@ interface Message {
   content: string;
   timestamp: string | Date;
   metadata?: Record<string, unknown>;
+}
+
+interface ChatResponse {
+  response: string;
+  metadata?: Record<string, unknown>;
+  debug_metadata?: DebugMetadata;
 }
 
 interface ProviderConfig {
@@ -35,13 +47,33 @@ const Chat: React.FC = () => {
     timeout: 30,
   });
   const [showSettings, setShowSettings] = useState(false);
+  const [showDebugPanel, setShowDebugPanel] = useState(false);
+  const [showConfigPanel, setShowConfigPanel] = useState(false);
+  const [debugMetadata, setDebugMetadata] = useState<DebugMetadata | null>(null);
+  const [agentConfig, setAgentConfig] = useState<AgentConfig>({
+    max_turns: 3,
+    temperature: 0.7,
+    timeout_seconds: 30,
+    system_prompt: null,
+    enable_debug: false,
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Initialize session and load providers on mount
+  // Initialize session and load providers and config on mount
   useEffect(() => {
     initializeSession();
     loadProviders();
+    loadAgentConfig();
   }, []);
+
+  const loadAgentConfig = async () => {
+    try {
+      const config = await configService.getDefaultConfig();
+      setAgentConfig(config.config);
+    } catch (error) {
+      console.error("Failed to load agent config:", error);
+    }
+  };
 
   // Load models when provider changes
   useEffect(() => {
@@ -120,17 +152,25 @@ const Chat: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Send to API with provider config (NO API KEY - loaded from backend env)
-      const response = await chatService.sendMessage({
+      // Send to API with provider config and agent config
+      const response: ChatResponse = await chatService.sendMessage({
         message: messageContent,
         provider: config.provider,
         model: config.model,
         config: {
-          max_turns: config.maxTurns,
-          timeout: config.timeout,
+          max_turns: agentConfig.max_turns,
+          temperature: agentConfig.temperature,
+          timeout: agentConfig.timeout_seconds,
+          system_prompt: agentConfig.system_prompt,
+          enable_debug: agentConfig.enable_debug,
         },
         sessionId: sessionId || undefined,
       });
+
+      // Store debug metadata if available
+      if (response.debug_metadata) {
+        setDebugMetadata(response.debug_metadata);
+      }
 
       // Add assistant message
       const assistantMessage: Message = {
@@ -161,8 +201,44 @@ const Chat: React.FC = () => {
 
   const handleClearChat = () => {
     setMessages([]);
+    setDebugMetadata(null);
     initializeSession();
   };
+
+  const handleConfigChange = async (newConfig: AgentConfig) => {
+    setAgentConfig(newConfig);
+    // Sync max_turns and timeout with provider config for backwards compatibility
+    setConfig((prev) => ({
+      ...prev,
+      maxTurns: newConfig.max_turns,
+      timeout: newConfig.timeout_seconds,
+    }));
+  };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Escape to close modals
+      if (e.key === "Escape") {
+        setShowDebugPanel(false);
+        setShowConfigPanel(false);
+        setShowSettings(false);
+      }
+      // Ctrl+D to toggle debug panel (if debug metadata available)
+      if (e.ctrlKey && e.key === "d" && debugMetadata) {
+        e.preventDefault();
+        setShowDebugPanel((prev) => !prev);
+      }
+      // Ctrl+K to open config panel
+      if (e.ctrlKey && e.key === "k") {
+        e.preventDefault();
+        setShowConfigPanel(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [debugMetadata]);
 
   return (
     <div className="chat-container">
@@ -174,14 +250,34 @@ const Chat: React.FC = () => {
           </div>
         </div>
         <div className="header-actions">
+          <ThemeToggle />
+          <button
+            className="config-btn"
+            onClick={() => setShowConfigPanel(true)}
+            title="Agent Configuration (Ctrl+K)"
+            aria-label="Open agent configuration"
+          >
+            🎛️ Config
+          </button>
+          {debugMetadata && agentConfig.enable_debug && (
+            <button
+              className="debug-btn"
+              onClick={() => setShowDebugPanel(true)}
+              title="Debug Info (Ctrl+D)"
+              aria-label="Open debug panel"
+            >
+              🐛 Debug
+            </button>
+          )}
           <button
             className="settings-btn"
             onClick={() => setShowSettings(true)}
-            title="Configuration Settings"
-            aria-label="Open settings"
+            title="Provider Settings"
+            aria-label="Open provider settings"
           >
             ⚙️ Settings
           </button>
+          <ConversationExport messages={messages} />
           <button
             className="clear-btn"
             onClick={handleClearChat}
@@ -207,6 +303,19 @@ const Chat: React.FC = () => {
         availableProviders={providers}
         availableModels={availableModels}
         isLoadingModels={isLoadingModels}
+      />
+
+      <DebugPanel
+        metadata={debugMetadata}
+        isOpen={showDebugPanel}
+        onClose={() => setShowDebugPanel(false)}
+      />
+
+      <ConfigPanel
+        isOpen={showConfigPanel}
+        onClose={() => setShowConfigPanel(false)}
+        onConfigChange={handleConfigChange}
+        currentConfig={agentConfig}
       />
 
       <div className="chat-messages">
@@ -253,19 +362,26 @@ const Chat: React.FC = () => {
       </div>
 
       <form className="chat-input-form" onSubmit={handleSendMessage}>
-        <input
-          type="text"
+        <textarea
           className="chat-input"
-          placeholder="Type your message..."
+          placeholder="Type your message... (Shift+Enter for newline, Enter to send)"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSendMessage(e);
+            }
+          }}
           disabled={isLoading || !config.model}
+          rows={1}
         />
         <button
           type="submit"
           className="send-btn"
           disabled={isLoading || !inputValue.trim() || !config.model}
-          title={!config.model ? "Select a model in settings first" : ""}
+          title={!config.model ? "Select a model in settings first" : "Send message (Enter)"}
+          aria-label="Send message"
         >
           {isLoading ? "Sending..." : "Send"}
         </button>

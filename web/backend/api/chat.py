@@ -1,7 +1,12 @@
-"""Chat API endpoints."""
+"""Chat API endpoints.
+
+Provides REST API for chat interactions with LLM agents.
+All responses follow a standardized format (ChatResponse or ErrorResponse).
+"""
 import sys
 from pathlib import Path
 import uuid
+import logging
 from fastapi import APIRouter, Depends, HTTPException
 
 # Add backend to path
@@ -10,6 +15,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from models import ChatRequest, ChatResponse, ErrorResponse
 from services.interfaces import AgentServiceInterface
 from config import agent_service
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
@@ -31,8 +38,16 @@ async def send_message(
         
     Returns:
         ChatResponse with agent reply and metadata
+        
+    Raises:
+        HTTPException: 400 for validation errors, 401 for auth errors, 500 for server errors
     """
     try:
+        if not request.message.strip():
+            logger.warning("Empty message received")
+            raise HTTPException(status_code=400, detail="Message cannot be empty")
+            
+        logger.info(f"Processing message with provider={request.provider}, model={request.model}")
         response = await service.process_message(
             message=request.message,
             provider=request.provider,
@@ -40,9 +55,22 @@ async def send_message(
             config=request.config,
             api_key=request.api_key
         )
+        logger.info(f"Message processed successfully")
         return response
+    except HTTPException:
+        raise
+    except ValueError as e:
+        logger.error(f"Validation error: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Invalid request: {str(e)}")
+    except PermissionError as e:
+        logger.error(f"Auth error: {str(e)}")
+        raise HTTPException(status_code=401, detail="Invalid API key or authentication failed")
+    except TimeoutError as e:
+        logger.error(f"Timeout: {str(e)}")
+        raise HTTPException(status_code=504, detail="Request timeout - agent took too long to respond")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception(f"Unexpected error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error - please try again later")
 
 
 @router.post("/sessions")

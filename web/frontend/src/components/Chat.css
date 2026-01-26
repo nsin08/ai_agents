@@ -44,10 +44,13 @@
 .header-actions {
   display: flex;
   gap: 0.5rem;
+  align-items: center;
 }
 
 .settings-btn,
-.clear-btn {
+.clear-btn,
+.config-btn,
+.debug-btn {
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: white;
@@ -60,14 +63,23 @@
 }
 
 .settings-btn:hover,
-.clear-btn:hover {
+.clear-btn:hover,
+.config-btn:hover,
+.debug-btn:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: scale(1.05);
 }
 
 .settings-btn:active,
-.clear-btn:active {
+.clear-btn:active,
+.config-btn:active,
+.debug-btn:active {
   transform: scale(0.98);
+}
+
+.debug-btn {
+  background: rgba(255, 193, 7, 0.3);
+  border-color: rgba(255, 193, 7, 0.5);
 }
 
 /* Settings Panel */
@@ -77,6 +89,62 @@
   border-bottom: 1px solid #e0e0e0;
   max-height: 150px;
   overflow-y: auto;
+}
+
+/* Loading States */
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #667eea;
+  font-weight: 500;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e0e0e0;
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.typing-animation {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.typing-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #667eea;
+  animation: bounce 1.4s ease-in-out infinite;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes bounce {
+  0%, 80%, 100% {
+    opacity: 0.5;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-4px);
+  }
 }
 
 .settings-panel h3 {
@@ -292,6 +360,11 @@
   font-size: 0.875rem;
   background: #fafafa;
   transition: all 0.2s ease;
+  resize: vertical;
+  min-height: 44px;
+  max-height: 200px;
+  font-family: inherit;
+  line-height: 1.5;
 }
 
 .chat-input:focus {
@@ -368,6 +441,53 @@
 .chat-messages::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.2);
   border-radius: 4px;
+}
+
+/* Dark mode support */
+body.dark-mode .chat-container {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+body.dark-mode .chat-header {
+  background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+}
+
+body.dark-mode .chat-messages {
+  background: #1e1e2f;
+}
+
+body.dark-mode .message-user .message-content {
+  background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+}
+
+body.dark-mode .message-assistant .message-content {
+  background: #2d3748;
+  color: #e2e8f0;
+  border-color: #4a5568;
+}
+
+body.dark-mode .chat-input-form {
+  background: #1e1e2f;
+  border-top-color: #2d3748;
+}
+
+body.dark-mode .chat-input {
+  background: #2d3748;
+  border-color: #4a5568;
+  color: #e2e8f0;
+}
+
+body.dark-mode .chat-input:focus {
+  border-color: #4299e1;
+  background: #374151;
+}
+
+body.dark-mode .empty-state {
+  color: #e2e8f0;
+}
+
+body.dark-mode .session-id {
+  color: #a0aec0;
 }
 
 .chat-messages::-webkit-scrollbar-thumb:hover {
