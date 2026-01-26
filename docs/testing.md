@@ -9,6 +9,11 @@ Deterministic tests use:
 
 This keeps CI stable without network/GPU dependencies.
 
+## Model providers (agent_core)
+
+Model roles are configured via `ModelsConfig.roles` and resolved through the model registry.
+Base providers supported in core: `mock`, `ollama`, `openai`.
+
 ## Mock responses
 
 Store mock model responses in `tests/fixtures/mock_responses.json` as a list of strings.
