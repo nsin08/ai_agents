@@ -8,6 +8,7 @@ interface ConfigPanelProps {
   onClose: () => void;
   onConfigChange: (config: AgentConfig) => void;
   currentConfig: AgentConfig;
+  sessionId?: string;
 }
 
 const ConfigPanel: React.FC<ConfigPanelProps> = ({
@@ -15,6 +16,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
   onClose,
   onConfigChange,
   currentConfig,
+  sessionId,
 }) => {
   const [config, setConfig] = useState<AgentConfig>(currentConfig);
   const [presets, setPresets] = useState<PresetConfig[]>([]);
@@ -42,7 +44,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
   const handleApplyPreset = async (presetName: string) => {
     setLoading(true);
     try {
-      const response = await configService.saveConfig(config, presetName);
+      const response = await configService.saveConfig(config, presetName, sessionId);
       setConfig(response.config);
       onConfigChange(response.config);
     } catch (error) {
@@ -56,7 +58,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
   const handleSaveConfig = async () => {
     setLoading(true);
     try {
-      const response = await configService.saveConfig(config);
+      const response = await configService.saveConfig(config, undefined, sessionId);
       onConfigChange(response.config);
       alert("Configuration saved successfully!");
     } catch (error) {
@@ -74,7 +76,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({
 
     setLoading(true);
     try {
-      const response = await configService.resetConfig();
+      const response = await configService.resetConfig(sessionId);
       setConfig(response.config);
       onConfigChange(response.config);
     } catch (error) {

@@ -316,6 +316,7 @@ const Chat: React.FC = () => {
         onClose={() => setShowConfigPanel(false)}
         onConfigChange={handleConfigChange}
         currentConfig={agentConfig}
+        sessionId={sessionId || undefined}
       />
 
       <div className="chat-messages">

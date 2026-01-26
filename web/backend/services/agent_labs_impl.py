@@ -1,5 +1,6 @@
 """AgentLabsService implementation using agent_labs core."""
 import time
+import asyncio
 import sys
 from pathlib import Path
 from typing import Dict, Any, Optional
@@ -87,11 +88,20 @@ class AgentLabsService(AgentServiceInterface):
             # Create and run agent with full orchestrator (Observe → Plan → Act → Verify)
             agent = Agent(provider=llm_provider, model=model)
             
-            # Run agent - it will reason through the goal and generate response
-            result = await agent.run(
-                goal=message,
-                max_turns=config.get("max_turns", 3)
-            )
+            # Run agent with timeout enforcement
+            # Apply timeout if specified (defaults to 30 seconds)
+            timeout_seconds = config.get("timeout", config.get("timeout_seconds", 30))
+            try:
+                result = await asyncio.wait_for(
+                    agent.run(
+                        goal=message,
+                        max_turns=config.get("max_turns", 3)
+                    ),
+                    timeout=timeout_seconds
+                )
+            except asyncio.TimeoutError:
+                logger.warning(f"Agent execution timed out after {timeout_seconds}s")
+                raise TimeoutError(f"Agent execution exceeded timeout of {timeout_seconds} seconds")
             
             # Calculate metrics
             latency_ms = (time.time() - start_time) * 1000

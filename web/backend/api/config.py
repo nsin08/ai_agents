@@ -100,8 +100,8 @@ async def save_config(request: ConfigRequest) -> ConfigResponse:
         HTTPException: 400 for validation errors
     """
     try:
-        # Generate session ID (in production, use auth token or session management)
-        session_id = "default_session"
+        # Use session_id from request or fallback to default
+        session_id = request.session_id or "default_session"
         
         # Apply preset if specified
         if request.preset:
@@ -137,15 +137,18 @@ async def save_config(request: ConfigRequest) -> ConfigResponse:
 
 
 @router.post("/reset", response_model=ConfigResponse)
-async def reset_config() -> ConfigResponse:
+async def reset_config(session_id: Optional[str] = None) -> ConfigResponse:
     """
     Reset configuration to default.
+    
+    Args:
+        session_id: Optional session ID (query param or default to default_session)
     
     Returns:
         ConfigResponse with default configuration
     """
     try:
-        session_id = "default_session"
+        session_id = session_id or "default_session"
         config = config_service.reset_config(session_id)
         logger.info(f"Reset configuration for session {session_id}")
         return ConfigResponse(

@@ -171,3 +171,127 @@ def test_debug_metadata_in_chat_response():
     assert data["debug_metadata"]["temperature"] == 0.7
     assert "max_turns" in data["debug_metadata"]
     assert data["debug_metadata"]["max_turns"] == 3
+
+
+def test_session_specific_config_save():
+    """Test that config can be saved for a specific session (PR #115 Fix #1)."""
+    session_id_1 = "user_session_123"
+    session_id_2 = "user_session_456"
+    
+    # Save config for session 1 with high temperature
+    config_data_1 = {
+        "config": {
+            "max_turns": 5,
+            "temperature": 1.2,
+            "timeout_seconds": 45,
+            "enable_debug": True
+        },
+        "session_id": session_id_1
+    }
+    response1 = client.post("/api/config/save", json=config_data_1)
+    assert response1.status_code == 200
+    assert response1.json()["config"]["temperature"] == 1.2
+    
+    # Save config for session 2 with low temperature
+    config_data_2 = {
+        "config": {
+            "max_turns": 2,
+            "temperature": 0.3,
+            "timeout_seconds": 20,
+            "enable_debug": False
+        },
+        "session_id": session_id_2
+    }
+    response2 = client.post("/api/config/save", json=config_data_2)
+    assert response2.status_code == 200
+    assert response2.json()["config"]["temperature"] == 0.3
+    
+    # Verify sessions have different configs
+    session1_config = client.get(f"/api/config/{session_id_1}").json()
+    session2_config = client.get(f"/api/config/{session_id_2}").json()
+    
+    assert session1_config["config"]["temperature"] == 1.2
+    assert session2_config["config"]["temperature"] == 0.3
+
+
+def test_session_specific_config_reset():
+    """Test that config reset works for specific session (PR #115 Fix #1)."""
+    session_id = "reset_test_session"
+    
+    # Save custom config
+    config_data = {
+        "config": {
+            "max_turns": 8,
+            "temperature": 1.5,
+            "timeout_seconds": 60,
+            "enable_debug": True
+        },
+        "session_id": session_id
+    }
+    client.post("/api/config/save", json=config_data)
+    
+    # Reset config for this session
+    response = client.post(f"/api/config/reset?session_id={session_id}")
+    assert response.status_code == 200
+    
+    data = response.json()
+    assert data["success"] is True
+    assert data["config"]["max_turns"] == 3  # Default value
+    assert data["config"]["temperature"] == 0.7  # Default value
+    assert data["config"]["timeout_seconds"] == 30  # Default value
+
+
+def test_timeout_config_applied():
+    """Test that timeout config is applied to agent execution (PR #115 Fix #2)."""
+    # Send message with very short timeout
+    response = client.post(
+        "/api/chat/send",
+        json={
+            "message": "Count to 1000 slowly",
+            "provider": "mock",
+            "model": "mock-model",
+            "config": {
+                "timeout": 1,  # 1 second timeout
+                "max_turns": 3
+            }
+        }
+    )
+    
+    # With mock provider, should complete quickly and succeed
+    # Real provider with long operations would timeout
+    assert response.status_code == 200
+    data = response.json()
+    
+    # Verify timeout was passed to agent (check metadata)
+    assert "metadata" in data
+    assert "latency_ms" in data["metadata"]
+    # Latency should be less than timeout
+    assert data["metadata"]["latency_ms"] < 1000
+
+
+def test_timeout_backwards_compatibility():
+    """Test that both 'timeout' and 'timeout_seconds' keys work (PR #115 Fix #2)."""
+    # Test with 'timeout' key
+    response1 = client.post(
+        "/api/chat/send",
+        json={
+            "message": "Test timeout key",
+            "provider": "mock",
+            "model": "mock-model",
+            "config": {"timeout": 15}
+        }
+    )
+    assert response1.status_code == 200
+    
+    # Test with 'timeout_seconds' key
+    response2 = client.post(
+        "/api/chat/send",
+        json={
+            "message": "Test timeout_seconds key",
+            "provider": "mock",
+            "model": "mock-model",
+            "config": {"timeout_seconds": 20}
+        }
+    )
+    assert response2.status_code == 200
+

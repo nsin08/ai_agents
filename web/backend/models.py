@@ -100,6 +100,7 @@ class ConfigRequest(BaseModel):
     """Request to save configuration."""
     config: AgentConfig = Field(..., description="Configuration to save")
     preset: Optional[str] = Field(None, description="Preset name (creative, precise, balanced)")
+    session_id: Optional[str] = Field(None, description="Session ID for session-specific config")
 
 
 class ConfigResponse(BaseModel):

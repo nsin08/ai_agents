@@ -2,7 +2,7 @@
 import type { AgentConfig, PresetConfig, ConfigResponse } from '../types/config';
 
 // Use environment variable if available (set in .env), otherwise use default
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 class ConfigService {
   async getDefaultConfig(): Promise<ConfigResponse> {
@@ -29,13 +29,13 @@ class ConfigService {
     return response.json();
   }
 
-  async saveConfig(config: AgentConfig, preset?: string): Promise<ConfigResponse> {
+  async saveConfig(config: AgentConfig, preset?: string, sessionId?: string): Promise<ConfigResponse> {
     const response = await fetch(`${API_BASE_URL}/api/config/save`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ config, preset }),
+      body: JSON.stringify({ config, preset, session_id: sessionId }),
     });
     if (!response.ok) {
       throw new Error('Failed to save config');
@@ -43,8 +43,11 @@ class ConfigService {
     return response.json();
   }
 
-  async resetConfig(): Promise<ConfigResponse> {
-    const response = await fetch(`${API_BASE_URL}/api/config/reset`, {
+  async resetConfig(sessionId?: string): Promise<ConfigResponse> {
+    const url = sessionId 
+      ? `${API_BASE_URL}/api/config/reset?session_id=${encodeURIComponent(sessionId)}`
+      : `${API_BASE_URL}/api/config/reset`;
+    const response = await fetch(url, {
       method: 'POST',
     });
     if (!response.ok) {
