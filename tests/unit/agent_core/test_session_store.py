@@ -31,6 +31,7 @@ async def test_tool_message_fields_in_context() -> None:
         "result",
         name="calculator",
         tool_call_id="call-1",
+        metadata={"source": "fixture"},
     )
 
     context = await store.get_context()
@@ -38,6 +39,7 @@ async def test_tool_message_fields_in_context() -> None:
     assert context[-1]["role"] == "tool"
     assert context[-1]["name"] == "calculator"
     assert context[-1]["tool_call_id"] == "call-1"
+    assert context[-1]["metadata"] == {"source": "fixture"}
 
 
 @pytest.mark.asyncio
@@ -61,6 +63,17 @@ async def test_get_context_override_max_tokens() -> None:
     context = await store.get_context(max_tokens=1)
 
     assert [msg["content"] for msg in context] == ["2222"]
+
+
+@pytest.mark.asyncio
+async def test_get_context_zero_max_tokens_returns_empty() -> None:
+    store = InMemorySessionStore(max_tokens=10)
+    await store.add_message("user", "1111")
+    await store.add_message("assistant", "2222")
+
+    context = await store.get_context(max_tokens=0)
+
+    assert context == []
 
 
 @pytest.mark.asyncio

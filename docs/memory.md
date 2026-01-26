@@ -21,12 +21,20 @@ The default backend stores messages in memory and truncates context deterministi
 an approximate token estimator (len/4).
 
 ```python
+import asyncio
+
 from agent_core.memory import InMemorySessionStore
 
-store = InMemorySessionStore(max_tokens=200)
-await store.add_message("user", "Hello")
-await store.add_message("assistant", "Hi there!")
-context = await store.get_context()
+
+async def main() -> None:
+    store = InMemorySessionStore(max_tokens=200)
+    await store.add_message("user", "Hello")
+    await store.add_message("assistant", "Hi there!")
+    context = await store.get_context()
+    print(context)
+
+
+asyncio.run(main())
 ```
 
 ## Notes
@@ -34,3 +42,4 @@ context = await store.get_context()
 - Truncation drops the oldest messages first to stay within `max_tokens`.
 - Messages include role, content, and optional tool metadata.
 - The interface is designed to allow swapping in Redis or other backends later.
+- Concurrent writes can interleave; ordering follows insertion sequence.

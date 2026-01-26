@@ -21,6 +21,7 @@ class SessionMessage:
     content: str
     name: str | None = None
     tool_call_id: str | None = None
+    sequence: int = 0
     metadata: dict[str, Any] = field(default_factory=dict)
     timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
@@ -30,6 +31,8 @@ class SessionMessage:
             payload["name"] = self.name
         if self.tool_call_id:
             payload["tool_call_id"] = self.tool_call_id
+        if self.metadata:
+            payload["metadata"] = dict(self.metadata)
         return payload
 
 
@@ -65,6 +68,7 @@ class InMemorySessionStore:
         self._lock = asyncio.Lock()
         self._max_tokens = max_tokens
         self._token_estimator = token_estimator or estimate_tokens
+        self._sequence = 0
 
     async def add_message(
         self,
@@ -77,19 +81,22 @@ class InMemorySessionStore:
     ) -> None:
         if not role:
             raise ValueError("role must be provided")
-        message = SessionMessage(
-            role=role,
-            content=content,
-            name=name,
-            tool_call_id=tool_call_id,
-            metadata=dict(metadata or {}),
-        )
         async with self._lock:
+            self._sequence += 1
+            message = SessionMessage(
+                role=role,
+                content=content,
+                name=name,
+                tool_call_id=tool_call_id,
+                sequence=self._sequence,
+                metadata=dict(metadata or {}),
+            )
             self._messages.append(message)
 
     async def get_context(self, max_tokens: int | None = None) -> list[dict[str, Any]]:
         async with self._lock:
             messages = list(self._messages)
+        messages.sort(key=lambda msg: msg.sequence)
         limit = max_tokens if max_tokens is not None else self._max_tokens
         truncated = self._truncate(messages, limit)
         return [message.to_prompt_dict() for message in truncated]
@@ -103,8 +110,10 @@ class InMemorySessionStore:
         messages: Sequence[SessionMessage],
         max_tokens: int | None,
     ) -> list[SessionMessage]:
-        if max_tokens is None or max_tokens <= 0:
+        if max_tokens is None:
             return list(messages)
+        if max_tokens <= 0:
+            return []
         selected: list[SessionMessage] = []
         total_tokens = 0
         for message in reversed(messages):

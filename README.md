@@ -87,11 +87,19 @@ Labs are the hands-on companion to the knowledge base and curriculum:
 
 Example (short-term session memory):
 ```python
+import asyncio
+
 from agent_core.memory import InMemorySessionStore
 
-store = InMemorySessionStore(max_tokens=200)
-await store.add_message("user", "Hello")
-context = await store.get_context()
+
+async def main() -> None:
+    store = InMemorySessionStore(max_tokens=200)
+    await store.add_message("user", "Hello")
+    context = await store.get_context()
+    print(context)
+
+
+asyncio.run(main())
 ```
 
 
