@@ -1,8 +1,0 @@
-node_modules/
-dist/
-*.vsix
-.DS_Store
-out/
-build/
-*.log
-.vscode-test/
