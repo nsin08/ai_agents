@@ -4,17 +4,9 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import dataclass
 from typing import Any, Iterable, Mapping, Sequence
 
-
-@dataclass(frozen=True)
-class ModelResponse:
-    """Simple response container for mock model provider."""
-
-    text: str
-    role: str
-    prompt_hash: str
+from ..model import ModelMessage, ModelResponse, ModelUsage, normalize_messages
 
 
 class MockProvider:
@@ -25,20 +17,42 @@ class MockProvider:
         responses: Mapping[str, str] | Sequence[str] | None = None,
         seed: int = 42,
         role_responses: Mapping[str, Mapping[str, str] | Sequence[str]] | None = None,
+        model: str | None = None,
+        base_url: str | None = None,
+        api_key_env: str | None = None,
+        timeout_s: float | None = None,
+        capabilities: Sequence[str] | None = None,
     ) -> None:
         self._responses = list(responses.values()) if isinstance(responses, Mapping) else list(responses or [])
         self._seed = seed
         self._role_responses = role_responses or {}
+        self.model = model or "deterministic"
+        self.base_url = base_url
+        self.api_key_env = api_key_env
+        self.timeout_s = timeout_s
+        self.capabilities = list(capabilities or [])
 
-    async def query(self, messages: Iterable[Mapping[str, Any]] | Iterable[str], role: str) -> ModelResponse:
+    async def generate(
+        self,
+        messages: Sequence[ModelMessage] | Sequence[Mapping[str, Any]] | Sequence[str],
+        role: str,
+    ) -> ModelResponse:
         prompt_hash = self._hash_prompt(messages, role)
         text = self._select_response(prompt_hash, role)
-        return ModelResponse(text=text, role=role, prompt_hash=prompt_hash)
+        usage = ModelUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0)
+        return ModelResponse(text=text, role=role, usage=usage, prompt_hash=prompt_hash)
 
-    def _hash_prompt(self, messages: Iterable[Mapping[str, Any]] | Iterable[str], role: str) -> str:
+    async def query(self, messages: Iterable[Mapping[str, Any]] | Iterable[str], role: str) -> ModelResponse:
+        return await self.generate(list(messages), role)
+
+    def _hash_prompt(
+        self,
+        messages: Sequence[ModelMessage] | Sequence[Mapping[str, Any]] | Sequence[str],
+        role: str,
+    ) -> str:
         payload = {
             "role": role,
-            "messages": list(messages),
+            "messages": normalize_messages(list(messages)),
             "seed": self._seed,
         }
         encoded = json.dumps(payload, sort_keys=True, default=str).encode("utf-8")

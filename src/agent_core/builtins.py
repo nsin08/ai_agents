@@ -1,20 +1,12 @@
-﻿"""Built-in placeholders for agent_core registries."""
+﻿"""Built-in implementations for agent_core registries."""
 
 from __future__ import annotations
 
-from .providers import FixtureToolProvider, MockProvider
+from .providers import FixtureToolProvider, MockProvider, OllamaProvider, OpenAIProvider
 
 
 class LocalEngine:
     """Stub execution engine placeholder."""
-
-
-class OllamaProvider:
-    """Stub model provider placeholder."""
-
-
-class OpenAIProvider:
-    """Stub model provider placeholder."""
 
 
 class NativeToolProvider:

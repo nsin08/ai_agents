@@ -9,6 +9,7 @@ from .exceptions import (
     RegistryError,
 )
 from .factories import EngineFactory, ModelFactory, ToolProviderFactory
+from .model import ModelClient, ModelMessage, ModelResponse, ModelUsage, ToolCall, normalize_messages
 from .plugin_loader import ENTRY_POINT_GROUP, load_plugin
 from .registry import (
     AgentCoreRegistry,
@@ -30,6 +31,10 @@ __all__ = [
     "ExporterRegistry",
     "ImplementationNotFoundError",
     "ModelFactory",
+    "ModelClient",
+    "ModelMessage",
+    "ModelResponse",
+    "ModelUsage",
     "ModelProviderRegistry",
     "PluginDependencyError",
     "PluginLoadError",
@@ -37,9 +42,11 @@ __all__ = [
     "Registry",
     "RegistryError",
     "ToolProviderFactory",
+    "ToolCall",
     "ToolProviderRegistry",
     "VectorStoreRegistry",
     "get_global_registry",
     "load_config",
     "load_plugin",
+    "normalize_messages",
 ]

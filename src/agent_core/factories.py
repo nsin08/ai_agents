@@ -1,4 +1,4 @@
-﻿"""Factories for constructing registry-backed components."""
+"""Factories for constructing registry-backed components."""
 
 from __future__ import annotations
 
@@ -36,6 +36,19 @@ class ModelFactory:
 
     def build(self, key: str, config: Mapping[str, Any] | None = None) -> Any:
         return _build_from_registry(self._registry, key, config)
+
+    def build_role_map(self, roles: Mapping[str, Any]) -> dict[str, Any]:
+        providers: dict[str, Any] = {}
+        for role, spec in roles.items():
+            if not isinstance(spec, Mapping):
+                raise ValueError(f"Model spec for role '{role}' must be a mapping.")
+            provider_key = str(spec.get("provider", "")).strip()
+            if not provider_key:
+                raise ValueError(f"Model spec for role '{role}' missing provider key.")
+            config = dict(spec)
+            config.pop("provider", None)
+            providers[role] = self.build(provider_key, config)
+        return providers
 
 
 class ToolProviderFactory:
