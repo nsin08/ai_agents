@@ -24,6 +24,7 @@ def test_load_config_from_json(tmp_path: Path):
         "app": {"name": "test_app", "environment": "local"},
         "mode": "deterministic",
         "models": {"roles": {"actor": {"provider": "mock", "model": "det"}}},
+        "tools": {"providers": {"fixture": {"path": "tests/fixtures/tool_fixtures.json"}}},
     }
     config_path.write_text(json.dumps(data), encoding="utf-8")
 
@@ -37,6 +38,7 @@ def test_env_override(monkeypatch):
     monkeypatch.setenv("AGENT_CORE_MODELS__ROLES__ACTOR__PROVIDER", "mock")
     monkeypatch.setenv("AGENT_CORE_MODELS__ROLES__ACTOR__MODEL", "det")
     monkeypatch.setenv("AGENT_CORE_MODE", "deterministic")
+    monkeypatch.setenv("AGENT_CORE_TOOLS__PROVIDERS__FIXTURE__PATH", "tests/fixtures/tool_fixtures.json")
 
     config = load_config(load_dotenv_file=False)
     assert config.mode == "deterministic"

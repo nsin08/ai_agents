@@ -334,7 +334,7 @@ class TestAdvancedInteractiveAgentMock:
         agent = AdvancedInteractiveAgent()
         
         assert agent.provider_type == "mock"
-        assert agent.model_name == "mistral:7b"
+        assert agent.model_name == "mock-model"
         assert agent.agent is not None
         assert agent.session_metrics.request_count == 0
     
@@ -346,7 +346,7 @@ class TestAdvancedInteractiveAgentMock:
         captured = capsys.readouterr()
         assert "AGENT SETUP" in captured.out
         assert "mock" in captured.out.lower()
-        assert "mistral" in captured.out.lower()
+        assert "mock-model" in captured.out.lower()
     
     def test_metrics_display_empty(self, capsys):
         """Test metrics when no requests made."""
