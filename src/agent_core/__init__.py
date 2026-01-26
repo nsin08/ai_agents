@@ -8,7 +8,7 @@ from .exceptions import (
     PluginNotFoundError,
     RegistryError,
 )
-from .factories import EngineFactory, ModelFactory, ToolProviderFactory
+from .factories import EngineFactory, ModelFactory, ToolExecutorFactory, ToolProviderFactory
 from .model import ModelClient, ModelMessage, ModelResponse, ModelUsage, ToolCall, normalize_messages
 from .plugin_loader import ENTRY_POINT_GROUP, load_plugin
 from .registry import (
@@ -42,11 +42,14 @@ __all__ = [
     "Registry",
     "RegistryError",
     "ToolProviderFactory",
+    "ToolExecutorFactory",
     "ToolCall",
     "ToolProviderRegistry",
+    "ToolExecutor",
     "VectorStoreRegistry",
     "get_global_registry",
     "load_config",
     "load_plugin",
     "normalize_messages",
 ]
+from .tools import ToolExecutor

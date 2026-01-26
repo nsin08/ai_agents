@@ -43,6 +43,9 @@ class FixtureToolProvider:
             )
         return fixture.result
 
+    def list_fixtures(self) -> list[ToolFixture]:
+        return list(self._fixtures.values())
+
     def _load_fixtures(self, path: Path) -> dict[tuple[str, str, str], ToolFixture]:
         fixtures: dict[tuple[str, str, str], ToolFixture] = {}
         if path.is_dir():
