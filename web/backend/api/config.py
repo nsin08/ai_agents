@@ -2,6 +2,7 @@
 import sys
 from pathlib import Path
 import logging
+from typing import Optional
 from fastapi import APIRouter, HTTPException
 
 # Add backend to path
