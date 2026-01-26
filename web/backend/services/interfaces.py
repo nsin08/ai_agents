@@ -1,7 +1,7 @@
 """Service interface definitions (abstraction layer)."""
 import sys
 from pathlib import Path
-from typing import Protocol, Dict, Any
+from typing import Protocol, Dict, Any, Optional
 
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -22,7 +22,8 @@ class AgentServiceInterface(Protocol):
         message: str,
         provider: str,
         model: str,
-        config: Dict[str, Any]
+        config: Dict[str, Any],
+        api_key: Optional[str] = None
     ) -> ChatResponse:
         """
         Process a user message and return agent response.
@@ -32,6 +33,7 @@ class AgentServiceInterface(Protocol):
             provider: LLM provider name
             model: Model name
             config: Agent configuration
+            api_key: Optional API key override
             
         Returns:
             ChatResponse with response text and metadata

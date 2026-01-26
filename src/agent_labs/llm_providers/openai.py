@@ -37,7 +37,7 @@ class OpenAIProvider(Provider):
         self,
         api_key: Optional[str] = None,
         model: str = "gpt-4",
-        base_url: str = "https://api.openai.com/v1",
+        base_url: Optional[str] = None,
         timeout: int = 30,
         temperature: float = 0.7,
         max_retries: int = 3,
@@ -50,7 +50,7 @@ class OpenAIProvider(Provider):
             )
         
         self.model = model
-        self.base_url = base_url.rstrip("/")
+        self.base_url = (base_url or "https://api.openai.com/v1").rstrip("/")
         self.default_timeout = timeout
         self.default_temperature = temperature
         self.max_retries = max_retries

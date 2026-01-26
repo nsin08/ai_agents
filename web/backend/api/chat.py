@@ -37,7 +37,8 @@ async def send_message(
             message=request.message,
             provider=request.provider,
             model=request.model,
-            config=request.config
+            config=request.config,
+            api_key=request.api_key
         )
         return response
     except Exception as e:

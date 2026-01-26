@@ -57,7 +57,7 @@ def test_send_message_unsupported_provider():
     assert response.status_code == 200
     data = response.json()
     assert data["success"] is False
-    assert "not yet supported" in data["response"]
+    assert "Unknown provider" in data["response"] or "Invalid provider" in data["response"]
 
 
 def test_send_message_empty():
