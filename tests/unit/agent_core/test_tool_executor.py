@@ -14,6 +14,7 @@ from agent_core.tools import (
     ToolContract,
     ToolExecutor,
     ToolIdempotency,
+    ToolConstraints,
     ToolPermissions,
     ToolResult,
 )
@@ -52,6 +53,26 @@ async def test_allowlist_blocks_tool() -> None:
     executor = ToolExecutor([provider], allowlist=["calculator"])
 
     call = ToolCall(tool_name="other_tool", arguments={})
+    result = await executor.execute(call)
+
+    assert result.status == ExecutionStatus.FAILURE
+    assert result.error is not None
+    assert result.error.type == "PolicyViolation"
+
+
+@pytest.mark.asyncio
+async def test_write_path_enforced(tmp_path) -> None:
+    contract = ToolContract(
+        name="file_write",
+        description="file write",
+        constraints=ToolConstraints(requires_write=True),
+        permissions=ToolPermissions(write_paths=[str(tmp_path)]),
+    )
+    provider = DummyProvider({"file_write": DummyTool(contract)})
+    executor = ToolExecutor([provider], allowlist=["file_write"])
+
+    other_path = tmp_path.parent / "not_allowed.txt"
+    call = ToolCall(tool_name="file_write", arguments={"write_path": str(other_path)})
     result = await executor.execute(call)
 
     assert result.status == ExecutionStatus.FAILURE

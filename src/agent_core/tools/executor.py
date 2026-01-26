@@ -177,17 +177,30 @@ class ToolExecutor:
             raise error_cls(str(exc)) from exc
 
     def _validate_paths(self, contract: ToolContract, args: Mapping[str, Any]) -> None:
-        if not contract.constraints.requires_file_access and not contract.permissions.read_paths:
+        if (
+            not contract.constraints.requires_file_access
+            and not contract.permissions.read_paths
+            and not contract.constraints.requires_write
+            and not contract.permissions.write_paths
+        ):
             return
-        allowed = [Path(path).resolve() for path in contract.permissions.read_paths]
-        if not allowed:
-            return
-        raw_path = args.get("path")
-        if raw_path is None:
-            return
-        candidate = Path(str(raw_path)).resolve()
-        if not any(self._is_relative_to(candidate, root) for root in allowed):
-            raise PolicyViolation("Path not permitted by tool contract.")
+        read_allowed = [Path(path).resolve() for path in contract.permissions.read_paths]
+        write_allowed = [Path(path).resolve() for path in contract.permissions.write_paths]
+        path_value = args.get("path")
+        write_path_value = args.get("write_path")
+
+        if contract.constraints.requires_file_access or read_allowed:
+            if read_allowed and path_value is not None:
+                candidate = Path(str(path_value)).resolve()
+                if not any(self._is_relative_to(candidate, root) for root in read_allowed):
+                    raise PolicyViolation("Read path not permitted by tool contract.")
+
+        if contract.constraints.requires_write or write_allowed:
+            target_value = write_path_value if write_path_value is not None else path_value
+            if write_allowed and target_value is not None:
+                candidate = Path(str(target_value)).resolve()
+                if not any(self._is_relative_to(candidate, root) for root in write_allowed):
+                    raise PolicyViolation("Write path not permitted by tool contract.")
 
     @staticmethod
     def _is_relative_to(path: Path, root: Path) -> bool:
