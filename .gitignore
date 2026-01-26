@@ -141,15 +141,6 @@ Desktop.ini
 *.env
 
 # ============================================
-# Configuration Files with Secrets
-# ============================================
-# Example config files (local.yaml, staging.yaml, production.yaml) are committed
-# Custom config files with secrets should be git-ignored
-config/*.local.yaml
-config/*.secret.yaml
-config/*-secrets.yaml
-
-# ============================================
 # Logs and Databases
 # ============================================
 *.log
