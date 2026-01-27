@@ -38,6 +38,9 @@ dev = [
     "ruff>=0.1",
 ]
 
+[project.scripts]
+agent-core = "agent_core.cli:main"
+
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = "-ra -q"
