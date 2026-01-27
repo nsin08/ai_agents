@@ -1,24 +1,24 @@
 import * as vscode from 'vscode';
 import { AgentService, ChatMessage } from '../services/AgentService';
-import { ConfigService } from '../services/ConfigService';
+import { AgentConfigurationService } from '../services/AgentConfigurationService';
 
 export class ChatPanel {
   public static readonly viewType = 'ai-agent.chatPanel';
   private panel: vscode.WebviewPanel;
   private agentService: AgentService;
-  private configService: ConfigService;
+  private agentConfigService: AgentConfigurationService;
   private extensionUri: vscode.Uri;
   private onDisposeCallback?: () => void;
 
   constructor(
     extensionUri: vscode.Uri,
     agentService: AgentService,
-    configService: ConfigService,
+    agentConfigService: AgentConfigurationService,
     onDispose?: () => void
   ) {
     this.extensionUri = extensionUri;
     this.agentService = agentService;
-    this.configService = configService;
+    this.agentConfigService = agentConfigService;
     this.onDisposeCallback = onDispose;
 
     // Create webview panel
@@ -52,6 +52,15 @@ export class ChatPanel {
       }
     }, undefined);
 
+    // Listen to configuration changes from AgentConfigurationService
+    this.agentConfigService.onConfigurationChange((newConfig) => {
+      // Reset session when mode changes to ensure clean state
+      this.agentService.resetSession().then(() => {
+        this.refreshConfig();
+        this.initializeSession();
+      });
+    });
+
     // Initialize session
     this.initializeSession();
   }
@@ -81,6 +90,8 @@ export class ChatPanel {
         sessionId: session.id,
         config: session.config,
       });
+      // Immediately get the fresh config from AgentConfigurationService
+      this.handleGetConfig();
     } catch (error) {
       vscode.window.showErrorMessage(
         `Failed to start session: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -190,7 +201,7 @@ export class ChatPanel {
    * Handle get config command
    */
   private handleGetConfig(): void {
-    const config = this.configService.getConfig();
+    const config = this.agentConfigService.getConfig();
     this.panel.webview.postMessage({
       type: 'configData',
       config,
@@ -201,7 +212,7 @@ export class ChatPanel {
    * Refresh config in webview (called when panel becomes visible or config changes)
    */
   public refreshConfig(): void {
-    const config = this.configService.getConfig();
+    const config = this.agentConfigService.getConfig();
     this.panel.webview.postMessage({
       type: 'configUpdated',
       config,
@@ -321,7 +332,17 @@ export class ChatPanel {
 '        function updateConfigDisplay(config) {' +
 '            const configInfo = document.getElementById("configInfo");' +
 '            if (config) {' +
-'                configInfo.textContent = "Provider: " + config.provider + " | Model: " + config.model;' +
+'                if (config.mode === "single") {' +
+'                    configInfo.textContent = "👤 Single-Agent | Provider: " + config.provider + " | Model: " + config.model;' +
+'                } else if (config.mode === "multi") {' +
+'                    const planProvider = (config.plan && config.plan.provider) || "unknown";' +
+'                    const actProvider = (config.act && config.act.provider) || "unknown";' +
+'                    const planModel = (config.plan && config.plan.model) || "unknown";' +
+'                    const actModel = (config.act && config.act.model) || "unknown";' +
+'                    configInfo.textContent = "🤝 Multi-Agent | Plan: " + planProvider + "/" + planModel + " | Act: " + actProvider + "/" + actModel;' +
+'                } else {' +
+'                    configInfo.textContent = "Provider: " + (config.provider || "unknown") + " | Model: " + (config.model || "unknown");' +
+'                }' +
 '            }' +
 '        }' +
 '        window.addEventListener("message", function(event) {' +

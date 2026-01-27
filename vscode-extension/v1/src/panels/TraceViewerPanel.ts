@@ -6,6 +6,7 @@
 import * as vscode from 'vscode';
 import { TraceService } from '../services/TraceService';
 import { ExportService } from '../services/ExportService';
+import { AgentConfigurationService } from '../services/AgentConfigurationService';
 import {
   ConversationTrace,
   TraceEntry,
@@ -22,19 +23,39 @@ export class TraceViewerPanel implements vscode.TreeDataProvider<TraceTreeNode> 
 
   private traceService: TraceService;
   private exportService: ExportService;
+  private agentConfigService: AgentConfigurationService | undefined;
   private treeView: vscode.TreeView<TraceTreeNode>;
   private currentConversationId: string | undefined;
   private autoRefreshEnabled: boolean = false;
   private autoRefreshInterval: NodeJS.Timeout | undefined;
   private readonly REFRESH_INTERVAL_MS = 2000; // 2 seconds
+  private currentMode: 'single' | 'multi' = 'single'; // Track current mode for filtering
 
   constructor(
     context: vscode.ExtensionContext,
     traceService: TraceService,
-    exportService: ExportService
+    exportService: ExportService,
+    agentConfigService?: AgentConfigurationService
   ) {
     this.traceService = traceService;
     this.exportService = exportService;
+    this.agentConfigService = agentConfigService;
+    
+    // Load initial mode
+    if (this.agentConfigService) {
+      this.currentMode = this.agentConfigService.getConfig().mode;
+      
+      // Listen for mode changes and refresh when needed
+      const modeChangeDisposable = this.agentConfigService.onConfigurationChange((newConfig) => {
+        const newMode = newConfig.mode;
+        // If mode changed, refresh traces to show correct mode
+        if (newMode !== this.currentMode) {
+          this.currentMode = newMode;
+          this.refresh();
+        }
+      });
+      context.subscriptions.push(modeChangeDisposable);
+    }
 
     // Register tree view
     this.treeView = vscode.window.createTreeView('ai-agent.traceViewer', {
@@ -146,6 +167,8 @@ export class TraceViewerPanel implements vscode.TreeDataProvider<TraceTreeNode> 
       ? [this.traceService.getTrace(this.currentConversationId)].filter(Boolean) as ConversationTrace[]
       : this.traceService.getAllTraces();
 
+    // Note: We show all traces regardless of mode, as the mode is displayed in the label
+    // This allows users to see traces from previous modes if needed
     if (traces.length === 0) {
       return [{
         id: 'empty',
@@ -164,11 +187,32 @@ export class TraceViewerPanel implements vscode.TreeDataProvider<TraceTreeNode> 
   private buildConversationNode(trace: ConversationTrace): TraceTreeNode {
     const turnNodes = this.groupEntriesByTurn(trace.entries);
 
+    // Build label based on execution mode
+    let label: string;
+    let tooltip: string;
+    
+    // Handle backward compatibility: if mode is not set, infer from available data
+    const mode = trace.mode || (trace.planProvider ? 'multi' : 'single');
+    
+    if (mode === 'multi') {
+      const planProvider = trace.planProvider || 'unknown';
+      const planModel = trace.planModel || 'unknown';
+      const actProvider = trace.actProvider || 'unknown';
+      const actModel = trace.actModel || 'unknown';
+      label = `🤝 Multi-Agent: Plan (${planProvider}/${planModel}) | Act (${actProvider}/${actModel}) (${trace.totalTurns} turns)`;
+      tooltip = `Mode: Multi-Agent\nPlan: ${planProvider}/${planModel}\nAct: ${actProvider}/${actModel}\nStarted: ${trace.startTime.toLocaleString()}\nEnded: ${trace.endTime?.toLocaleString() || 'Active'}`;
+    } else {
+      const provider = trace.provider || 'unknown';
+      const model = trace.model || 'unknown';
+      label = `👤 Single-Agent: ${provider}/${model} (${trace.totalTurns} turns)`;
+      tooltip = `Mode: Single-Agent\nProvider: ${provider}\nModel: ${model}\nStarted: ${trace.startTime.toLocaleString()}\nEnded: ${trace.endTime?.toLocaleString() || 'Active'}`;
+    }
+
     return {
       id: trace.conversationId,
-      label: `Conversation: ${trace.provider}/${trace.model} (${trace.totalTurns} turns)`,
+      label,
       type: 'conversation',
-      tooltip: `Started: ${trace.startTime.toLocaleString()}\nEnded: ${trace.endTime?.toLocaleString() || 'Active'}`,
+      tooltip,
       children: turnNodes,
       collapsibleState: 'collapsed'
     };

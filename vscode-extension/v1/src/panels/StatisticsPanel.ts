@@ -1,33 +1,53 @@
 /**
  * StatisticsPanel - Displays token usage, cost, and response time metrics.
- * Provides export functionality for conversation metrics.
+ * Supports both single-agent and multi-agent (Plan + Act) modes.
  */
 
 import * as vscode from 'vscode';
 import { MetricsService } from '../services/MetricsService';
 import { ExportService } from '../services/ExportService';
 import { ConfigService } from '../services/ConfigService';
+import { AgentConfigurationService } from '../services/AgentConfigurationService';
 import { ConversationMetrics, StatisticsSummary } from '../models/Statistics';
+import type { AgentConfiguration } from '../models/AgentRole';
 
 export class StatisticsPanel {
   public static readonly viewType = 'ai-agent.statisticsPanel';
   private panel: vscode.WebviewPanel | undefined;
   private metricsService: MetricsService;
   private exportService: ExportService;
-  private configService: ConfigService;
+  private configService: ConfigService | AgentConfigurationService;
   private extensionUri: vscode.Uri;
   private updateInterval: NodeJS.Timeout | undefined;
+  private currentConfig: AgentConfiguration | any;
+  private configChangeDisposable: vscode.Disposable | undefined;
 
   constructor(
     extensionUri: vscode.Uri,
     metricsService: MetricsService,
     exportService: ExportService,
-    configService: ConfigService
+    configService: ConfigService | AgentConfigurationService
   ) {
     this.extensionUri = extensionUri;
     this.metricsService = metricsService;
     this.exportService = exportService;
     this.configService = configService;
+
+    // Load initial configuration
+    if (configService instanceof AgentConfigurationService) {
+      this.currentConfig = configService.getConfig();
+      console.log('[StatisticsPanel] Initial config loaded:', this.currentConfig.mode);
+      
+      this.configChangeDisposable = configService.onConfigurationChange((newConfig) => {
+        console.log('[StatisticsPanel] Config changed from', this.currentConfig.mode, 'to', newConfig.mode);
+        this.currentConfig = newConfig;
+        if (this.panel) {
+          this.refreshData();
+        }
+      });
+    } else {
+      this.currentConfig = (configService as ConfigService).getConfig();
+    }
   }
 
   /**
@@ -51,7 +71,37 @@ export class StatisticsPanel {
       }
     );
 
-    this.panel.webview.html = this.getHtmlForWebview(this.panel.webview);
+    // Get initial data
+    const summary = this.metricsService.getSummary();
+    const allMetrics = this.metricsService.getAllMetrics();
+    let executionMode = 'legacy';
+    let provider = 'unknown';
+    let model = 'unknown';
+    
+    if (this.configService instanceof AgentConfigurationService) {
+      const config = this.currentConfig as AgentConfiguration;
+      executionMode = config.mode || 'legacy';
+      
+      if (config.mode === 'single') {
+        provider = config.provider || 'unknown';
+        model = config.model || 'unknown';
+      } else {
+        provider = `Plan: ${config.plan?.provider || 'unknown'} | Act: ${config.act?.provider || 'unknown'}`;
+        model = `Plan: ${config.plan?.model || 'unknown'} | Act: ${config.act?.model || 'unknown'}`;
+      }
+    } else {
+      provider = (this.currentConfig as any).provider || 'unknown';
+      model = (this.currentConfig as any).model || 'unknown';
+    }
+
+    this.panel.webview.html = this.getHtmlForWebviewWithData(
+      this.panel.webview,
+      summary,
+      allMetrics,
+      executionMode,
+      provider,
+      model
+    );
 
     // Handle messages from webview
     this.panel.webview.onDidReceiveMessage(
@@ -83,6 +133,9 @@ export class StatisticsPanel {
     if (this.updateInterval) {
       clearInterval(this.updateInterval);
     }
+    if (this.configChangeDisposable) {
+      this.configChangeDisposable.dispose();
+    }
     if (this.panel) {
       this.panel.dispose();
       this.panel = undefined;
@@ -97,16 +150,45 @@ export class StatisticsPanel {
       return;
     }
 
+    console.log('[StatisticsPanel] refreshData() called');
+    
     const summary = this.metricsService.getSummary();
     const allMetrics = this.metricsService.getAllMetrics();
-    const currentConfig = this.configService.getConfig();
-
-    this.panel.webview.postMessage({
-      type: 'updateData',
+    
+    let executionMode = 'legacy';
+    let provider = 'unknown';
+    let model = 'unknown';
+    
+    if (this.configService instanceof AgentConfigurationService) {
+      const config = this.currentConfig as AgentConfiguration;
+      executionMode = config.mode || 'legacy';
+      
+      console.log('[StatisticsPanel] Current config mode:', config.mode, 'Provider:', config.mode === 'single' ? config.provider : `${config.plan?.provider}/${config.act?.provider}`);
+      
+      if (config.mode === 'single') {
+        provider = config.provider || 'unknown';
+        model = config.model || 'unknown';
+      } else {
+        // Multi-agent: show both Plan and Act
+        provider = `Plan: ${config.plan?.provider || 'unknown'} | Act: ${config.act?.provider || 'unknown'}`;
+        model = `Plan: ${config.plan?.model || 'unknown'} | Act: ${config.act?.model || 'unknown'}`;
+      }
+    } else {
+      provider = (this.currentConfig as any).provider || 'unknown';
+      model = (this.currentConfig as any).model || 'unknown';
+    }
+    
+    console.log('[StatisticsPanel] Display - Mode:', executionMode, 'Provider:', provider, 'Model:', model);
+    
+    // Instead of relying on webview JavaScript, regenerate entire HTML with fresh data
+    this.panel.webview.html = this.getHtmlForWebviewWithData(
+      this.panel.webview,
       summary,
-      metrics: allMetrics,
-      currentConfig
-    });
+      allMetrics,
+      executionMode,
+      provider,
+      model
+    );
   }
 
   /**
@@ -114,6 +196,10 @@ export class StatisticsPanel {
    */
   private async handleMessage(message: any): Promise<void> {
     switch (message.type) {
+      case 'log':
+        console.log(message.message);
+        break;
+        
       case 'refresh':
         this.refreshData();
         break;
@@ -199,9 +285,50 @@ export class StatisticsPanel {
   }
 
   /**
-   * Generate HTML for the webview.
+   * Generate HTML for the webview with data rendered server-side.
    */
-  private getHtmlForWebview(webview: vscode.Webview): string {
+  private getHtmlForWebviewWithData(
+    webview: vscode.Webview,
+    summary: StatisticsSummary,
+    metrics: ConversationMetrics[],
+    executionMode: string,
+    provider: string,
+    model: string
+  ): string {
+    const modeDisplay = executionMode === 'single' ? '👤 Single-Agent' : executionMode === 'multi' ? '🤝 Multi-Agent (Plan + Act)' : '⚙️ Legacy';
+    
+    // Format provider and model for multi-agent display
+    let providerDisplay = provider;
+    let modelDisplay = model;
+    
+    if (provider.includes('|')) {
+      // Multi-agent: format as two lines
+      const parts = provider.split('|').map(p => p.trim());
+      providerDisplay = `<div style="line-height: 1.6;">${parts[0]}<br/>${parts[1]}</div>`;
+    }
+    
+    if (model.includes('|')) {
+      // Multi-agent: format as two lines
+      const parts = model.split('|').map(m => m.trim());
+      modelDisplay = `<div style="line-height: 1.6;">${parts[0]}<br/>${parts[1]}</div>`;
+    }
+    
+    // Build metrics table rows
+    const metricsRows = metrics.length === 0 
+      ? '<tr><td colspan="8" style="text-align: center; padding: 40px; color: var(--vscode-descriptionForeground);">No conversation metrics available</td></tr>'
+      : metrics.map(m => `
+        <tr>
+          <td><span class="status-badge ${m.endTime ? 'status-ended' : 'status-active'}">${m.endTime ? 'Ended' : 'Active'}</span></td>
+          <td>${m.provider}</td>
+          <td>${m.model}</td>
+          <td>${m.messageCount}</td>
+          <td>${m.totalTokens.toLocaleString()}</td>
+          <td>$${m.totalCost.toFixed(4)}</td>
+          <td>${m.averageResponseTime.toFixed(0)}</td>
+          <td>${new Date(m.startTime).toLocaleString()}</td>
+        </tr>
+      `).join('');
+
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -296,11 +423,6 @@ export class StatisticsPanel {
     tr:hover {
       background: var(--vscode-list-hoverBackground);
     }
-    .empty-state {
-      text-align: center;
-      padding: 40px;
-      color: var(--vscode-descriptionForeground);
-    }
     .status-badge {
       display: inline-block;
       padding: 2px 8px;
@@ -322,130 +444,90 @@ export class StatisticsPanel {
   <h1>📊 Agent Statistics</h1>
 
   <div class="button-group">
-    <button onclick="refresh()">🔄 Refresh</button>
-    <button onclick="exportCSV()">📄 Export CSV</button>
-    <button onclick="exportJSON()">📦 Export JSON</button>
-    <button class="secondary" onclick="copyToClipboard('json')">📋 Copy JSON</button>
-    <button class="danger" onclick="clearMetrics()">🗑️ Clear All</button>
+    <button onclick="vscode.postMessage({type: 'refresh'})">🔄 Refresh</button>
+    <button onclick="vscode.postMessage({type: 'exportCSV'})">📄 Export CSV</button>
+    <button onclick="vscode.postMessage({type: 'exportJSON'})">📦 Export JSON</button>
+    <button class="secondary" onclick="vscode.postMessage({type: 'copyToClipboard', data: 'json'})">📋 Copy JSON</button>
+    <button class="danger" onclick="vscode.postMessage({type: 'clearMetrics'})">🗑️ Clear All</button>
   </div>
 
   <h2>Summary</h2>
-  <div class="summary-grid" id="summaryGrid">
-    <!-- Populated by JS -->
+  <div class="summary-grid">
+    <div class="metric-card">
+      <div class="metric-label">Execution Mode</div>
+      <div class="metric-value" style="font-size: 16px;">${modeDisplay}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Total Conversations</div>
+      <div class="metric-value">${summary.totalConversations}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Total Messages</div>
+      <div class="metric-value">${summary.totalMessages}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Total Tokens</div>
+      <div class="metric-value">${summary.totalTokens.toLocaleString()}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Total Cost</div>
+      <div class="metric-value">$${summary.totalCost.toFixed(4)}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Avg Response Time</div>
+      <div class="metric-value">${summary.averageResponseTime.toFixed(0)}<span class="metric-unit">ms</span></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Provider</div>
+      <div class="metric-value" style="font-size: 13px;">${providerDisplay}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Model</div>
+      <div class="metric-value" style="font-size: 13px;">${modelDisplay}</div>
+    </div>
   </div>
 
   <h2>Conversation History</h2>
-  <div id="metricsTable">
-    <!-- Populated by JS -->
-  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Status</th>
+        <th>Provider</th>
+        <th>Model</th>
+        <th>Messages</th>
+        <th>Tokens</th>
+        <th>Cost</th>
+        <th>Avg Time (ms)</th>
+        <th>Started</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${metricsRows}
+    </tbody>
+  </table>
 
   <script>
     const vscode = acquireVsCodeApi();
-
-    // Handle messages from extension
-    window.addEventListener('message', event => {
-      const message = event.data;
-      if (message.type === 'updateData') {
-        updateSummary(message.summary, message.currentConfig);
-        updateMetricsTable(message.metrics);
-      }
-    });
-
-    function updateSummary(summary, currentConfig) {
-      const grid = document.getElementById('summaryGrid');
-      grid.innerHTML = \`
-        <div class="metric-card">
-          <div class="metric-label">Total Conversations</div>
-          <div class="metric-value">\${summary.totalConversations}</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">Total Messages</div>
-          <div class="metric-value">\${summary.totalMessages}</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">Total Tokens</div>
-          <div class="metric-value">\${summary.totalTokens.toLocaleString()}</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">Total Cost</div>
-          <div class="metric-value">$\${summary.totalCost.toFixed(4)}</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">Avg Response Time</div>
-          <div class="metric-value">\${summary.averageResponseTime.toFixed(0)}<span class="metric-unit">ms</span></div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">Current Provider</div>
-          <div class="metric-value" style="font-size: 18px;">\${currentConfig.provider}</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">Current Model</div>
-          <div class="metric-value" style="font-size: 16px;">\${currentConfig.model}</div>
-        </div>
-      \`;
-    }
-
-    function updateMetricsTable(metrics) {
-      const container = document.getElementById('metricsTable');
-      
-      if (metrics.length === 0) {
-        container.innerHTML = '<div class="empty-state">No conversation metrics available</div>';
-        return;
-      }
-
-      container.innerHTML = \`
-        <table>
-          <thead>
-            <tr>
-              <th>Status</th>
-              <th>Provider</th>
-              <th>Model</th>
-              <th>Messages</th>
-              <th>Tokens</th>
-              <th>Cost</th>
-              <th>Avg Time (ms)</th>
-              <th>Started</th>
-            </tr>
-          </thead>
-          <tbody>
-            \${metrics.map(m => \`
-              <tr>
-                <td><span class="status-badge \${m.endTime ? 'status-ended' : 'status-active'}">\${m.endTime ? 'Ended' : 'Active'}</span></td>
-                <td>\${m.provider}</td>
-                <td>\${m.model}</td>
-                <td>\${m.messageCount}</td>
-                <td>\${m.totalTokens.toLocaleString()}</td>
-                <td>$\${m.totalCost.toFixed(4)}</td>
-                <td>\${m.averageResponseTime.toFixed(0)}</td>
-                <td>\${new Date(m.startTime).toLocaleString()}</td>
-              </tr>
-            \`).join('')}
-          </tbody>
-        </table>
-      \`;
-    }
-
-    function refresh() {
-      vscode.postMessage({ type: 'refresh' });
-    }
-
-    function exportCSV() {
-      vscode.postMessage({ type: 'exportCSV' });
-    }
-
-    function exportJSON() {
-      vscode.postMessage({ type: 'exportJSON' });
-    }
-
-    function copyToClipboard(format) {
-      vscode.postMessage({ type: 'copyToClipboard', data: format });
-    }
-
-    function clearMetrics() {
-      vscode.postMessage({ type: 'clearMetrics' });
-    }
   </script>
 </body>
 </html>`;
+  }
+
+  /**
+   * Generate HTML for the webview (empty template - now replaced by getHtmlForWebviewWithData).
+   */
+  private getHtmlForWebview(webview: vscode.Webview): string {
+    // This is kept for reference but getHtmlForWebviewWithData is now used instead
+    const now = new Date();
+    return this.getHtmlForWebviewWithData(webview, { 
+      totalConversations: 0, 
+      totalMessages: 0, 
+      totalTokens: 0, 
+      totalCost: 0, 
+      averageResponseTime: 0,
+      topProvider: 'unknown',
+      topModel: 'unknown',
+      dateRange: { from: now, to: now }
+    }, [], 'legacy', 'unknown', 'unknown');
   }
 }

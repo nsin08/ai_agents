@@ -1,44 +1,74 @@
 import * as vscode from 'vscode';
 import { ChatPanel } from './panels/ChatPanel';
 import { ConfigPanel } from './panels/ConfigPanel';
+import { SettingsPanel } from './panels/SettingsPanel';
 import { StatisticsPanel } from './panels/StatisticsPanel';
 import { TraceViewerPanel } from './panels/TraceViewerPanel';
 import { CodeSuggestionPanel } from './panels/CodeSuggestionPanel';
+import { MultiAgentDashboard } from './panels/MultiAgentDashboard';
+import { ReasoningPanel } from './panels/ReasoningPanel';
 import { AgentService } from './services/AgentService';
 import { ConfigService } from './services/ConfigService';
+import { AgentConfigurationService } from './services/AgentConfigurationService';
 import { MetricsService } from './services/MetricsService';
 import { TraceService } from './services/TraceService';
 import { ExportService } from './services/ExportService';
 import { CodeContextService } from './services/CodeContextService';
 import { CodeInsertionService } from './services/CodeInsertionService';
+import { MultiAgentCoordinator } from './services/MultiAgentCoordinator';
+import { PlannerAgent } from './services/agents/PlannerAgent';
+import { ExecutorAgent } from './services/agents/ExecutorAgent';
+import { VerifierAgent } from './services/agents/VerifierAgent';
+import { AgentRole, AgentStatus, SpecialistAgent } from './models/AgentRole';
 
 let chatPanel: ChatPanel | undefined;
 let configPanel: ConfigPanel | undefined;
+let settingsPanel: SettingsPanel | undefined;
 let statisticsPanel: StatisticsPanel | undefined;
 let traceViewerPanel: TraceViewerPanel | undefined;
+let multiAgentDashboard: MultiAgentDashboard | undefined;
+let reasoningPanel: ReasoningPanel | undefined;
 let agentService: AgentService;
 let configService: ConfigService;
+let agentConfigService: AgentConfigurationService;
 let metricsService: MetricsService;
 let traceService: TraceService;
 let exportService: ExportService;
 let codeContextService: CodeContextService;
 let codeInsertionService: CodeInsertionService;
+let coordinator: MultiAgentCoordinator;
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('AI Agent Extension activating...');
 
   // Initialize services
   configService = new ConfigService(context);
+  agentConfigService = new AgentConfigurationService(context);
   metricsService = new MetricsService(context);
   traceService = new TraceService(context);
   exportService = new ExportService();
-  agentService = new AgentService(configService, metricsService, traceService);
+  agentService = new AgentService(configService, metricsService, traceService, agentConfigService);
   codeContextService = new CodeContextService();
   codeInsertionService = new CodeInsertionService();
+  
+  // Initialize coordinator with new AgentConfigurationService
+  coordinator = new MultiAgentCoordinator(
+    agentService,
+    metricsService,
+    traceService,
+    agentConfigService
+  );
 
   // Initialize UI panels
-  statisticsPanel = new StatisticsPanel(context.extensionUri, metricsService, exportService, configService);
-  traceViewerPanel = new TraceViewerPanel(context, traceService, exportService);
+  statisticsPanel = new StatisticsPanel(context.extensionUri, metricsService, exportService, agentConfigService);
+  traceViewerPanel = new TraceViewerPanel(context, traceService, exportService, agentConfigService);
+  multiAgentDashboard = new MultiAgentDashboard(
+    context.extensionUri,
+    coordinator,
+    metricsService,
+    traceService
+  );
+  reasoningPanel = new ReasoningPanel(context.extensionUri, coordinator, agentConfigService);
 
   // Register command: Start Conversation
   const startConversationCmd = vscode.commands.registerCommand(
@@ -49,7 +79,7 @@ export function activate(context: vscode.ExtensionContext) {
         chatPanel = new ChatPanel(
           context.extensionUri,
           agentService,
-          configService,
+          agentConfigService,
           () => { chatPanel = undefined; }
         );
       }
@@ -57,35 +87,67 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  // Register command: Switch Provider
-  const switchProviderCmd = vscode.commands.registerCommand(
-    'ai-agent.switchProvider',
+  // Register command: Open Settings (Mode Toggle + Configuration)
+  const openSettingsCmd = vscode.commands.registerCommand(
+    'ai-agent.openSettings',
     async () => {
-      console.log('Switching provider...');
-      if (!configPanel) {
-        configPanel = new ConfigPanel(
+      console.log('Opening agent settings...');
+      if (!settingsPanel) {
+        settingsPanel = new SettingsPanel(
           context.extensionUri,
-          configService,
-          () => { configPanel = undefined; }
+          agentConfigService,
+          () => { settingsPanel = undefined; }
         );
       }
-      configPanel.show();
+      settingsPanel.show();
     }
   );
 
-  // Register command: Switch Model
+  // Register command: Switch Provider (Legacy - uses new settings)
+  const switchProviderCmd = vscode.commands.registerCommand(
+    'ai-agent.switchProvider',
+    async () => {
+      console.log('Opening settings...');
+      if (!settingsPanel) {
+        settingsPanel = new SettingsPanel(
+          context.extensionUri,
+          agentConfigService,
+          () => { settingsPanel = undefined; }
+        );
+      }
+      settingsPanel.show();
+    }
+  );
+
+  // Register command: Switch Model (Legacy - uses new settings)
   const switchModelCmd = vscode.commands.registerCommand(
     'ai-agent.switchModel',
     async () => {
-      console.log('Switching model...');
-      if (!configPanel) {
-        configPanel = new ConfigPanel(
+      console.log('Opening settings...');
+      if (!settingsPanel) {
+        settingsPanel = new SettingsPanel(
           context.extensionUri,
-          configService,
-          () => { configPanel = undefined; }
+          agentConfigService,
+          () => { settingsPanel = undefined; }
         );
       }
-      configPanel.show();
+      settingsPanel.show();
+    }
+  );
+
+  // Keep old config panel command for backwards compatibility
+  const configPanelCmd = vscode.commands.registerCommand(
+    'ai-agent.configPanel',
+    async () => {
+      // Redirect to new settings panel
+      if (!settingsPanel) {
+        settingsPanel = new SettingsPanel(
+          context.extensionUri,
+          agentConfigService,
+          () => { settingsPanel = undefined; }
+        );
+      }
+      settingsPanel.show();
     }
   );
 
@@ -150,7 +212,7 @@ export function activate(context: vscode.ExtensionContext) {
         chatPanel = new ChatPanel(
           context.extensionUri,
           agentService,
-          configService,
+          agentConfigService,
           () => { chatPanel = undefined; }
         );
       }
@@ -189,7 +251,7 @@ export function activate(context: vscode.ExtensionContext) {
         chatPanel = new ChatPanel(
           context.extensionUri,
           agentService,
-          configService,
+          agentConfigService,
           () => { chatPanel = undefined; }
         );
       }
@@ -226,6 +288,8 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+
+
   // Subscribe to configuration changes
   vscode.workspace.onDidChangeConfiguration((event) => {
     if (event.affectsConfiguration('aiAgent')) {
@@ -240,8 +304,10 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     startConversationCmd,
+    openSettingsCmd,
     switchProviderCmd,
     switchModelCmd,
+    configPanelCmd,
     resetSessionCmd,
     showStatisticsCmd,
     showTraceViewerCmd,
@@ -261,7 +327,16 @@ export function deactivate() {
   if (configPanel) {
     configPanel.dispose();
   }
+  if (settingsPanel) {
+    settingsPanel.dispose();
+  }
   if (statisticsPanel) {
     statisticsPanel.dispose();
+  }
+  if (multiAgentDashboard) {
+    multiAgentDashboard.dispose();
+  }
+  if (reasoningPanel) {
+    reasoningPanel.dispose();
   }
 }

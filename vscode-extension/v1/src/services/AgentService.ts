@@ -1,9 +1,14 @@
 import * as vscode from 'vscode';
 import axios, { AxiosInstance } from 'axios';
 import { ConfigService, AgentConfig } from './ConfigService';
+import { AgentConfigurationService } from './AgentConfigurationService';
 import { MetricsService } from './MetricsService';
 import { TraceService } from './TraceService';
+import { MultiAgentCoordinator } from './MultiAgentCoordinator';
 import { AgentState } from '../models/Trace';
+import { AgentRole, SpecialistAgent, AgentCapability } from '../models/AgentRole';
+import { CombinedResult } from '../models/AgentMessage';
+import type { AgentConfiguration, MultiAgentConfig } from '../models/AgentRole';
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -25,21 +30,35 @@ export interface ChatSession {
 
 export class AgentService {
   private configService: ConfigService;
+  private agentConfigService: AgentConfigurationService | undefined;
   private metricsService: MetricsService | undefined;
   private traceService: TraceService | undefined;
+  private coordinator: MultiAgentCoordinator | undefined;
   private currentSession: ChatSession | undefined;
   private httpClient: AxiosInstance;
   private sessionId: string;
   private currentTurn: number = 0;
   private activeProvider: string = '';
   private activeModel: string = '';
+  private specialistAgents: Map<AgentRole, SpecialistAgent> = new Map();
 
-  constructor(configService: ConfigService, metricsService?: MetricsService, traceService?: TraceService) {
+  constructor(configService: ConfigService, metricsService?: MetricsService, traceService?: TraceService, agentConfigService?: AgentConfigurationService) {
     this.configService = configService;
+    this.agentConfigService = agentConfigService;
     this.metricsService = metricsService;
     this.traceService = traceService;
     this.sessionId = this.generateSessionId();
     this.httpClient = axios.create();
+    
+    // Initialize coordinator if we have all required services
+    if (metricsService && traceService && agentConfigService) {
+      this.coordinator = new MultiAgentCoordinator(
+        this,
+        metricsService,
+        traceService,
+        agentConfigService
+      );
+    }
   }
 
   /**
@@ -71,10 +90,38 @@ export class AgentService {
 
     // Initialize metrics and trace collection
     if (this.metricsService) {
-      this.metricsService.startConversation(this.sessionId, config.provider, config.model);
+      // Determine mode from AgentConfigurationService if available, otherwise default to 'single'
+      const mode = this.agentConfigService?.getConfig().mode || 'single';
+      
+      if (mode === 'multi') {
+        const multiConfig = this.agentConfigService?.getConfig() as any;
+        // For multi-agent, use format "Plan: provider | Act: provider"
+        const provider = `Plan: ${multiConfig.plan?.provider || 'unknown'} | Act: ${multiConfig.act?.provider || 'unknown'}`;
+        const model = `Plan: ${multiConfig.plan?.model || 'unknown'} | Act: ${multiConfig.act?.model || 'unknown'}`;
+        this.metricsService.startConversation(this.sessionId, provider, model);
+      } else {
+        this.metricsService.startConversation(this.sessionId, config.provider, config.model);
+      }
     }
     if (this.traceService) {
-      this.traceService.startTrace(this.sessionId, config.provider, config.model);
+      // Determine mode from AgentConfigurationService if available, otherwise default to 'single'
+      const mode = this.agentConfigService?.getConfig().mode || 'single';
+      
+      if (mode === 'multi') {
+        const multiConfig = this.agentConfigService?.getConfig() as MultiAgentConfig;
+        this.traceService.startTrace(
+          this.sessionId,
+          multiConfig.plan.provider,
+          multiConfig.plan.model,
+          'multi',
+          multiConfig.plan.provider,
+          multiConfig.plan.model,
+          multiConfig.act.provider,
+          multiConfig.act.model
+        );
+      } else {
+        this.traceService.startTrace(this.sessionId, config.provider, config.model, 'single');
+      }
     }
     this.currentTurn = 0;
 
@@ -131,23 +178,35 @@ export class AgentService {
     this.currentSession!.messages.push(userMsg);
 
     try {
-      // Trace: Plan state (simulated - would come from actual orchestrator)
-      const planStartTime = Date.now();
-      this.recordTrace('Plan', userMessage, 'Planning response strategy', planStartTime);
+      let response: string;
 
+      // Check if multi-agent mode is enabled
+      const isMultiAgent = this.agentConfigService?.getConfig().mode === 'multi';
+      
+      if (isMultiAgent && this.coordinator) {
+        // Use multi-agent coordinator
+        const coordinatorResult = await this.coordinator.orchestrate(userMessage);
+        response = coordinatorResult.finalOutput || 'No response from coordinator';
+      } else {
+        // Use direct API call for single-agent mode
+        // Trace: Plan state (simulated - would come from actual orchestrator)
+        const planStartTime = Date.now();
+        this.recordTrace('Plan', userMessage, 'Planning response strategy', planStartTime);
 
-      // Trace: Act state (call backend)
-      const actStartTime = Date.now();
-      const response = await this.callBackendAPI(userMessage, config);
-      const responseTime = Date.now() - actStartTime;
+        // Trace: Act state (call backend)
+        const actStartTime = Date.now();
+        response = await this.callBackendAPI(userMessage, config);
+        const responseTime = Date.now() - actStartTime;
+
+        // Trace: Verify state (simulated - would come from actual orchestrator)
+        const verifyStartTime = Date.now();
+        this.recordTrace('Verify', response, 'Response validated', verifyStartTime);
+      }
 
       // Estimate token counts (in real implementation, get from API response)
       const promptTokens = this.estimateTokens(userMessage);
       const completionTokens = this.estimateTokens(response);
-
-      // Trace: Verify state (simulated - would come from actual orchestrator)
-      const verifyStartTime = Date.now();
-      this.recordTrace('Verify', response, 'Response validated', verifyStartTime);
+      const responseTime = Date.now() - turnStartTime;
 
       // Record metrics for this message
       if (this.metricsService) {
@@ -351,5 +410,48 @@ export class AgentService {
       this.currentSession.config = config;
     }
     console.log('Agent configuration updated:', config);
+  }
+
+  /**
+   * Register a specialist agent for multi-agent coordination.
+   */
+  public registerSpecialistAgent(role: AgentRole, agent: SpecialistAgent): void {
+    this.specialistAgents.set(role, agent);
+  }
+
+  /**
+   * Get all registered specialist agents.
+   */
+  public getRegisteredAgents(): SpecialistAgent[] {
+    return Array.from(this.specialistAgents.values());
+  }
+
+  /**
+   * Get a registered agent by role.
+   */
+  public getAgent(role: AgentRole): SpecialistAgent | undefined {
+    return this.specialistAgents.get(role);
+  }
+
+  /**
+   * Get agent capabilities for a role or all capabilities if no role is provided.
+   */
+  public getAgentCapabilities(role?: AgentRole): AgentCapability[] {
+    if (role) {
+      return this.specialistAgents.get(role)?.capabilities ?? [];
+    }
+
+    const capabilities: AgentCapability[] = [];
+    for (const agent of this.specialistAgents.values()) {
+      capabilities.push(...agent.capabilities);
+    }
+    return capabilities;
+  }
+
+  /**
+   * Orchestrate a task via multi-agent coordination (stub until coordinator is implemented).
+   */
+  public async orchestrateMultiAgent(_task: string): Promise<CombinedResult> {
+    throw new Error('Multi-agent coordinator not implemented yet.');
   }
 }
