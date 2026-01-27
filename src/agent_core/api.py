@@ -3,25 +3,29 @@
 from __future__ import annotations
 
 import asyncio
-from dataclasses import dataclass, field
+import os
+from importlib import metadata
 from typing import Any, Callable, Mapping
 
+from .artifacts import (
+    ArtifactPaths,
+    ArtifactPayloads,
+    deterministic_time,
+    LocalFilesystemStore,
+    RunArtifact,
+    hash_config_snapshot,
+    normalize_events_for_determinism,
+    normalize_tool_calls_for_determinism,
+    redact_config_snapshot,
+    utc_now,
+)
 from .config import AgentCoreConfig, load_config
-from .engine import EngineComponents, RunRequest, RunResult
+from .engine import EngineComponents, RunRequest, RunResult, RunStatus
 from .factories import EngineFactory, ModelFactory, ToolExecutorFactory
 from .memory import InMemorySessionStore, SessionStore
-from .observability import build_emitter
+from .observability import MemoryExporter, ObservabilityEmitter, Redactor, build_emitter
 from .registry import AgentCoreRegistry, get_global_registry
 from .tools import ToolExecutor
-
-
-@dataclass(frozen=True)
-class RunArtifact:
-    run_id: str
-    config_snapshot: dict[str, Any]
-    request: RunRequest
-    result: RunResult
-    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class AgentCore:
@@ -102,13 +106,55 @@ class AgentCore:
         return await self._engine.execute(request, components)
 
     async def run_with_artifacts(self, request: RunRequest) -> tuple[RunResult, RunArtifact]:
-        result = await self.run(request)
+        started_at = utc_now()
+        memory_exporter = MemoryExporter()
+        redactor = Redactor(self.config.observability.redact)
+        memory_emitter = ObservabilityEmitter([memory_exporter], redactor=redactor)
+
+        def emit(event: Mapping[str, Any]) -> None:
+            memory_emitter.emit(event)
+            if self._emit_event:
+                self._emit_event(event)
+
+        components = EngineComponents(
+            models=self._models,
+            tool_executor=self._tool_executor,
+            memory=self._memory_factory(),
+            policies=self.config.policies,
+            emit_event=emit,
+        )
+        result = await self._engine.execute(request, components)
+        finished_at = utc_now()
+
+        config_snapshot = redact_config_snapshot(self.config.model_dump())
+        config_hash = hash_config_snapshot(config_snapshot)
+        events = list(memory_exporter.events)
+        tool_calls = _collect_tool_calls(events, redactor)
+
+        if self.config.mode == "deterministic":
+            started_at = finished_at = deterministic_time()
+            events = normalize_events_for_determinism(events)
+            tool_calls = normalize_tool_calls_for_determinism(tool_calls)
+
         artifact = RunArtifact(
             run_id=request.run_id,
-            config_snapshot=self.config.model_dump(),
-            request=request,
-            result=result,
+            status=_map_run_status(result.status),
+            started_at=started_at,
+            finished_at=finished_at,
+            config_hash=config_hash,
+            paths=ArtifactPaths(),
+            versions=_collect_versions(),
+            result={"status": result.status.value, "output_text": result.output_text},
+            error=_result_error(result),
         )
+
+        store = _build_artifact_store(self.config)
+        payloads = ArtifactPayloads(
+            config_snapshot=config_snapshot,
+            events=events,
+            tool_calls=tool_calls,
+        )
+        store.save_artifact(artifact, payloads)
         return result, artifact
 
     def run_sync(self, request: RunRequest) -> RunResult:
@@ -133,6 +179,64 @@ class _FixedToolExecutorFactory:
         emit_event: Callable[[Mapping[str, Any]], None] | None = None,
     ) -> ToolExecutor:
         return self._tool_executor
+
+
+def _map_run_status(status: RunStatus) -> str:
+    if status == RunStatus.SUCCESS:
+        return "finished"
+    if status == RunStatus.CANCELLED:
+        return "canceled"
+    return "failed"
+
+
+def _collect_versions() -> dict[str, Any]:
+    versions: dict[str, Any] = {}
+    try:
+        versions["ai_agents"] = metadata.version("ai_agents")
+    except metadata.PackageNotFoundError:
+        versions["ai_agents"] = "unknown"
+    git_commit = os.getenv("GIT_COMMIT")
+    if git_commit:
+        versions["git_commit"] = git_commit
+    return versions
+
+
+def _result_error(result: RunResult) -> dict[str, Any] | None:
+    if result.status == RunStatus.SUCCESS:
+        return None
+    return {
+        "type": result.status.value,
+        "message": result.reason or "",
+    }
+
+
+def _collect_tool_calls(events: list[dict[str, Any]], redactor: Redactor) -> list[dict[str, Any]]:
+    tool_calls: list[dict[str, Any]] = []
+    for event in events:
+        if event.get("event_type") not in {"tool.call.finished", "tool.call.blocked"}:
+            continue
+        attrs = event.get("attrs") or {}
+        summary = {
+            "run_id": event.get("run_id"),
+            "tool_name": attrs.get("tool_name"),
+            "tool_call_id": attrs.get("tool_call_id"),
+            "status": attrs.get("status"),
+            "arguments": attrs.get("arguments"),
+            "output": attrs.get("output"),
+            "error": attrs.get("error"),
+        }
+        tool_calls.append(redactor.redact(summary))
+    return tool_calls
+
+
+def _build_artifact_store(config: AgentCoreConfig) -> LocalFilesystemStore:
+    store_cfg = config.artifacts.store
+    base_dir = ""
+    if isinstance(store_cfg.config, dict):
+        base_dir = str(store_cfg.config.get("base_dir") or "").strip()
+    if not base_dir:
+        base_dir = "artifacts"
+    return LocalFilesystemStore(base_dir=base_dir)
 
 
 __all__ = ["AgentCore", "RunArtifact"]

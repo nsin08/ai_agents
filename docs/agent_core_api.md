@@ -24,6 +24,8 @@ print(result.output_text)
 - `await core.run_with_artifacts(request) -> (RunResult, RunArtifact)`
 - `core.run_sync(request) -> RunResult` (sync wrapper)
 
+`run_with_artifacts` writes a run bundle to the configured artifact store (default local filesystem).
+
 ## RunRequest + RunResult
 
 - `RunRequest`: input text, run_id, budgets (turns/time), metadata, cancellation event.

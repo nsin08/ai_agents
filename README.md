@@ -84,6 +84,7 @@ Labs are the hands-on companion to the knowledge base and curriculum:
 
 - AgentCore public API: `docs/agent_core_api.md`
 - Observability & run events: `docs/observability.md`
+- Run artifacts & deterministic mode: `docs/artifacts.md`
 - Execution engines: `docs/engine.md`
 - Tool contracts and executor: `docs/tools.md`
 - Short-term memory: `docs/memory.md`
