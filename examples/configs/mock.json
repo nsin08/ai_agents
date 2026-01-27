@@ -1,0 +1,14 @@
+{
+  "engine": {"key": "local", "config": {}},
+  "mode": "real",
+  "models": {
+    "roles": {
+      "actor": {"provider": "mock", "model": "deterministic"}
+    }
+  },
+  "tools": {"allowlist": [], "providers": {}},
+  "observability": {"exporter": "disabled"},
+  "artifacts": {
+    "store": {"backend": "filesystem", "config": {"base_dir": "artifacts"}}
+  }
+}

@@ -33,6 +33,20 @@ def test_load_config_from_json(tmp_path: Path):
     assert config.mode == "deterministic"
     assert config.models.roles["actor"].provider == "mock"
 
+def test_load_config_from_json_with_bom(tmp_path: Path) -> None:
+    config_path = tmp_path / "config.json"
+    data = {
+        "app": {"name": "test_app", "environment": "local"},
+        "models": {"roles": {"actor": {"provider": "mock", "model": "det"}}},
+    }
+    payload = json.dumps(data).encode("utf-8")
+    config_path.write_bytes(b"\xef\xbb\xbf" + payload)
+
+    config = load_config(path=str(config_path))
+
+    assert config.app.name == "test_app"
+    assert config.models.roles["actor"].provider == "mock"
+
 
 def test_env_override(monkeypatch):
     monkeypatch.setenv("AGENT_CORE_MODELS__ROLES__ACTOR__PROVIDER", "mock")

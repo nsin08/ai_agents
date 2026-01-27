@@ -8,6 +8,55 @@ This repository is an evolving monorepo for learning, building, and teaching **A
 
 In short: `Agents/` captures the canonical architecture patterns and engineering practices; the curriculum repackages that knowledge for different audiences; and the labs/projects turn it into hands-on, verifiable experience (including testing, safety, observability, and operations).
 
+## AgentCore (Phase 1 Reference Implementation)
+
+`src/agent_core/` is a small, production-oriented reference implementation you can run and extend. It focuses on:
+
+- Config-driven runs (file/env/defaults) with deterministic mode support
+- A safe tool boundary (deny-by-default allowlist) and audit events
+- Run artifacts (`run.json`, `events.jsonl`, `tool_calls.json`, config snapshot)
+- Pluggable engines/providers via registries + Python entry points
+
+### Install
+
+From source (recommended for this repo):
+
+```bash
+python -m pip install -e .
+```
+
+If/when published to PyPI:
+
+```bash
+python -m pip install ai_agents
+```
+
+### Quick start (CLI, mock provider)
+
+```bash
+agent-core run "hello" --config examples/configs/mock.json
+agent-core validate-config examples/configs/mock.json
+```
+
+### Docs (AgentCore)
+
+- `docs/agent_core_api.md` - public API reference
+- `docs/configuration.md` - AgentCore config guide (schema, precedence, examples)
+- `docs/plugin_registry.md` - plugin and entry points guide
+- `docs/engine.md` - LocalEngine behavior
+- `docs/tools.md` - tool contracts and ToolExecutor boundary
+- `docs/observability.md` - event emission and exporters
+- `docs/artifacts.md` - run bundles and determinism
+- `docs/performance.md` - Phase 1 benchmark results
+
+### Runnable examples
+
+```bash
+python examples/simple_qna.py --config examples/configs/mock.json "hello"
+python examples/tool_use.py
+python examples/multi_turn.py
+```
+
 ## Goals
 
 1) **Comprehensive knowledge base (truth layer)**

@@ -62,7 +62,8 @@ def _env_to_dict(prefix: str, environ: Dict[str, str]) -> Dict[str, Any]:
 
 def _load_file(path: str) -> Dict[str, Any]:
     if path.lower().endswith(".json"):
-        with open(path, "r", encoding="utf-8") as f:
+        # Accept UTF-8 BOM to make Windows-authored JSON files load reliably.
+        with open(path, "r", encoding="utf-8-sig") as f:
             return json.load(f)
     if path.lower().endswith((".yaml", ".yml")):
         try:
