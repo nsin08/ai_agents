@@ -10,6 +10,7 @@ from .config import AgentCoreConfig, load_config
 from .engine import EngineComponents, RunRequest, RunResult
 from .factories import EngineFactory, ModelFactory, ToolExecutorFactory
 from .memory import InMemorySessionStore, SessionStore
+from .observability import build_emitter
 from .registry import AgentCoreRegistry, get_global_registry
 from .tools import ToolExecutor
 
@@ -39,18 +40,22 @@ class AgentCore:
     ) -> None:
         self.config = config
         self.registry = registry or get_global_registry()
-        self._emit_event = emit_event
+        if emit_event is None:
+            emitter = build_emitter(config.observability, self.registry.exporters)
+            self._emit_event = emitter.emit
+        else:
+            self._emit_event = emit_event
 
         self._model_factory = ModelFactory(self.registry.model_providers)
         self._tool_factory = ToolExecutorFactory(self.registry.tool_providers)
         self._engine_factory = EngineFactory(self.registry.engines)
 
         self._models = models or self._model_factory.build_role_map(config.models.roles)
-        self._tool_executor = tool_executor or self._tool_factory.build(config, emit_event=emit_event)
+        self._tool_executor = tool_executor or self._tool_factory.build(config, emit_event=self._emit_event)
         self._engine = engine or self._engine_factory.build_with_config(
             config,
             tool_executor_factory=_FixedToolExecutorFactory(self._tool_executor),
-            emit_event=emit_event,
+            emit_event=self._emit_event,
         )
 
         self._memory_factory = memory_factory or self._default_memory_factory
