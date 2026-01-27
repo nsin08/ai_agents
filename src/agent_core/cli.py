@@ -86,10 +86,14 @@ def _run_command(args: argparse.Namespace) -> int:
         print(f"Runtime error: {exc}", file=sys.stderr)
         return EXIT_RUNTIME_ERROR
 
+    artifact_dir = args.artifact_dir
+    if not artifact_dir and config.artifacts.store.backend == "filesystem":
+        artifact_dir = str(config.artifacts.store.config.get("base_dir") or "artifacts")
+
     summary = {
         "run_id": artifact.run_id,
         "status": result.status.value,
-        "artifact_dir": getattr(args, "artifact_dir", None) or "artifacts",
+        "artifact_dir": artifact_dir or "artifacts",
         "output_text": result.output_text,
     }
     if args.json_summary:
