@@ -59,9 +59,12 @@ class ModelFactory:
         for role, spec in roles.items():
             spec_dict: Mapping[str, Any] | None = None
             if isinstance(spec, Mapping):
-                spec_dict = spec
+                # Drop unset values so we don't pass provider-specific unknown kwargs.
+                spec_dict = {k: v for k, v in dict(spec).items() if v is not None}
             elif hasattr(spec, "model_dump"):
-                spec_dict = spec.model_dump()
+                # Pydantic models include None fields by default; exclude them so
+                # providers only receive explicitly configured arguments.
+                spec_dict = spec.model_dump(exclude_none=True)
             if spec_dict is None:
                 raise ValueError(f"Model spec for role '{role}' must be a mapping.")
             provider_key = str(spec_dict.get("provider", "")).strip()

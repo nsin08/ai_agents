@@ -33,6 +33,19 @@ def test_model_factory_build_role_map_accepts_model_spec() -> None:
     assert providers["actor"].__class__.__name__ == "MockProvider"
 
 
+def test_model_factory_drops_none_fields_for_provider_kwargs() -> None:
+    factory = ModelFactory(get_global_registry().model_providers)
+    roles = {
+        # ModelSpec includes api_key_env/base_url/etc; most are None here and must
+        # not be forwarded as kwargs to providers that don't accept them.
+        "actor": ModelSpec(provider="ollama", model="mistral:7b"),
+    }
+
+    providers = factory.build_role_map(roles)
+
+    assert providers["actor"].__class__.__name__ == "OllamaProvider"
+
+
 def test_model_factory_build_role_map_requires_provider_key() -> None:
     factory = ModelFactory(get_global_registry().model_providers)
 
