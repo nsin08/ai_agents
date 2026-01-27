@@ -26,6 +26,8 @@ Multi-turn conversation (shared session store):
 
 ```bash
 python examples/multi_turn.py
+# Optional: use a real provider config (requires Ollama/OpenAI setup)
+python examples/multi_turn.py --config examples/configs/ollama.json "My name is Alice." "What is my name?"
 ```
 
 ## Example Configs
