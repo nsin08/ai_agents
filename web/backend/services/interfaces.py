@@ -1,12 +1,33 @@
-"""Service interface definitions (abstraction layer)."""
+"""Service interface definitions (abstraction layer).
+
+This module defines the ServiceInterface Protocol that enables seamless backend
+swapping between agent_labs (current Phase 1-3) and agent_core (future Phase B).
+
+Key Design Pattern:
+    - Abstraction Layer: All backend implementations conform to AgentServiceInterface
+    - Zero API Changes: Response format is identical across backends
+    - Environment Variable Control: Set AGENT_CORE_BACKEND env var to switch
+    - Frontend Unaware: React UI doesn't know which backend is running
+    
+Backend Switching Example:
+    Phase 1-3: AGENT_CORE_BACKEND="agent_labs" → Uses AgentLabsService
+    Phase B:   AGENT_CORE_BACKEND="agent_core" → Uses AgentCoreService
+    API Response Format: Identical - React UI never changes
+
+This pattern enables production deployment with agent_labs while preparing
+for seamless upgrade to agent_core when ready.
+"""
 import sys
 from pathlib import Path
 from typing import Protocol, Dict, Any, Optional
+import logging
 
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from models import ChatResponse
+
+logger = logging.getLogger(__name__)
 
 
 class AgentServiceInterface(Protocol):
@@ -15,6 +36,10 @@ class AgentServiceInterface(Protocol):
     
     This abstraction allows swapping between agent_labs and agent_core
     without changing API routes or frontend code.
+    
+    Implementations:
+        - AgentLabsService: Uses agent_labs core (Phase 1-3)
+        - AgentCoreService: Uses agent_core (Phase B, placeholder)
     """
     
     async def process_message(

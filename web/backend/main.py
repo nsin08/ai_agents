@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api import chat, providers
+from api import chat, providers, config
 
 
 @asynccontextmanager
@@ -52,6 +52,7 @@ app.add_middleware(
 # Include routers
 app.include_router(chat.router)
 app.include_router(providers.router)
+app.include_router(config.router)
 
 
 

@@ -56,7 +56,8 @@ class ChatResponse(BaseModel):
     """Response model for chat endpoint."""
     success: bool = Field(..., description="Whether request succeeded")
     response: str = Field(..., description="Agent response text")
-    metadata: Dict[str, Any] = Field(default_factory=dict, description="Debug metadata")
+    metadata: Dict[str, Any] = Field(default_factory=dict, description="Basic metadata")
+    debug_metadata: Optional[Dict[str, Any]] = Field(None, description="Debug metadata (only when debug mode enabled)")
 
 
 class ErrorResponse(BaseModel):
@@ -64,3 +65,53 @@ class ErrorResponse(BaseModel):
     success: bool = Field(default=False)
     error: str = Field(..., description="Error message")
     detail: Optional[str] = Field(None, description="Error details")
+
+
+# Phase 3: Debug & Configuration Models
+
+class DebugMetadata(BaseModel):
+    """Debug metadata for chat responses."""
+    tokens_used: Optional[int] = Field(None, description="Total tokens used")
+    tokens_input: Optional[int] = Field(None, description="Input tokens")
+    tokens_output: Optional[int] = Field(None, description="Output tokens")
+    latency_ms: float = Field(..., description="Response time in milliseconds")
+    provider: str = Field(..., description="LLM provider used")
+    model: str = Field(..., description="Model name used")
+    max_turns: int = Field(default=3, description="Maximum turns allowed")
+    current_turn: int = Field(default=1, description="Current turn number")
+    temperature: float = Field(default=0.7, description="Temperature setting")
+    agent_state: Optional[str] = Field(None, description="Agent state (Observe/Plan/Act/Verify)")
+    reasoning: Optional[str] = Field(None, description="Agent reasoning chain")
+    tool_calls: Optional[list[str]] = Field(None, description="Tools used by agent")
+    errors: Optional[list[str]] = Field(None, description="Errors encountered")
+    backend: str = Field(default="agent_labs", description="Backend implementation")
+
+
+class AgentConfig(BaseModel):
+    """Agent configuration settings."""
+    max_turns: int = Field(default=3, ge=1, le=10, description="Max iterations (1-10)")
+    temperature: float = Field(default=0.7, ge=0.0, le=2.0, description="Temperature (0.0-2.0)")
+    timeout_seconds: int = Field(default=30, ge=5, le=300, description="Timeout in seconds")
+    system_prompt: Optional[str] = Field(None, description="Custom system prompt")
+    enable_debug: bool = Field(default=False, description="Enable debug mode")
+
+
+class ConfigRequest(BaseModel):
+    """Request to save configuration."""
+    config: AgentConfig = Field(..., description="Configuration to save")
+    preset: Optional[str] = Field(None, description="Preset name (creative, precise, balanced)")
+    session_id: Optional[str] = Field(None, description="Session ID for session-specific config")
+
+
+class ConfigResponse(BaseModel):
+    """Response with configuration."""
+    success: bool = Field(..., description="Whether operation succeeded")
+    config: AgentConfig = Field(..., description="Current configuration")
+    message: Optional[str] = Field(None, description="Status message")
+
+
+class PresetConfig(BaseModel):
+    """Preset configuration template."""
+    name: str = Field(..., description="Preset name")
+    description: str = Field(..., description="Description")
+    config: AgentConfig = Field(..., description="Configuration")

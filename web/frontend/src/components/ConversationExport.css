@@ -1,0 +1,51 @@
+/* Conversation Export Styles */
+.export-controls {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.export-button {
+  flex: 1;
+  padding: 8px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  background: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.export-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.export-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.export-json:hover:not(:disabled) {
+  background: #667eea;
+  border-color: #667eea;
+  color: white;
+}
+
+.export-markdown:hover:not(:disabled) {
+  background: #48bb78;
+  border-color: #48bb78;
+  color: white;
+}
+
+/* Dark mode */
+.dark-mode .export-button {
+  background: #2a2a2a;
+  border-color: #333;
+  color: #e0e0e0;
+}
+
+.dark-mode .export-button:hover:not(:disabled) {
+  border-color: #667eea;
+}
