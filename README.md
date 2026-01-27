@@ -82,9 +82,19 @@ Labs are the hands-on companion to the knowledge base and curriculum:
 
 ## Agent Core Docs
 
+- AgentCore public API: `docs/agent_core_api.md`
 - Execution engines: `docs/engine.md`
 - Tool contracts and executor: `docs/tools.md`
 - Short-term memory: `docs/memory.md`
+
+Quick start (AgentCore):
+```python
+from agent_core import AgentCore, RunRequest
+
+core = AgentCore.from_file("agent_core.json")
+result = core.run_sync(RunRequest(input="Hello"))
+print(result.output_text)
+```
 
 Example (short-term session memory):
 ```python

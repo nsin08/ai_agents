@@ -1,5 +1,6 @@
 """Production framework core package."""
 
+from .api import AgentCore, RunArtifact
 from .config import AgentCoreConfig, load_config
 from .exceptions import (
     ImplementationNotFoundError,
@@ -26,6 +27,7 @@ from .registry import (
 
 __all__ = [
     "AgentCoreConfig",
+    "AgentCore",
     "AgentCoreRegistry",
     "ENTRY_POINT_GROUP",
     "EngineComponents",
@@ -51,6 +53,7 @@ __all__ = [
     "Registry",
     "RegistryError",
     "RunRequest",
+    "RunArtifact",
     "RunResult",
     "RunStatus",
     "ToolProviderFactory",
