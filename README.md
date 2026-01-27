@@ -99,6 +99,20 @@ print(result.output_text)
 ```
 Note: `run_sync` raises if called inside an active event loop; use `await core.run(...)` in async contexts.
 
+## CLI
+
+Basic usage:
+```bash
+agent-core run "Hello world"
+agent-core run "Hello world" --config agent_core.json
+agent-core run "Hello world" --mode deterministic
+agent-core validate-config agent_core.json
+```
+
+Notes:
+- CLI emits JSONL events to stdout.
+- Artifact bundles are saved to `./artifacts/{run_id}/` by default.
+
 Example (short-term session memory):
 ```python
 import asyncio
