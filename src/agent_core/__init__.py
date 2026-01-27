@@ -1,6 +1,7 @@
 """Production framework core package."""
 
-from .api import AgentCore, RunArtifact
+from .api import AgentCore
+from .artifacts import ArtifactPaths, ArtifactPayloads, ArtifactStore, LocalFilesystemStore, RunArtifact
 from .config import AgentCoreConfig, load_config
 from .exceptions import (
     ImplementationNotFoundError,
@@ -33,6 +34,9 @@ from .registry import (
 
 __all__ = [
     "AgentCoreConfig",
+    "ArtifactPaths",
+    "ArtifactPayloads",
+    "ArtifactStore",
     "AgentCore",
     "AgentCoreRegistry",
     "ENTRY_POINT_GROUP",
@@ -70,6 +74,7 @@ __all__ = [
     "ToolProviderRegistry",
     "ToolExecutor",
     "VectorStoreRegistry",
+    "LocalFilesystemStore",
     "get_global_registry",
     "load_config",
     "load_plugin",

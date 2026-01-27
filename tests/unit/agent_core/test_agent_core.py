@@ -23,13 +23,17 @@ class DummyEngine:
         return RunResult(status=RunStatus.SUCCESS, output_text="ok")
 
 
-def _basic_config() -> AgentCoreConfig:
+def _basic_config(base_dir: str | None = None) -> AgentCoreConfig:
+    artifacts_config: dict = {}
+    if base_dir:
+        artifacts_config = {"store": {"backend": "filesystem", "config": {"base_dir": base_dir}}}
     return AgentCoreConfig(
         engine=EngineConfig(key="local"),
         models=ModelsConfig(
             roles={"actor": ModelSpec(provider="mock", model="deterministic")}
         ),
         tools=ToolsConfig(allowlist=[]),
+        **({"artifacts": artifacts_config} if artifacts_config else {}),
     )
 
 
@@ -87,11 +91,11 @@ async def test_run_uses_engine_and_components() -> None:
 
 
 @pytest.mark.asyncio
-async def test_run_with_artifacts_returns_bundle() -> None:
+async def test_run_with_artifacts_returns_bundle(tmp_path: Path) -> None:
     engine = DummyEngine()
     sentinel = object()
     core = AgentCore(
-        _basic_config(),
+        _basic_config(base_dir=str(tmp_path)),
         engine=engine,
         models={"actor": sentinel},
     )
@@ -102,7 +106,7 @@ async def test_run_with_artifacts_returns_bundle() -> None:
     assert result.status == RunStatus.SUCCESS
     assert isinstance(artifact, RunArtifact)
     assert artifact.run_id == request.run_id
-    assert artifact.result == result
+    assert artifact.result["status"] == result.status.value
 
 
 def test_run_sync_executes() -> None:
