@@ -95,6 +95,7 @@ core = AgentCore.from_file("agent_core.json")
 result = core.run_sync(RunRequest(input="Hello"))
 print(result.output_text)
 ```
+Note: `run_sync` raises if called inside an active event loop; use `await core.run(...)` in async contexts.
 
 Example (short-term session memory):
 ```python

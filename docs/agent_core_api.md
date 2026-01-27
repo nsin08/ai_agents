@@ -24,6 +24,11 @@ print(result.output_text)
 - `await core.run_with_artifacts(request) -> (RunResult, RunArtifact)`
 - `core.run_sync(request) -> RunResult` (sync wrapper)
 
+## RunRequest + RunResult
+
+- `RunRequest`: input text, run_id, budgets (turns/time), metadata, cancellation event.
+- `RunResult`: status, output_text, turns, reason, metadata.
+
 ## Notes
 
 - `run_sync` raises if called from an active event loop; use `await run()` in async contexts.
