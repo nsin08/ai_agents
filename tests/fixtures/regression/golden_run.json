@@ -1,0 +1,19 @@
+{
+  "config_hash": "e0b74cf019448f1663634a3832bdd62efbd1f32d7171849dda8212b2df1baf90",
+  "finished_at": "1970-01-01T00:00:00+00:00",
+  "paths": {
+    "config_snapshot": "config.snapshot.json",
+    "events": "events.jsonl",
+    "tool_calls": "tool_calls.json"
+  },
+  "result": {
+    "output_text": "mock::actor::4686e19e",
+    "status": "success"
+  },
+  "run_id": "golden-run",
+  "started_at": "1970-01-01T00:00:00+00:00",
+  "status": "finished",
+  "versions": {
+    "ai_agents": "0.1.0"
+  }
+}
