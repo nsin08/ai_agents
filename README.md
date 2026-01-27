@@ -83,6 +83,7 @@ Labs are the hands-on companion to the knowledge base and curriculum:
 ## Agent Core Docs
 
 - AgentCore public API: `docs/agent_core_api.md`
+- Observability & run events: `docs/observability.md`
 - Execution engines: `docs/engine.md`
 - Tool contracts and executor: `docs/tools.md`
 - Short-term memory: `docs/memory.md`

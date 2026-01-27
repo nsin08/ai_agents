@@ -13,6 +13,12 @@ from .engine import EngineComponents, ExecutionEngine, LocalEngine, RunRequest, 
 from .factories import EngineFactory, ModelFactory, ToolExecutorFactory, ToolProviderFactory
 from .memory import InMemorySessionStore, SessionMessage, SessionStore, estimate_tokens
 from .model import ModelClient, ModelMessage, ModelResponse, ModelUsage, ToolCall, normalize_messages
+from .observability import (
+    ObservabilityEmitter,
+    RunEvent,
+    TraceContext,
+    build_emitter,
+)
 from .plugin_loader import ENTRY_POINT_GROUP, load_plugin
 from .registry import (
     AgentCoreRegistry,
@@ -43,6 +49,7 @@ __all__ = [
     "ModelResponse",
     "ModelUsage",
     "ModelProviderRegistry",
+    "ObservabilityEmitter",
     "SessionMessage",
     "SessionStore",
     "InMemorySessionStore",
@@ -56,6 +63,7 @@ __all__ = [
     "RunArtifact",
     "RunResult",
     "RunStatus",
+    "RunEvent",
     "ToolProviderFactory",
     "ToolExecutorFactory",
     "ToolCall",
@@ -66,5 +74,7 @@ __all__ = [
     "load_config",
     "load_plugin",
     "normalize_messages",
+    "TraceContext",
+    "build_emitter",
 ]
 from .tools import ToolExecutor

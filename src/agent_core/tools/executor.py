@@ -275,6 +275,7 @@ class ToolExecutor:
             tool_name=call.tool_name,
             trace=call.trace,
         )
+        self._emit_policy_violation(call, exc)
         self._emit(
             "tool.call.blocked",
             call,
@@ -283,6 +284,28 @@ class ToolExecutor:
             result=result,
         )
         return result
+
+    def _emit_policy_violation(self, call: ToolCall, exc: Exception) -> None:
+        if self._emit_event is None:
+            return
+        payload: dict[str, Any] = {
+            "time": datetime.now(timezone.utc).isoformat(),
+            "run_id": call.run_id or "unknown",
+            "event_type": "policy.violation",
+            "severity": "warn",
+            "actor": "policy",
+            "attrs": {
+                "tool_name": call.tool_name,
+                "tool_call_id": call.tool_call_id,
+                "error": {
+                    "type": getattr(exc, "error_type", exc.__class__.__name__),
+                    "message": str(exc),
+                },
+            },
+        }
+        if call.trace:
+            payload["trace"] = call.trace.to_dict()
+        self._emit_event(payload)
 
     def _emit(
         self,
@@ -326,6 +349,7 @@ class ToolExecutor:
             "trace": call.trace.to_dict() if call.trace else None,
             "attrs": attrs,
         }
+        payload["run_id"] = call.run_id or "unknown"
         self._emit_event(payload)
 
 

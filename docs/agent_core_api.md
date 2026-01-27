@@ -33,3 +33,4 @@ print(result.output_text)
 
 - `run_sync` raises if called from an active event loop; use `await run()` in async contexts.
 - Tool calls flow through `ToolExecutor` and are governed by policies.
+- Observability can be disabled by setting `observability.exporter` to `disabled` (or `none`) in config.
