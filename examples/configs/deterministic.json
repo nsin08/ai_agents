@@ -1,0 +1,17 @@
+{
+  "engine": {"key": "local", "config": {}},
+  "mode": "deterministic",
+  "models": {
+    "roles": {
+      "actor": {"provider": "mock", "model": "deterministic"}
+    }
+  },
+  "tools": {
+    "allowlist": ["calculator"],
+    "providers": {"fixture": {"path": "tests/fixtures/tool_fixtures.json"}}
+  },
+  "observability": {"exporter": "disabled"},
+  "artifacts": {
+    "store": {"backend": "filesystem", "config": {"base_dir": "artifacts"}}
+  }
+}
