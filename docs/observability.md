@@ -62,6 +62,7 @@ Engine state (debug):
 - `stdout`: JSON lines to stdout
 - `file`: JSON lines appended to a file
 - `memory`: in-memory buffer (tests)
+- `disabled`/`none`: disable event emission
 
 ## Redaction
 

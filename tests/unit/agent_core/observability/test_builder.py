@@ -27,3 +27,10 @@ def test_build_emitter_file_exporter_default() -> None:
     emitter = build_emitter(config, get_global_registry().exporters)
 
     assert isinstance(emitter._exporters[0], FileExporter)
+
+
+def test_build_emitter_disabled() -> None:
+    config = ObservabilityConfig(exporter="disabled", redact=RedactConfig())
+    emitter = build_emitter(config, get_global_registry().exporters)
+
+    assert emitter is None

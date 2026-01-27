@@ -42,7 +42,7 @@ class AgentCore:
         self.registry = registry or get_global_registry()
         if emit_event is None:
             emitter = build_emitter(config.observability, self.registry.exporters)
-            self._emit_event = emitter.emit
+            self._emit_event = emitter.emit if emitter else None
         else:
             self._emit_event = emit_event
 

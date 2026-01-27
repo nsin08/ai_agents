@@ -15,8 +15,10 @@ if TYPE_CHECKING:  # pragma: no cover - typing only
 def build_emitter(
     config: ObservabilityConfig,
     registry: "ExporterRegistry",
-) -> ObservabilityEmitter:
+) -> ObservabilityEmitter | None:
     exporter_key, exporter_config = _normalize_exporter(config.exporter)
+    if exporter_key == "disabled":
+        return None
     constructor = registry.get(exporter_key)
     exporter = _construct_exporter(constructor, exporter_config)
     redactor = Redactor(config.redact)
@@ -27,6 +29,8 @@ def _normalize_exporter(exporter: str) -> tuple[str, Mapping[str, Any]]:
     if not exporter:
         return "stdout", {}
     normalized = exporter.strip().lower()
+    if normalized in {"disabled", "none", "off"}:
+        return "disabled", {}
     if normalized in {"stdout_json", "stdout"}:
         return "stdout", {}
     if normalized.startswith("file:"):
