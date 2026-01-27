@@ -1,0 +1,21 @@
+{
+  "engine": {
+    "key": "local",
+    "config": {}
+  },
+  "models": {
+    "roles": {
+      "planner": {
+        "provider": "mock",
+        "model": "deterministic"
+      },
+      "actor": {
+        "provider": "mock",
+        "model": "deterministic"
+      }
+    }
+  },
+  "tools": {
+    "allowlist": []
+  }
+}
