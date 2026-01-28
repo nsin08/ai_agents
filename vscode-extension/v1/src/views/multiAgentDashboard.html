@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multi-Agent Dashboard</title>
+  <style>
+    body {
+      font-family: var(--vscode-font-family);
+      color: var(--vscode-foreground);
+      background-color: var(--vscode-editor-background);
+      margin: 0;
+      padding: 16px;
+    }
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .agent-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .card {
+      border: 1px solid var(--vscode-panel-border);
+      border-radius: 6px;
+      padding: 12px;
+      background: var(--vscode-editor-background);
+    }
+    .section {
+      margin-bottom: 16px;
+    }
+    .section h3 {
+      margin: 0 0 8px 0;
+    }
+    .queue,
+    .log {
+      border: 1px solid var(--vscode-panel-border);
+      border-radius: 6px;
+      padding: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    button {
+      background: var(--vscode-button-background);
+      color: var(--vscode-button-foreground);
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: var(--vscode-button-hoverBackground);
+    }
+  </style>
+</head>
+<body>
+  <div class="status-bar">
+    <strong id="coordinatorState">Coordinator: idle</strong>
+    <progress id="progress" value="0" max="100"></progress>
+    <span id="progressText">0%</span>
+  </div>
+
+  <div class="section">
+    <h3>Agents</h3>
+    <div class="agent-grid" id="agentGrid"></div>
+  </div>
+
+  <div class="section">
+    <h3>Task Queue</h3>
+    <div class="queue" id="taskQueue">No tasks queued.</div>
+  </div>
+
+  <div class="section">
+    <h3>Communication Log</h3>
+    <div class="log" id="communicationLog">No messages yet.</div>
+  </div>
+
+  <div class="section">
+    <h3>Metrics</h3>
+    <div class="queue" id="agentMetrics">No metrics yet.</div>
+    <div id="coordinatorOverhead">Coordinator Overhead: 0ms</div>
+  </div>
+
+  <div class="actions">
+    <button id="submitTask">Submit Task</button>
+    <button id="exportLog">Export Log</button>
+    <button id="stopCoordination">Stop</button>
+  </div>
+
+  <script>
+    const vscode = acquireVsCodeApi();
+
+    document.getElementById('submitTask').addEventListener('click', () => {
+      vscode.postMessage({ type: 'submitTask' });
+    });
+
+    document.getElementById('exportLog').addEventListener('click', () => {
+      vscode.postMessage({ type: 'exportLog' });
+    });
+
+    document.getElementById('stopCoordination').addEventListener('click', () => {
+      vscode.postMessage({ type: 'stopCoordination' });
+    });
+
+    window.addEventListener('message', (event) => {
+      const message = event.data;
+      switch (message.type) {
+        case 'updateState':
+          document.getElementById('coordinatorState').textContent = `Coordinator: ${message.state}`;
+          break;
+        case 'updateProgress':
+          document.getElementById('progress').value = message.progress;
+          document.getElementById('progressText').textContent = `${message.progress}%`;
+          break;
+        case 'updateAgents':
+          renderAgents(message.agents || []);
+          break;
+        case 'updateQueue':
+          renderQueue(message.queue || []);
+          break;
+        case 'updateLog':
+          renderLog(message.log || []);
+          break;
+        case 'updateMetrics':
+          renderMetrics(message.metrics || [], message.coordinatorOverhead || 0);
+          break;
+      }
+    });
+
+    function renderAgents(agents) {
+      const grid = document.getElementById('agentGrid');
+      if (!agents.length) {
+        grid.innerHTML = '<div class="card">No agents registered.</div>';
+        return;
+      }
+      grid.innerHTML = agents.map(agent => `
+        <div class="card">
+          <strong>${agent.role}</strong>
+          <div>Status: ${agent.status}</div>
+          <div>Task: ${agent.currentTask || 'Idle'}</div>
+          <button class="reasoning-btn" data-agent="${agent.id}">View Reasoning</button>
+        </div>
+      `).join('');
+    }
+
+    function renderQueue(queue) {
+      const container = document.getElementById('taskQueue');
+      if (!queue.length) {
+        container.textContent = 'No tasks queued.';
+        return;
+      }
+      container.innerHTML = '<ul>' + queue.map(item => {
+        const deps = item.dependencies && item.dependencies.length ? ` (deps: ${item.dependencies.length})` : '';
+        return `<li>[${item.status}] ${item.description}${deps}</li>`;
+      }).join('') + '</ul>';
+    }
+
+    function renderLog(log) {
+      const container = document.getElementById('communicationLog');
+      if (!log.length) {
+        container.textContent = 'No messages yet.';
+        return;
+      }
+      container.innerHTML = log.map(entry => `<div>${entry}</div>`).join('');
+    }
+
+    function renderMetrics(metrics, overhead) {
+      const container = document.getElementById('agentMetrics');
+      if (!metrics.length) {
+        container.textContent = 'No metrics yet.';
+      } else {
+        container.innerHTML = '<ul>' + metrics.map(item =>
+          `<li>${item.role} (${item.id}): ${item.totalTokens} tokens, ${item.totalDuration}ms, ${item.executionCount} runs</li>`
+        ).join('') + '</ul>';
+      }
+      document.getElementById('coordinatorOverhead').textContent = `Coordinator Overhead: ${overhead}ms`;
+    }
+
+    document.getElementById('agentGrid').addEventListener('click', (event) => {
+      const button = event.target.closest('.reasoning-btn');
+      if (!button) {
+        return;
+      }
+      const agentId = button.getAttribute('data-agent');
+      if (agentId) {
+        vscode.postMessage({ type: 'showReasoning', agentId });
+      }
+    });
+  </script>
+</body>
+</html>

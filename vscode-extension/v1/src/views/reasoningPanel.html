@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agent Reasoning</title>
+  <style>
+    body {
+      font-family: var(--vscode-font-family);
+      color: var(--vscode-foreground);
+      background-color: var(--vscode-editor-background);
+      margin: 0;
+      padding: 16px;
+    }
+    .summary {
+      border: 1px solid var(--vscode-panel-border);
+      border-radius: 6px;
+      padding: 12px;
+      margin-top: 12px;
+    }
+    .step {
+      border: 1px solid var(--vscode-panel-border);
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 8px;
+    }
+    .step-title {
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+  <h2 id="agentTitle">Agent Reasoning</h2>
+  <div id="reasoningSteps"></div>
+  <div class="summary">
+    <strong>Summary</strong>
+    <p id="reasoningSummary">No reasoning available.</p>
+  </div>
+
+  <script>
+    const vscode = acquireVsCodeApi();
+
+    window.addEventListener('message', (event) => {
+      const message = event.data;
+      if (message.type === 'updateReasoning') {
+        renderReasoning(message.agentId, message.reasoning);
+      }
+    });
+
+    function renderReasoning(agentId, reasoning) {
+      document.getElementById('agentTitle').textContent = `${agentId} Reasoning`;
+      const steps = document.getElementById('reasoningSteps');
+      if (!reasoning || !reasoning.steps || !reasoning.steps.length) {
+        steps.innerHTML = '<div class="step">No reasoning steps available.</div>';
+        document.getElementById('reasoningSummary').textContent = 'No reasoning available.';
+        return;
+      }
+      steps.innerHTML = reasoning.steps.map(step => `
+        <div class="step">
+          <div class="step-title">${step.action}</div>
+          <div>${step.rationale}</div>
+        </div>
+      `).join('');
+      document.getElementById('reasoningSummary').textContent = reasoning.summary || 'No summary provided.';
+    }
+  </script>
+</body>
+</html>

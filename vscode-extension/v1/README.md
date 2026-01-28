@@ -28,6 +28,14 @@ Interact with AI agents directly from VSCode with integrated configuration manag
 - **Context Menu**: Right-click integration for quick access
 - **Size Limits**: Enforces 10K lines / 500KB file size limits
 
+### Phase 4 - ✅ Completed (Issue #79)
+- **Multi-Agent Coordinator**: Orchestrates planner/executor/verifier workflows
+- **Multi-Agent Dashboard**: Live status, queue, progress, and log updates
+- **Reasoning Panel**: Inspect per-agent reasoning chains
+- **Capability-Based Routing**: Assigns subtasks by capability match
+- **Per-Agent Metrics**: Token and duration tracking per agent
+- **Debug Mode Configuration**: Toggle verbose logging via VS Code Settings or environment variable
+
 ### Bug Fixes (Issue #76)
 - Fixed Trace Viewer showing wrong provider/model (now shows current session config)
 - Fixed Statistics Panel displaying "Top" instead of "Current" provider/model
@@ -54,21 +62,32 @@ vscode-extension/v1/
 │   │   ├── ConfigPanel.ts    # Configuration panel
 │   │   ├── StatisticsPanel.ts   # Metrics dashboard
 │   │   ├── TraceViewerPanel.ts  # Trace tree view
-│   │   └── CodeSuggestionPanel.ts  # Code suggestions viewer (Phase 3)
+│   │   ├── CodeSuggestionPanel.ts  # Code suggestions viewer (Phase 3)
+│   │   ├── MultiAgentDashboard.ts  # Multi-agent dashboard (Phase 4)
+│   │   └── ReasoningPanel.ts       # Agent reasoning view (Phase 4)
 │   ├── services/
 │   │   ├── AgentService.ts   # Backend communication
 │   │   ├── ConfigService.ts  # Settings management
 │   │   ├── MetricsService.ts # Token/cost tracking
 │   │   ├── TraceService.ts   # State transition capture
 │   │   ├── ExportService.ts  # CSV/JSON export
+│   │   ├── MultiAgentCoordinator.ts # Multi-agent orchestration (Phase 4)
+│   │   └── agents/
+│   │       ├── PlannerAgent.ts
+│   │       ├── ExecutorAgent.ts
+│   │       └── VerifierAgent.ts
 │   │   ├── CodeContextService.ts   # Code extraction & security (Phase 3)
 │   │   └── CodeInsertionService.ts # Code parsing & insertion (Phase 3)
 │   ├── models/
+│   │   ├── AgentRole.ts      # Multi-agent roles and capabilities
+│   │   ├── AgentMessage.ts   # Multi-agent message models
 │   │   ├── Statistics.ts     # Metrics data models
 │   │   └── Trace.ts          # Trace data models
 │   └── views/
 │       ├── chatView.html     # Chat UI template
-│       └── configView.html   # Config UI template
+│       ├── configView.html   # Config UI template
+│       ├── multiAgentDashboard.html # Multi-agent dashboard UI
+│       └── reasoningPanel.html      # Agent reasoning UI
 ├── webview/
 │   └── src/                  # Frontend code for webviews
 ├── tests/                    # 150 tests (9 suites)
@@ -93,10 +112,11 @@ npm test -- --watch  # Watch mode
 npm run lint         # Lint code
 ```
 
-**Test Coverage:** 150 tests across 9 suites
+**Test Coverage:** 162 tests across 13 suites
 - **Phase 1:** 15 tests (MVP Chat)
 - **Phase 2:** 51 tests (Observability)
 - **Phase 3:** 84 tests (Code Intelligence + Bug Fixes)
+- **Phase 4:** 12 tests (Coordinator + Panels + Integration)
 
 See [TESTING.md](TESTING.md) for comprehensive testing guide.
 
@@ -104,12 +124,36 @@ See [TESTING.md](TESTING.md) for comprehensive testing guide.
 
 Settings available in VSCode Settings UI:
 
+### General Settings
 - **AI Agent: Provider** - Select LLM provider (mock, ollama, openai, etc.)
 - **AI Agent: Model** - Model name
 - **AI Agent: Base URL** - Ollama endpoint (default: http://localhost:11434)
 - **AI Agent: API Key** - Cloud provider API key
 - **AI Agent: Max Turns** - Maximum conversation turns
 - **AI Agent: Timeout** - Request timeout in seconds
+- **AI Agent: Debug Mode** - Enable verbose logging for multi-agent orchestration
+
+### Debug Mode
+
+Toggle detailed logging for multi-agent execution:
+
+**In VS Code Settings:**
+1. Open Settings (`Ctrl+,`)
+2. Search for "AI Agent: Debug Mode"
+3. Check the box to enable
+4. Logs appear in Extension Host console
+
+**Or via Environment Variable:**
+```bash
+DEBUG_MULTI_AGENT=true npm run watch
+```
+
+**Debug Output Shows:**
+- Plan stage execution with timing
+- Act stage execution with timing
+- Message flow through coordinator
+- Configuration details
+- **Default**: Disabled (clean production console)
 
 ## Commands
 
@@ -118,6 +162,11 @@ Settings available in VSCode Settings UI:
 | Agent: Send Selection to Agent | Right-click | Send selected code with context (Phase 3) |
 | Agent: Send File to Agent | Right-click | Send entire file with metadata (Phase 3) |
 | Agent: Show Code Suggestions | `Ctrl+Shift+P` | Display code suggestions panel (Phase 3) |
+| Agent: Start Multi-Agent Task | `Ctrl+Shift+P` | Start multi-agent coordination (Phase 4) |
+| Agent: Show Multi-Agent Dashboard | `Ctrl+Shift+P` | View live multi-agent status (Phase 4) |
+| Agent: Show Agent Reasoning | `Ctrl+Shift+P` | Inspect agent reasoning (Phase 4) |
+| Agent: Export Coordination Log | `Ctrl+Shift+P` | Export inter-agent messages (Phase 4) |
+| Agent: Switch to Single-Agent Mode | `Ctrl+Shift+P` | Fallback to single-agent mode (Phase 4) |
 | Agent: Start Conversation | `Ctrl+Shift+P` | Open chat panel |
 | Agent: Settings | `Ctrl+Shift+P` | Configure provider/model/settings |
 | Agent: Reset Session | `Ctrl+Shift+P` | Clear conversation |

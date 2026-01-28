@@ -78,16 +78,22 @@
     "configuration": {
       "title": "AI Agent",
       "properties": {
+        "aiAgent.mode": {
+          "type": "string",
+          "enum": ["single", "multi"],
+          "default": "single",
+          "description": "Agent mode: single-agent or multi-agent (Plan+Act)"
+        },
         "aiAgent.provider": {
           "type": "string",
           "default": "mock",
           "enum": ["mock", "ollama", "openai", "anthropic", "google", "azure-openai"],
-          "description": "LLM provider to use"
+          "description": "LLM provider to use (single-agent mode)"
         },
         "aiAgent.model": {
           "type": "string",
           "default": "llama2",
-          "description": "Model name for the selected provider"
+          "description": "Model name for the selected provider (single-agent mode)"
         },
         "aiAgent.baseUrl": {
           "type": "string",
@@ -109,6 +115,95 @@
           "type": "number",
           "default": 30,
           "description": "Request timeout in seconds"
+        },
+        "aiAgent.temperature": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0,
+          "maximum": 2,
+          "description": "Temperature for LLM sampling (0-2)"
+        },
+        "aiAgent.plan.provider": {
+          "type": "string",
+          "default": "mock",
+          "enum": ["mock", "ollama", "openai", "anthropic", "google", "azure-openai"],
+          "description": "LLM provider for Plan stage (multi-agent mode)"
+        },
+        "aiAgent.plan.model": {
+          "type": "string",
+          "default": "llama2",
+          "description": "Model name for Plan stage (multi-agent mode)"
+        },
+        "aiAgent.plan.baseUrl": {
+          "type": "string",
+          "default": "http://localhost:11434",
+          "description": "Base URL for Plan stage (Ollama)"
+        },
+        "aiAgent.plan.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for Plan stage (cloud providers)"
+        },
+        "aiAgent.plan.maxTurns": {
+          "type": "number",
+          "default": 3,
+          "description": "Maximum turns for Plan stage"
+        },
+        "aiAgent.plan.timeout": {
+          "type": "number",
+          "default": 30,
+          "description": "Timeout for Plan stage (seconds)"
+        },
+        "aiAgent.plan.temperature": {
+          "type": "number",
+          "default": 0.5,
+          "minimum": 0,
+          "maximum": 2,
+          "description": "Temperature for Plan stage"
+        },
+        "aiAgent.act.provider": {
+          "type": "string",
+          "default": "mock",
+          "enum": ["mock", "ollama", "openai", "anthropic", "google", "azure-openai"],
+          "description": "LLM provider for Act stage (multi-agent mode)"
+        },
+        "aiAgent.act.model": {
+          "type": "string",
+          "default": "llama2",
+          "description": "Model name for Act stage (multi-agent mode)"
+        },
+        "aiAgent.act.baseUrl": {
+          "type": "string",
+          "default": "http://localhost:11434",
+          "description": "Base URL for Act stage (Ollama)"
+        },
+        "aiAgent.act.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for Act stage (cloud providers)"
+        },
+        "aiAgent.act.maxTurns": {
+          "type": "number",
+          "default": 5,
+          "description": "Maximum turns for Act stage"
+        },
+        "aiAgent.act.timeout": {
+          "type": "number",
+          "default": 30,
+          "description": "Timeout for Act stage (seconds)"
+        },
+        "aiAgent.act.temperature": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0,
+          "maximum": 2,
+          "description": "Temperature for Act stage"
+        },
+        "aiAgent.debugMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable verbose debug logging for multi-agent orchestration",
+          "markdownDescription": "Enable verbose debug logging for multi-agent orchestration. Shows Plan and Act stage execution details in the Extension Host console."
         }
       }
     },

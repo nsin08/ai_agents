@@ -269,6 +269,7 @@ describe('ExportService', () => {
             {
               name: 'web_search',
               input: { query: 'test' },
+              output: { results: [] },
               duration: 150,
               status: 'success',
             },

@@ -11,8 +11,12 @@ import {
   TraceError,
   ConversationTrace,
   TraceFilter,
-  TraceSummary
+  TraceSummary,
+  CoordinatorEvent,
+  AgentReasoningEvent,
+  InterAgentMessageEvent
 } from '../models/Trace';
+import { AgentMessage, CoordinatorState, ReasoningChain } from '../models/AgentMessage';
 
 export class TraceService {
   private static readonly STORAGE_KEY = 'agentTraces';
@@ -30,15 +34,34 @@ export class TraceService {
 
   /**
    * Start tracing a new conversation.
+   * For single-agent mode: provide provider and model
+   * For multi-agent mode: provide planProvider, planModel, actProvider, actModel
    */
-  public startTrace(conversationId: string, provider: string, model: string): void {
+  public startTrace(
+    conversationId: string,
+    provider: string,
+    model: string,
+    mode: 'single' | 'multi' = 'single',
+    planProvider?: string,
+    planModel?: string,
+    actProvider?: string,
+    actModel?: string
+  ): void {
     const trace: ConversationTrace = {
       conversationId,
       entries: [],
       startTime: new Date(),
       totalTurns: 0,
-      provider,
-      model
+      mode,
+      provider: mode === 'single' ? provider : undefined,
+      model: mode === 'single' ? model : undefined,
+      planProvider: mode === 'multi' ? planProvider : undefined,
+      planModel: mode === 'multi' ? planModel : undefined,
+      actProvider: mode === 'multi' ? actProvider : undefined,
+      actModel: mode === 'multi' ? actModel : undefined,
+      coordinatorEvents: [],
+      agentReasoning: [],
+      interAgentMessages: []
     };
     this.activeTraces.set(conversationId, trace);
   }
@@ -60,8 +83,8 @@ export class TraceService {
     let trace = this.activeTraces.get(conversationId);
     if (!trace) {
       console.warn(`No active trace found for conversation: ${conversationId}, auto-restarting trace`);
-      // Auto-restart trace if it was cleared
-      this.startTrace(conversationId, 'unknown', 'unknown');
+      // Auto-restart trace if it was cleared (default to single mode with unknown values)
+      this.startTrace(conversationId, 'unknown', 'unknown', 'single');
       trace = this.activeTraces.get(conversationId)!;
     }
 
@@ -290,5 +313,80 @@ export class TraceService {
       trace.provider = provider;
       trace.model = model;
     }
+  }
+
+  /**
+   * Record coordinator state transitions for multi-agent workflows.
+   */
+  public recordCoordinatorState(
+    conversationId: string,
+    state: CoordinatorState,
+    metadata?: Record<string, any>
+  ): void {
+    const trace = this.activeTraces.get(conversationId);
+    if (!trace) {
+      return;
+    }
+
+    const events = trace.coordinatorEvents ?? [];
+    const last = events[events.length - 1];
+    const event: CoordinatorEvent = {
+      event: 'coordinator-state-change',
+      from: last?.to ?? CoordinatorState.IDLE,
+      to: state,
+      timestamp: Date.now(),
+      metadata
+    };
+    events.push(event);
+    trace.coordinatorEvents = events;
+    this.saveTraces();
+  }
+
+  /**
+   * Record agent reasoning payloads.
+   */
+  public recordAgentReasoning(
+    conversationId: string,
+    agentId: string,
+    reasoning: ReasoningChain
+  ): void {
+    const trace = this.activeTraces.get(conversationId);
+    if (!trace) {
+      return;
+    }
+
+    const events = trace.agentReasoning ?? [];
+    const event: AgentReasoningEvent = {
+      event: 'agent-reasoning',
+      agentId,
+      reasoning,
+      timestamp: Date.now()
+    };
+    events.push(event);
+    trace.agentReasoning = events;
+    this.saveTraces();
+  }
+
+  /**
+   * Record inter-agent communication messages.
+   */
+  public recordInterAgentMessage(
+    conversationId: string,
+    message: AgentMessage
+  ): void {
+    const trace = this.activeTraces.get(conversationId);
+    if (!trace) {
+      return;
+    }
+
+    const events = trace.interAgentMessages ?? [];
+    const event: InterAgentMessageEvent = {
+      event: 'inter-agent-message',
+      message,
+      timestamp: Date.now()
+    };
+    events.push(event);
+    trace.interAgentMessages = events;
+    this.saveTraces();
   }
 }

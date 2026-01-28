@@ -6,22 +6,27 @@
 import * as vscode from 'vscode';
 import {
   ConversationMetrics,
-  MessageMetrics,
   ProviderRates,
   DEFAULT_PROVIDER_RATES,
-  StatisticsSummary
+  StatisticsSummary,
+  AgentMetrics
 } from '../models/Statistics';
+import { TaskResult } from '../models/AgentRole';
 
 export class MetricsService {
   private static readonly STORAGE_KEY = 'agentMetrics';
   private context: vscode.ExtensionContext;
   private activeConversations: Map<string, ConversationMetrics>;
   private providerRates: Map<string, ProviderRates>;
+  private agentMetrics: Map<string, AgentMetrics>;
+  private coordinatorOverheadMs: number;
 
   constructor(context: vscode.ExtensionContext) {
     this.context = context;
     this.activeConversations = new Map();
     this.providerRates = new Map();
+    this.agentMetrics = new Map();
+    this.coordinatorOverheadMs = 0;
     this.loadProviderRates();
   }
 
@@ -226,6 +231,8 @@ export class MetricsService {
   public clearAllMetrics(): void {
     this.activeConversations.clear();
     this.context.globalState.update(MetricsService.STORAGE_KEY, []);
+    this.agentMetrics.clear();
+    this.coordinatorOverheadMs = 0;
   }
 
   /**
@@ -236,5 +243,49 @@ export class MetricsService {
     const completed = Array.from(this.activeConversations.values()).filter(m => m.endTime);
     const updated = [...stored, ...completed];
     await this.context.globalState.update(MetricsService.STORAGE_KEY, updated);
+  }
+
+  /**
+   * Record per-agent execution metrics.
+   */
+  public recordAgentExecution(agentId: string, result: TaskResult): void {
+    const existing = this.agentMetrics.get(agentId) ?? {
+      agentId,
+      totalTokens: 0,
+      inputTokens: 0,
+      outputTokens: 0,
+      totalDuration: 0,
+      costAttribution: 0,
+      executionCount: 0
+    };
+
+    existing.inputTokens += result.tokensUsed.input;
+    existing.outputTokens += result.tokensUsed.output;
+    existing.totalTokens = existing.inputTokens + existing.outputTokens;
+    existing.totalDuration += result.duration;
+    existing.executionCount += 1;
+
+    this.agentMetrics.set(agentId, existing);
+  }
+
+  /**
+   * Get metrics for a specific agent.
+   */
+  public getAgentMetrics(agentId: string): AgentMetrics | undefined {
+    return this.agentMetrics.get(agentId);
+  }
+
+  /**
+   * Get coordinator overhead in milliseconds.
+   */
+  public getCoordinatorOverhead(): number {
+    return this.coordinatorOverheadMs;
+  }
+
+  /**
+   * Add coordinator overhead time in milliseconds.
+   */
+  public recordCoordinatorOverhead(durationMs: number): void {
+    this.coordinatorOverheadMs += durationMs;
   }
 }
