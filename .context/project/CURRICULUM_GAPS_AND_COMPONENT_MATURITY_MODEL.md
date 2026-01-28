@@ -13,7 +13,7 @@ The repository establishes a strong educational baseline (Levels 1-2) for buildi
 
 **Key findings**
 1. **Educational core is solid**: Labs 01-08 cover the fundamental lifecycle well.
-2. **MCP is the major tool integration gap**: Model Context Protocol is absent from code and labs, but increasingly important for standardized tool servers and remote tool boundaries.
+2. **MCP is still a major tool integration gap (but not absent)**: There is an offline MCP foundations lab (`labs/09`) and minimal MCP abstractions in `src/agent_labs/mcp`, plus a basic HTTP-style MCP tool provider stub in `src/agent_core/tools/mcp.py`. What is still missing is production-grade, spec-aligned MCP client/server support (real transports, authZ/audit posture, hardening, and conformance tests).
 3. **Persistence needs a production path**: current defaults (`sqlite`, in-memory) are correct for learning but do not demonstrate scalable deployments (Postgres/Redis/pgvector or managed vector DB).
 4. **Evaluation is not a gate**: evaluation modules exist, but there is no repeatable "ship gate" workflow (golden sets + CI regression + stability tests).
 5. **Add a production-ready importable core**: introduce `src/agent_core/` as a configurable, scalable framework layer (factories/registries/policies, production backends, OTel export, evaluation gates, checkpoint/resume) that real projects can import directly.
@@ -51,7 +51,7 @@ Maturity levels used below:
 | Component | Current state | Current level | Target level | Main gap to close |
 |---|---|---:|---:|---|
 | Orchestrator | Implemented (`src/agent_labs/orchestrator`) | 2 | 3 | checkpoint/resume, idempotency, durable run state |
-| Tools | Registry + validation (`src/agent_labs/tools`) | 2 | 3 | MCP support + remote tool boundaries + authZ/audit |
+| Tools | Registry + validation (`src/agent_labs/tools`) + offline MCP lab (`labs/09`) | 2 | 3 | production-grade MCP (spec-aligned client/server + real transports), remote tool boundaries, authZ/audit |
 | Memory | Tiers exist (Lab 04, `src/agent_labs/memory`) | 1-2 | 3 | production backends (Postgres/Redis/vector), policies, multi-tenant |
 | Context | Chunking/templates/window (`src/agent_labs/context`) | 1-2 | 3 | context packing policy + retrieval gating + evidence discipline |
 | Retrieval / RAG | Mostly educational; Chroma scaffold exists | 1-2 | 3 | hybrid retrieval, metadata filters, reranking, vector ops story |
@@ -67,9 +67,9 @@ Maturity levels used below:
 
 ### 4.1 Model Context Protocol (MCP) (Critical)
 
-**Status:** referenced in case-study material; absent from `src` and `labs`.  
+**Status:** offline foundations exist (`labs/09`, `src/agent_labs/mcp`); `agent_core` includes a basic HTTP-style MCP tool provider stub (`src/agent_core/tools/mcp.py`). This is not yet production-grade MCP.  
 **Why it matters:** standard tool discovery + invocation; clean boundary for permissions and audit; reduces N-tools x M-agents integration sprawl.  
-**Missing pieces:** MCP client adapter, tool schema mapping, error taxonomy mapping, telemetry correlation, security posture for remote tools.
+**Missing pieces (production-grade):** spec-aligned MCP transport (e.g., stdio/SSE), server lifecycle management, authN/authZ + audit integration for remote tools, error taxonomy/conformance mapping, telemetry correlation/tracing, retries/backoff/rate limits, and an interoperability test suite against real MCP servers.
 
 ### 4.2 Production persistence strategy (High)
 

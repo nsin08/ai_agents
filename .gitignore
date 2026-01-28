@@ -197,6 +197,7 @@ temp/
 *.swp
 *.bak
 *.backup
+.local-data/
 
 # ============================================
 # Build Artifacts
