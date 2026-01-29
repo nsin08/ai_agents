@@ -1,10 +1,14 @@
-# VSCode Plugin Development Workflow
-
-A step-by-step workflow for building, testing, and releasing the AI Agent VSCode extension.
+⚠️ **DEPRECATED:** This guide has been superseded. See [DEVELOPMENT.md](../../DEVELOPMENT.md) for current setup instructions.
 
 ---
 
-## 1. Environment Setup
+# VSCode Plugin Development Workflow (ARCHIVED)
+
+This document is archived for reference only. For current instructions, see [DEVELOPMENT.md](../../DEVELOPMENT.md).
+
+---
+
+## 1. Environment Setup (ARCHIVED)
 
 1. Install Node.js (18+ recommended)
 2. Install VSCode

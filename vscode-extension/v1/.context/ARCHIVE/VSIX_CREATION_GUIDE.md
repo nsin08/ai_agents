@@ -1,10 +1,14 @@
-# VSIX Creation Guide
-
-This guide explains how to build and package the AI Agent VSCode extension into a VSIX.
+⚠️ **DEPRECATED:** This guide has been superseded. See [BUILD.md](../../BUILD.md) for current VSIX creation instructions.
 
 ---
 
-## Prerequisites
+# VSIX Creation Guide (ARCHIVED)
+
+This document is archived for reference only. For current instructions, see [BUILD.md](../../BUILD.md).
+
+---
+
+## Prerequisites (ARCHIVED)
 
 - Node.js 18+
 - VSCode

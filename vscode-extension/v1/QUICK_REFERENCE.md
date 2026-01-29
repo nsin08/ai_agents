@@ -371,11 +371,24 @@ Include:
 4. ✅ Sent first message
 
 Ready to use AI agents in VSCode! 🚀
-```
-
----
+```---
 
 **File:** `ai-agent-extension.vsix` (1.11 MB)  
 **Version:** 0.1.0  
 **Status:** Production Ready ✅  
 **Support:** [GitHub Issues](https://github.com/nsin08/ai_agents/issues)
+
+---
+
+## 📚 Related Resources
+
+- **[README.md](README.md)** ← Main documentation hub (start here)
+- **[VSIX_INSTALLATION_GUIDE.md](VSIX_INSTALLATION_GUIDE.md)** ← Detailed installation instructions
+- **[RELEASE_v0.1.0.md](RELEASE_v0.1.0.md)** ← Release notes and changelog
+- **[DEVELOPMENT.md](DEVELOPMENT.md)** ← For developers
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** ← For contributors
+
+---
+
+**Back to:** [README.md](README.md)
+

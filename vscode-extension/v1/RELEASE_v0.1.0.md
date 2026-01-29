@@ -396,8 +396,20 @@ When reporting problems, include:
 
 ---
 
+## 📚 Related Resources
+
+- **[README.md](README.md)** ← Main documentation hub (start here)
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** ← Commands, settings, FAQs
+- **[VSIX_INSTALLATION_GUIDE.md](VSIX_INSTALLATION_GUIDE.md)** ← Detailed installation instructions
+- **[DEVELOPMENT.md](DEVELOPMENT.md)** ← For developers
+
+---
+
 **Installation:** 👉 [VSIX_INSTALLATION_GUIDE.md](VSIX_INSTALLATION_GUIDE.md)
 
 **Download:** `ai-agent-extension.vsix` (1.11 MB)
 
 **Status:** ✅ Ready for Distribution
+
+**Back to:** [README.md](README.md)
+

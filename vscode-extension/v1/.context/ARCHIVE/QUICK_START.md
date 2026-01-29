@@ -1,4 +1,10 @@
-# VSCode AI Agent Extension - Quick Start
+⚠️ **DEPRECATED:** This guide has been superseded. See [DEVELOPMENT.md](../../DEVELOPMENT.md) for current setup instructions.
+
+---
+
+# VSCode AI Agent Extension - Quick Start (ARCHIVED)
+
+This document is archived for reference only. For current instructions, see [DEVELOPMENT.md](../../DEVELOPMENT.md).
 
 ## Running the Extension
 
