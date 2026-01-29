@@ -96,24 +96,61 @@ code --install-extension ai-agent-extension.vsix
 
 ---
 
-## ⚙️ Configuration (Single Agent Mode)
+## ⚙️ Configuration
 
-The extension supports single-agent chat (default) and multi-agent orchestration.
+The extension supports **single-agent chat** (default) and **multi-agent orchestration**.
 
-**Configure via Settings Panel:**
+### Single Agent Configuration
+
+**Quick Setup:**
 1. Press `Ctrl+Shift+P` → "Agent: Settings"
 2. Select your provider and model
-3. Start chatting!
+3. Configure API keys if using cloud providers
+4. Start chatting!
 
 **Supported Providers:**
 - **Mock** - No setup needed, instant responses (for testing)
-- **Ollama** - Local LLM (requires Ollama installation)
+- **Ollama** - Local LLM (requires Ollama installation at http://localhost:11434)
 - **OpenAI** - GPT models (requires API key)
 - **Anthropic** - Claude models (requires API key)
 - **Google** - Gemini models (requires API key)
 - **Azure OpenAI** - Azure-hosted models (requires endpoint + key)
 
-**For multi-agent setup:** See [DEVELOPMENT.md](DEVELOPMENT.md#multi-agent-configuration)
+**Configuration Options:**
+- **Provider** - Select LLM provider
+- **Model** - Model name (e.g., "llama3.2", "gpt-4", "claude-3-opus")
+- **Base URL** - API endpoint (for Ollama: http://localhost:11434)
+- **API Key** - Required for cloud providers
+- **Max Turns** - Maximum conversation turns (default: 10)
+- **Timeout** - Request timeout in seconds (default: 30)
+- **Debug Mode** - Toggle verbose logging for troubleshooting
+
+### Multi-Agent Configuration
+
+**Enable Multi-Agent Mode:**
+1. Press `Ctrl+Shift+P` → "Agent: Settings"
+2. Scroll to **Multi-Agent Configuration** section
+3. Toggle "Enable Multi-Agent Mode"
+4. Configure coordinator settings:
+   - **Coordinator Model** - Model for task planning
+   - **Agent Models** - Models for planner, executor, verifier agents
+   - **Max Coordination Turns** - Maximum multi-agent rounds
+   - **Debug Mode** - Enable detailed multi-agent logging
+
+**Multi-Agent Features:**
+- Task decomposition by planner agent
+- Parallel execution by executor agent
+- Verification by verifier agent
+- Dashboard showing live agent status
+- Per-agent metrics and reasoning chains
+
+**Debug Mode:**
+- **In Settings Panel:** Toggle "Debug Mode" checkbox
+- **Via Environment:** Set `DEBUG_MULTI_AGENT=true`
+- **Output Location:** Extension Host console (Help → Toggle Developer Tools → Console)
+- **What it shows:** Plan/Act timing, message flow, configuration details
+
+**Full setup guide:** See [DEVELOPMENT.md](DEVELOPMENT.md#multi-agent-configuration)
 
 ---
 
