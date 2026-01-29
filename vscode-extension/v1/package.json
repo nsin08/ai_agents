@@ -3,10 +3,17 @@
   "displayName": "AI Agent Interaction",
   "description": "Interact with AI agents directly from VSCode with integrated configuration management",
   "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nsin08/ai_agents.git"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
-  "categories": ["AI", "Developer Tools"],
+  "categories": [
+    "AI",
+    "Developer Tools"
+  ],
   "activationEvents": [
     "onStartupFinished"
   ],
@@ -38,6 +45,11 @@
         "command": "ai-agent.showTraceViewer",
         "title": "Agent: Show Trace Viewer",
         "icon": "$(list-tree)"
+      },
+      {
+        "command": "ai-agent.showHistory",
+        "title": "Agent: Show History",
+        "icon": "$(history)"
       },
       {
         "command": "ai-agent.refreshTraces",
@@ -80,14 +92,24 @@
       "properties": {
         "aiAgent.mode": {
           "type": "string",
-          "enum": ["single", "multi"],
+          "enum": [
+            "single",
+            "multi"
+          ],
           "default": "single",
           "description": "Agent mode: single-agent or multi-agent (Plan+Act)"
         },
         "aiAgent.provider": {
           "type": "string",
           "default": "mock",
-          "enum": ["mock", "ollama", "openai", "anthropic", "google", "azure-openai"],
+          "enum": [
+            "mock",
+            "ollama",
+            "openai",
+            "anthropic",
+            "google",
+            "azure-openai"
+          ],
           "description": "LLM provider to use (single-agent mode)"
         },
         "aiAgent.model": {
@@ -126,7 +148,14 @@
         "aiAgent.plan.provider": {
           "type": "string",
           "default": "mock",
-          "enum": ["mock", "ollama", "openai", "anthropic", "google", "azure-openai"],
+          "enum": [
+            "mock",
+            "ollama",
+            "openai",
+            "anthropic",
+            "google",
+            "azure-openai"
+          ],
           "description": "LLM provider for Plan stage (multi-agent mode)"
         },
         "aiAgent.plan.model": {
@@ -164,7 +193,14 @@
         "aiAgent.act.provider": {
           "type": "string",
           "default": "mock",
-          "enum": ["mock", "ollama", "openai", "anthropic", "google", "azure-openai"],
+          "enum": [
+            "mock",
+            "ollama",
+            "openai",
+            "anthropic",
+            "google",
+            "azure-openai"
+          ],
           "description": "LLM provider for Act stage (multi-agent mode)"
         },
         "aiAgent.act.model": {
@@ -198,12 +234,6 @@
           "minimum": 0,
           "maximum": 2,
           "description": "Temperature for Act stage"
-        },
-        "aiAgent.debugMode": {
-          "type": "boolean",
-          "default": false,
-          "description": "Enable verbose debug logging for multi-agent orchestration",
-          "markdownDescription": "Enable verbose debug logging for multi-agent orchestration. Shows Plan and Act stage execution details in the Extension Host console."
         }
       }
     },
@@ -269,6 +299,9 @@
         },
         {
           "command": "ai-agent.showCodeSuggestions"
+        },
+        {
+          "command": "ai-agent.showHistory"
         }
       ]
     }
@@ -282,15 +315,16 @@
     "lint": "eslint src --ext ts"
   },
   "devDependencies": {
-    "@types/vscode": "^1.85.0",
-    "@types/node": "^20.0.0",
     "@types/jest": "^29.0.0",
-    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
     "jest": "^29.0.0",
     "ts-jest": "^29.0.0",
-    "eslint": "^8.0.0",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0"
+    "typescript": "^5.0.0",
+    "vsce": "^2.15.0"
   },
   "dependencies": {
     "axios": "^1.6.0"

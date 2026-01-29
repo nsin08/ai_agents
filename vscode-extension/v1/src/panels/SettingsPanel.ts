@@ -119,6 +119,13 @@ export class SettingsPanel {
         vscode.window.showInformationMessage('Act stage config saved');
         break;
 
+      case 'updateDebugMode':
+        await this.configService.updateDebugMode(!!msg.enabled);
+        vscode.window.showInformationMessage(`Debug mode ${msg.enabled ? 'enabled' : 'disabled'}`);
+        // Reload config to sync UI state
+        this.loadConfiguration(this.configService.getConfig());
+        break;
+
       case 'fetchOllamaModels':
         await this.fetchOllamaModels(msg.baseUrl, msg.stage);
         break;
@@ -278,6 +285,60 @@ export class SettingsPanel {
             padding-top: 15px; 
             border-top: 1px solid var(--vscode-input-border);
         }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 12px;
+            border: 1px solid var(--vscode-input-border);
+            border-radius: 6px;
+            background: var(--vscode-input-background);
+        }
+
+        .toggle-label {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .toggle-label span {
+            font-size: 0.85em;
+            opacity: 0.7;
+        }
+
+        .toggle {
+            position: relative;
+            width: 42px;
+            height: 22px;
+            background: var(--vscode-input-background);
+            border: 1px solid var(--vscode-input-border);
+            border-radius: 999px;
+            cursor: pointer;
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            background: var(--vscode-button-background);
+            border-radius: 50%;
+            transition: transform 0.2s ease;
+        }
+
+        .toggle.enabled {
+            background: var(--vscode-button-background);
+        }
+
+        .toggle.enabled::after {
+            transform: translateX(20px);
+            background: var(--vscode-button-foreground);
+        }
         
         .status { 
             padding: 12px; 
@@ -324,6 +385,14 @@ export class SettingsPanel {
         <p class="subtitle">Configure single or multi-agent execution mode</p>
         
         <div id="status" class="status"></div>
+
+        <div class="toggle-row">
+            <div class="toggle-label">
+                <strong>Debug Mode</strong>
+                <span>Verbose logging for multi-agent orchestration</span>
+            </div>
+            <div id="debugToggle" class="toggle" onclick="toggleDebugMode()"></div>
+        </div>
         
         <!-- Mode Selector -->
         <div class="mode-selector">
@@ -585,10 +654,24 @@ export class SettingsPanel {
                 } else {
                     loadMultiAgentConfig(message.config);
                 }
+
+                setDebugToggle(!!message.config.debugMode);
             } else if (message.type === "ollamaModels") {
                 handleOllamaModels(message);
             }
         });
+
+        function toggleDebugMode() {
+            const toggle = document.getElementById('debugToggle');
+            const enabled = !toggle.classList.contains('enabled');
+            setDebugToggle(enabled);
+            vscode.postMessage({ command: 'updateDebugMode', enabled: enabled });
+        }
+
+        function setDebugToggle(enabled) {
+            const toggle = document.getElementById('debugToggle');
+            toggle.classList.toggle('enabled', enabled);
+        }
         
         function loadSingleAgentConfig(config) {
             document.getElementById('single-provider').value = config.provider || 'mock';

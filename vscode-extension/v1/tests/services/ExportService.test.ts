@@ -157,6 +157,7 @@ describe('ExportService', () => {
           startTime: new Date('2026-01-23T10:00:00Z'),
           endTime: new Date('2026-01-23T10:05:00Z'),
           totalTurns: 1,
+          mode: 'single',
           entries: [
             {
               id: 'trace-1',
@@ -301,6 +302,57 @@ describe('ExportService', () => {
       const result = exportService.exportTracesToCSV(entries);
 
       expect(result.data).toContain('Network timeout');
+    });
+  });
+
+  describe('Conversation Export', () => {
+    test('should export conversation to Markdown', () => {
+      const entry = {
+        id: 'session-123',
+        createdAt: Date.parse('2026-01-24T10:00:00Z'),
+        updatedAt: Date.parse('2026-01-24T10:05:00Z'),
+        agentMode: 'single',
+        provider: 'mock',
+        model: 'llama2',
+        workspace: { name: 'demo', path: '/tmp/demo' },
+        messages: [
+          { role: 'user', content: 'Hello', timestamp: Date.now() },
+          { role: 'assistant', content: 'Hi there', timestamp: Date.now() }
+        ]
+      };
+
+      const result = exportService.exportConversationToMarkdown(entry as any);
+
+      expect(result.format).toBe('md');
+      expect(result.mimeType).toBe('text/markdown');
+      expect(result.filename).toBe('agent-conversation-session-123.md');
+      expect(result.data).toContain('# Conversation session-123');
+      expect(result.data).toContain('Hello');
+      expect(result.data).toContain('Hi there');
+    });
+
+    test('should export conversation to HTML', () => {
+      const entry = {
+        id: 'session-456',
+        createdAt: Date.parse('2026-01-24T10:00:00Z'),
+        updatedAt: Date.parse('2026-01-24T10:05:00Z'),
+        agentMode: 'multi',
+        provider: 'mock',
+        model: 'llama2',
+        workspace: { name: 'demo', path: '/tmp/demo' },
+        messages: [
+          { role: 'user', content: 'Need a report', timestamp: Date.now() },
+          { role: 'assistant', content: 'Here you go', timestamp: Date.now() }
+        ]
+      };
+
+      const result = exportService.exportConversationToHTML(entry as any);
+
+      expect(result.format).toBe('html');
+      expect(result.mimeType).toBe('text/html');
+      expect(result.filename).toBe('agent-conversation-session-456.html');
+      expect(result.data).toContain('<!DOCTYPE html>');
+      expect(result.data).toContain('Conversation session-456');
     });
   });
 

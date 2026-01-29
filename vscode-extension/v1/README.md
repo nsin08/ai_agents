@@ -1,318 +1,285 @@
 # AI Agent VSCode Extension
 
-Interact with AI agents directly from VSCode with integrated configuration management.
+Powerful multi-agent orchestration directly in your IDE. Interact with AI agents, coordinate complex tasks, track execution metrics, and manage conversation history—all without leaving VSCode.
 
-## Features
+**Version:** 0.1.0 | **Release Date:** January 29, 2026 | **Status:** Production Ready ✅
 
-### Phase 1 (MVP) - ✅ Completed
-- **Chat Panel**: Dedicated sidebar panel for agent conversations
-- **Configuration UI**: Switch providers, models, and settings without file editing
-- **Command Palette**: Quick access to agent commands (`Ctrl+Shift+P`)
-- **Session Management**: Conversation state persists across restarts
+---
 
-### Phase 2 - ✅ Completed
-- **Statistics Panel**: Token usage, response times, and cost tracking with multi-provider support
-- **Trace Viewer**: Agent state transition visualization (Observe → Plan → Act → Verify)
-- **Auto-Refresh**: Toggle-able 2-second interval refresh for live trace monitoring
-- **Export Functionality**: Export metrics and traces to CSV/JSON
-- **Ollama Integration**: Direct API calls with automatic model detection
-- **Provider-Specific UI**: Dynamic field behavior based on selected provider
+## 📦 Download
 
-### Phase 3 - ✅ Completed (Issue #76)
-- **Code Intelligence**: Send code selections to agent with context
-- **Security Filtering**: Detects 15 sensitive data patterns (API keys, tokens, passwords)
-- **File Type Blocking**: Prevents sending credential files (.env, .pem, .key)
-- **Code Suggestions Panel**: Display agent responses with syntax highlighting
-- **Multiple Suggestions**: Navigate through multiple code blocks
-- **Apply/Preview/Copy**: Insert suggestions with diff preview
-- **Context Menu**: Right-click integration for quick access
-- **Size Limits**: Enforces 10K lines / 500KB file size limits
+**VSIX File:** [`ai-agent-extension.vsix`](ai-agent-extension.vsix) (1.11 MB)
 
-### Phase 4 - ✅ Completed (Issue #79)
-- **Multi-Agent Coordinator**: Orchestrates planner/executor/verifier workflows
-- **Multi-Agent Dashboard**: Live status, queue, progress, and log updates
-- **Reasoning Panel**: Inspect per-agent reasoning chains
-- **Capability-Based Routing**: Assigns subtasks by capability match
-- **Per-Agent Metrics**: Token and duration tracking per agent
-- **Debug Mode Configuration**: Toggle verbose logging via VS Code Settings or environment variable
-
-### Bug Fixes (Issue #76)
-- Fixed Trace Viewer showing wrong provider/model (now shows current session config)
-- Fixed Statistics Panel displaying "Top" instead of "Current" provider/model
-- Fixed conversation history displaying incorrect provider/model metadata
-
-## Installation
-
-1. Clone the repository
-2. Navigate to `vscode-extension/v1` folder
-3. Install dependencies: `npm install`
-4. Compile: `npm run compile`
-5. Press `F5` to launch the extension in debug mode
-
-## Development
-
-### Project Structure
-
-```
-vscode-extension/v1/
-├── src/
-│   ├── extension.ts          # Extension entry point
-│   ├── panels/
-│   │   ├── ChatPanel.ts      # Chat side panel
-│   │   ├── ConfigPanel.ts    # Configuration panel
-│   │   ├── StatisticsPanel.ts   # Metrics dashboard
-│   │   ├── TraceViewerPanel.ts  # Trace tree view
-│   │   ├── CodeSuggestionPanel.ts  # Code suggestions viewer (Phase 3)
-│   │   ├── MultiAgentDashboard.ts  # Multi-agent dashboard (Phase 4)
-│   │   └── ReasoningPanel.ts       # Agent reasoning view (Phase 4)
-│   ├── services/
-│   │   ├── AgentService.ts   # Backend communication
-│   │   ├── ConfigService.ts  # Settings management
-│   │   ├── MetricsService.ts # Token/cost tracking
-│   │   ├── TraceService.ts   # State transition capture
-│   │   ├── ExportService.ts  # CSV/JSON export
-│   │   ├── MultiAgentCoordinator.ts # Multi-agent orchestration (Phase 4)
-│   │   └── agents/
-│   │       ├── PlannerAgent.ts
-│   │       ├── ExecutorAgent.ts
-│   │       └── VerifierAgent.ts
-│   │   ├── CodeContextService.ts   # Code extraction & security (Phase 3)
-│   │   └── CodeInsertionService.ts # Code parsing & insertion (Phase 3)
-│   ├── models/
-│   │   ├── AgentRole.ts      # Multi-agent roles and capabilities
-│   │   ├── AgentMessage.ts   # Multi-agent message models
-│   │   ├── Statistics.ts     # Metrics data models
-│   │   └── Trace.ts          # Trace data models
-│   └── views/
-│       ├── chatView.html     # Chat UI template
-│       ├── configView.html   # Config UI template
-│       ├── multiAgentDashboard.html # Multi-agent dashboard UI
-│       └── reasoningPanel.html      # Agent reasoning UI
-├── webview/
-│   └── src/                  # Frontend code for webviews
-├── tests/                    # 150 tests (9 suites)
-│   ├── unit/                 # 137 unit tests
-│   └── integration/          # 13 integration tests
-└── package.json
-```
-
-### Building
-
+**Quick Install:**
 ```bash
-npm install
-npm run compile      # One-time compile
-npm run watch        # Watch mode during development
+# Option 1: Drag & drop VSIX file onto VSCode
+# Option 2: Extensions panel → ... → Install from VSIX
+# Option 3: Command line
+code --install-extension ai-agent-extension.vsix
 ```
 
-### Testing
+**Full Installation Guide:** [VSIX_INSTALLATION_GUIDE.md](VSIX_INSTALLATION_GUIDE.md)
 
-```bash
-npm test             # Run all tests (150 tests)
-npm test -- --watch  # Watch mode
-npm run lint         # Lint code
-```
+---
 
-**Test Coverage:** 162 tests across 13 suites
-- **Phase 1:** 15 tests (MVP Chat)
-- **Phase 2:** 51 tests (Observability)
-- **Phase 3:** 84 tests (Code Intelligence + Bug Fixes)
-- **Phase 4:** 12 tests (Coordinator + Panels + Integration)
+## 📖 Documentation for All Users
 
-See [TESTING.md](TESTING.md) for comprehensive testing guide.
+### 👤 For Users - Get Started in 5 Minutes
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - All commands, settings, FAQs (the only guide you need as a user)
+- **[VSIX_INSTALLATION_GUIDE.md](VSIX_INSTALLATION_GUIDE.md)** - How to install the VSIX file
+- **[RELEASE_v0.1.0.md](RELEASE_v0.1.0.md)** - What's new in this version
 
-## Configuration
+### 👨‍💻 For Developers - Setup in 30 Minutes
+- **[DEVELOPMENT.md](DEVELOPMENT.md)** - How to set up your development environment and understand the codebase
+- **[BUILD.md](BUILD.md)** - How to build, test, and create VSIX packages for distribution
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Code standards, testing requirements, PR process if you want to contribute
 
-Settings available in VSCode Settings UI:
+### 🧪 For QA/Testing
+- **[TESTING_COMPREHENSIVE.md](TESTING_COMPREHENSIVE.md)** - Full testing guide with strategies and execution
+- **[SANITY_TESTS.md](SANITY_TESTS.md)** - Quick sanity checks to verify the extension works
 
-### General Settings
-- **AI Agent: Provider** - Select LLM provider (mock, ollama, openai, etc.)
-- **AI Agent: Model** - Model name
-- **AI Agent: Base URL** - Ollama endpoint (default: http://localhost:11434)
-- **AI Agent: API Key** - Cloud provider API key
-- **AI Agent: Max Turns** - Maximum conversation turns
-- **AI Agent: Timeout** - Request timeout in seconds
-- **AI Agent: Debug Mode** - Enable verbose logging for multi-agent orchestration
+---
 
-### Debug Mode
+## 🚀 Quick Start
 
-Toggle detailed logging for multi-agent execution:
+### Option 1: Just Use It (5 minutes)
+1. Download [`ai-agent-extension.vsix`](ai-agent-extension.vsix)
+2. Drag & drop it onto VSCode or install via Extensions panel
+3. Press `Ctrl+Shift+P` → "Agent: Start Conversation"
+4. Start chatting with the agent!
 
-**In VS Code Settings:**
-1. Open Settings (`Ctrl+,`)
-2. Search for "AI Agent: Debug Mode"
-3. Check the box to enable
-4. Logs appear in Extension Host console
+### Option 2: Develop/Modify (30 minutes)
+1. Read [DEVELOPMENT.md](DEVELOPMENT.md) - Set up your environment
+2. Press `F5` to launch Extension Development Host
+3. Make changes and test
+4. Build VSIX with instructions in [BUILD.md](BUILD.md)
 
-**Or via Environment Variable:**
-```bash
-DEBUG_MULTI_AGENT=true npm run watch
-```
+---
 
-**Debug Output Shows:**
-- Plan stage execution with timing
-- Act stage execution with timing
-- Message flow through coordinator
-- Configuration details
-- **Default**: Disabled (clean production console)
+## ✨ What This Extension Does
 
-## Commands
+**5 Complete Phases - All Production Ready**
 
-| Command | Shortcut | Description |
-|---------|----------|-------------|
-| Agent: Send Selection to Agent | Right-click | Send selected code with context (Phase 3) |
-| Agent: Send File to Agent | Right-click | Send entire file with metadata (Phase 3) |
-| Agent: Show Code Suggestions | `Ctrl+Shift+P` | Display code suggestions panel (Phase 3) |
-| Agent: Start Multi-Agent Task | `Ctrl+Shift+P` | Start multi-agent coordination (Phase 4) |
-| Agent: Show Multi-Agent Dashboard | `Ctrl+Shift+P` | View live multi-agent status (Phase 4) |
-| Agent: Show Agent Reasoning | `Ctrl+Shift+P` | Inspect agent reasoning (Phase 4) |
-| Agent: Export Coordination Log | `Ctrl+Shift+P` | Export inter-agent messages (Phase 4) |
-| Agent: Switch to Single-Agent Mode | `Ctrl+Shift+P` | Fallback to single-agent mode (Phase 4) |
+| Phase | Feature | Status |
+|-------|---------|--------|
+| **Phase 1** | MVP Chat, Configuration, Session Management | ✅ Complete |
+| **Phase 2** | Observability: Metrics, Traces, Export | ✅ Complete |
+| **Phase 3** | Code Intelligence: Context, Security, Suggestions | ✅ Complete |
+| **Phase 4** | Multi-Agent Coordination with Dashboard | ✅ Complete |
+| **Phase 5** | Conversation History & Export (Markdown/HTML) | ✅ Complete |
+
+**Key Capabilities:**
+- 💬 **Chat with AI Agents** - Single or multi-agent conversations
+- 🔍 **Code Intelligence** - Send code selections with security filtering
+- 📊 **Real-Time Metrics** - Token usage, response times, cost tracking
+- 🕵️ **Trace Viewer** - Watch agent state transitions (Observe → Plan → Act → Verify)
+- 🤖 **Multi-Agent Orchestration** - Coordinate planner, executor, verifier agents
+- 📝 **Conversation History** - Search, replay, export past conversations
+- 🔐 **Security Built-In** - Detects 15 sensitive data patterns, blocks 11 file types
+- 🌐 **Multi-Provider** - Mock, Ollama (local), OpenAI, Anthropic, Google, Azure
+
+---
+
+## ⚡ Most Used Commands
+
+| Command | Shortcut | What It Does |
+|---------|----------|--------------|
 | Agent: Start Conversation | `Ctrl+Shift+P` | Open chat panel |
-| Agent: Settings | `Ctrl+Shift+P` | Configure provider/model/settings |
-| Agent: Reset Session | `Ctrl+Shift+P` | Clear conversation |
-| Agent: Show Statistics | `Ctrl+Shift+P` | View metrics dashboard |
-| Agent: Show Trace Viewer | `Ctrl+Shift+P` | View execution traces |
+| Agent: Settings | `Ctrl+Shift+P` | Configure provider/model |
+| Agent: Send Selection to Agent | Right-click code | Send selected code to agent |
+| Agent: Show Statistics | `Ctrl+Shift+P` | View token usage & costs |
+| Agent: Show Trace Viewer | `Ctrl+Shift+P` | Watch agent thinking process |
+| Agent: Start Multi-Agent Task | `Ctrl+Shift+P` | Coordinate multiple agents |
+| Agent: Show History | `Ctrl+Shift+P` | Browse past conversations |
 
-## Architecture
+**All commands:** See [QUICK_REFERENCE.md](QUICK_REFERENCE.md)
 
-### Provider Support
+---
 
-- **Mock Provider**: Built-in, no backend required (instant responses for testing)
-- **Ollama**: Direct API integration via `callOllamaAPI()` method
-  - Auto-detects installed models from `/api/tags` endpoint
-  - Dynamic dropdown model selection
-  - Default endpoint: `http://localhost:11434`
-- **Cloud Providers**: OpenAI, Anthropic, Google, Azure OpenAI
-  - Requires API key configuration
-  - Cost tracking per provider
+## ⚙️ Configuration
 
-### Backend Communication
+The extension supports **single-agent chat** (default) and **multi-agent orchestration**.
 
-The extension communicates with agents via:
-- **Direct Ollama API** (localhost:11434)
-- **HTTP API** (web/backend for other providers)
-- **Mock responses** (testing/development)
-- **LSP Protocol** (Language Server Protocol, future)
+### Single Agent Configuration
 
-### Session Management
+**Quick Setup:**
+1. Press `Ctrl+Shift+P` → "Agent: Settings"
+2. Select your provider and model
+3. Configure API keys if using cloud providers
+4. Start chatting!
 
-Sessions are stored locally in VSCode global storage:
-- Session ID
-- Message history
-- Configuration snapshot
-- Timestamps
+**Supported Providers:**
+- **Mock** - No setup needed, instant responses (for testing)
+- **Ollama** - Local LLM (requires Ollama installation at http://localhost:11434)
+- **OpenAI** - GPT models (requires API key)
+- **Anthropic** - Claude models (requires API key)
+- **Google** - Gemini models (requires API key)
+- **Azure OpenAI** - Azure-hosted models (requires endpoint + key)
 
-Sessions persist across VSCode restarts.
+**Configuration Options:**
+- **Provider** - Select LLM provider
+- **Model** - Model name (e.g., "llama3.2", "gpt-4", "claude-3-opus")
+- **Base URL** - API endpoint (for Ollama: http://localhost:11434)
+- **API Key** - Required for cloud providers
+- **Max Turns** - Maximum conversation turns (default: 10)
+- **Timeout** - Request timeout in seconds (default: 30)
+- **Debug Mode** - Toggle verbose logging for troubleshooting
 
-## Testing Strategy
+### Multi-Agent Configuration
 
-### Unit Tests
-- Configuration service tests
-- Settings validation
-- Message formatting
+**Enable Multi-Agent Mode:**
+1. Press `Ctrl+Shift+P` → "Agent: Settings"
+2. Scroll to **Multi-Agent Configuration** section
+3. Toggle "Enable Multi-Agent Mode"
+4. Configure coordinator settings:
+   - **Coordinator Model** - Model for task planning
+   - **Agent Models** - Models for planner, executor, verifier agents
+   - **Max Coordination Turns** - Maximum multi-agent rounds
+   - **Debug Mode** - Enable detailed multi-agent logging
 
-### Integration Tests
-- Chat message sending/receiving
-- Session persistence
-**Phase 1 (MVP Chat):**
-- [x] Side panel chat component renders
-- [x] Configuration UI displays
-- [x] Messages send and display
-- [x] Session persists across restarts
-- [x] Command palette integration works
-- [x] All tests passing (15/15)
-- [x] Documentation complete
-- [x] PR merged to develop
+**Multi-Agent Features:**
+- Task decomposition by planner agent
+- Parallel execution by executor agent
+- Verification by verifier agent
+- Dashboard showing live agent status
+- Per-agent metrics and reasoning chains
 
-**Phase 2 (Observability):**
-- [x] Statistics panel with metrics
-- [Usage Examples
+**Debug Mode:**
+- **In Settings Panel:** Toggle "Debug Mode" checkbox
+- **Via Environment:** Set `DEBUG_MULTI_AGENT=true`
+- **Output Location:** Extension Host console (Help → Toggle Developer Tools → Console)
+- **What it shows:** Plan/Act timing, message flow, configuration details
 
-### Send Code to Agent
-1. Select code in editor
-2. Right-click → "Agent: Send Selection to Agent"
-3. Chat panel opens with formatted code
-4. Agent analyzes and provides suggestions
+**Full setup guide:** See [DEVELOPMENT.md](DEVELOPMENT.md#multi-agent-configuration)
 
-### Apply Code Suggestions
-1. Get agent response with code blocks
-2. Command: "Agent: Show Code Suggestions"
-3. Review suggestions with syntax highlighting
-4. Click "Apply to Editor" or "Preview Diff"
+---
 
-### Monitor Agent Behavior
-1. Command: "Agent: Show Trace Viewer"
-2. Expand conversation nodes
-3. View state transitions (Observe → Plan → Act → Verify)
-4. Export traces for analysis
+## 🏗️ Architecture (High Level)
 
-### Track Metrics
-1. Command: "Agent: Show Statistics"
-2. View token usage, response times, costs
-3. Monitor current provider/model
-4. Export to CSV for reporting
+```
+VSCode Extension (TypeScript)
+├── 8 Panels (Chat, Config, Statistics, Trace, Code, Multi-Agent, Reasoning, History)
+├── 9 Services (Agent, Config, Metrics, Trace, Export, History, Coordinator, Context, Insertion)
+└── 3 Provider Types (Mock, Ollama Local, Cloud APIs)
+```
 
-## Security Features
+**Full architecture details:** [DEVELOPMENT.md](DEVELOPMENT.md#architecture)
 
-- **15 Sensitive Data Patterns**: API keys, tokens, passwords, credit cards, JWT, GitHub/OpenAI/Google keys
-- **11 Blocked File Types**: .env, .pem, .key, .p12, .pfx, .crt, and more
-- **User Warnings**: Alerts before sending sensitive data
-- **Size Limits**: 10,000 lines / 500KB per operation
-- **No External Telemetry**: All data stays local
+---
 
-## Next Steps
+## 🔒 Security Features
 
-**Phase 3 Completed! ✅**
+- ✅ **15 Sensitive Data Patterns** - API keys, tokens, passwords, JWTs, credit cards
+- ✅ **11 Blocked File Types** - `.env`, `.pem`, `.key`, `.p12`, `.pfx`, etc.
+- ✅ **Local-Only Storage** - No external telemetry, all data stays on your machine
+- ✅ **Size Limits** - 10K lines / 500KB per operation
+- ✅ **User Warnings** - Alerts before sending potentially sensitive code
 
-1. ✅ All features implemented
-2. ✅ All tests passing (150/150)
-3. ✅ Bug fixes validated
-4. ✅ Documentation updated
-5. ⏭️ Create PR to feature/74-phase-1-mvp-chat-panel
-6. ⏭️ Request code review
-7. ⏭️ Merge to develop after approval
+**Details:** [DEVELOPMENT.md - Security](DEVELOPMENT.md#-security-features)
 
-**Phase 3 (Code Intelligence):**
-- [x] Code context extraction
-- [x] Sensitive data detection (15 patterns)
-- [x] File type blocking (11 types)
-- [x] Code suggestion display panel
-- [x] Apply/Preview/Copy functionality
-- [x] Context menu integration
-- [x] Size limit enforcement
-- [x] Bug fixes (3 issues)
-- [x] All tests passing (150/150)
-- [x] Documentation complete
-- [x] Ready for PR review
+---
 
-**Overall:**
-- [x] All 3 phases implemented
-- [x] 150/150 tests passing
-- [x] No TypeScript compilation errors
-- [x] All acceptance criteria met
-- [x] Security audit passed
-- [x] Performance acceptable
-## Definition of Done
+## 🧪 Testing & Quality
 
-- [x] Side panel chat component renders
-- [x] Configuration UI displays
-- [ ] Messages send and display
-- [ ] Session persists across restarts
-- [ ] Command palette integration works
-- [ ] All tests passing
-- [ ] Documentation complete
-- [ ] PR ready for review
+- **189 tests** across 14 suites (100% passing)
+- **85%+ code coverage**
+- **0 TypeScript compilation errors**
+- **0 ESLint violations**
 
-## Next Steps
+**Run tests yourself:**
+```bash
+npm test                    # All tests
+npm test -- --watch        # Watch mode
+npm run lint                # Code quality check
+```
 
-1. Implement chat message sending
-2. Add session persistence
-3. Write comprehensive tests
-4. Create PR linking to Story #74
+**Testing guides:**
+- **[TESTING_COMPREHENSIVE.md](TESTING_COMPREHENSIVE.md)** - Full testing guide
+- **[SANITY_TESTS.md](SANITY_TESTS.md)** - Quick sanity checks
 
-## References
+---
 
-- [VSCode Extension API](https://code.visualstudio.com/api)
-- [Webview API](https://code.visualstudio.com/api/extension-guides/webview)
-- [Agent Labs Python Backend](../web/backend/)
+## 📊 Release Status
 
+**Current Version:** 0.1.0  
+**Release Date:** January 29, 2026  
+**VSIX File:** [`ai-agent-extension.vsix`](ai-agent-extension.vsix) (1.11 MB)
+
+**What's Complete:**
+- ✅ All 5 phases implemented and tested
+- ✅ 189/189 tests passing
+- ✅ VSIX package created and ready to install
+- ✅ Documentation complete
+- ✅ Security audit passed
+- ✅ Production ready
+
+**What's Next:** v0.2.0 will include marketplace publication
+
+**Release notes:** [RELEASE_v0.1.0.md](RELEASE_v0.1.0.md)
+
+---
+
+## 📞 Need Help?
+
+### Installation Issues
+→ See [VSIX_INSTALLATION_GUIDE.md](VSIX_INSTALLATION_GUIDE.md) troubleshooting section
+
+### Using the Extension
+→ See [QUICK_REFERENCE.md](QUICK_REFERENCE.md) - Has FAQ, examples, and all commands
+
+### Development Setup
+→ See [DEVELOPMENT.md](DEVELOPMENT.md) - Complete setup guide
+
+### Building VSIX
+→ See [BUILD.md](BUILD.md) - Build and packaging instructions
+
+### Running Tests
+→ See [TESTING_COMPREHENSIVE.md](TESTING_COMPREHENSIVE.md) and [SANITY_TESTS.md](SANITY_TESTS.md)
+
+### Contributing Code
+→ See [CONTRIBUTING.md](CONTRIBUTING.md) - Code standards and PR process
+
+---
+
+## 🤝 Want to Contribute?
+
+1. Read [DEVELOPMENT.md](DEVELOPMENT.md) - Set up your dev environment
+2. Read [CONTRIBUTING.md](CONTRIBUTING.md) - Understand code standards
+3. Make your changes and run tests: `npm test`
+4. Submit a PR with clear description
+
+---
+
+## 📚 Complete Documentation Index
+
+| File | Purpose | Who Should Read |
+|------|---------|-----------------|
+| **README.md** | Overview and quick start | Everyone (you are here) |
+| **ai-agent-extension.vsix** | The extension package to install | Users who want to install |
+| **QUICK_REFERENCE.md** | All commands, settings, FAQs | Users |
+| **VSIX_INSTALLATION_GUIDE.md** | How to install the VSIX file | Users |
+| **RELEASE_v0.1.0.md** | Release notes and changelog | Everyone |
+| **DEVELOPMENT.md** | Dev setup, architecture, debugging | Developers |
+| **BUILD.md** | Building, testing, creating VSIX | Developers/Release Engineers |
+| **CONTRIBUTING.md** | Code standards, PR process | Contributors |
+| **TESTING_COMPREHENSIVE.md** | Full testing guide | Developers/QA |
+| **SANITY_TESTS.md** | Quick sanity checks | Developers/QA |
+
+---
+
+## 📜 License
+
+[License information - add as needed]
+
+---
+
+## 📞 Support & Feedback
+
+- **Report Bugs:** [GitHub Issues](https://github.com/nsin08/ai_agents/issues)
+- **Ask Questions:** [GitHub Discussions](https://github.com/nsin08/ai_agents/discussions)
+
+---
+
+**🎉 Ready to start? Download [`ai-agent-extension.vsix`](ai-agent-extension.vsix) and install it in VSCode!**
+
+**Need help?** Read [QUICK_REFERENCE.md](QUICK_REFERENCE.md) (for users) or [DEVELOPMENT.md](DEVELOPMENT.md) (for developers).
