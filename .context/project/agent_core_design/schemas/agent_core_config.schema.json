@@ -1,0 +1,199 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/agent_core_config.schema.json",
+  "title": "AgentCoreConfig",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "app": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "environment": { "type": "string", "enum": ["local", "staging", "prod"] }
+      },
+      "required": ["name", "environment"]
+    },
+    "mode": { "type": "string", "enum": ["deterministic", "real"] },
+    "engine": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "key": { "type": "string" },
+        "config": { "type": "object" }
+      },
+      "required": ["key"]
+    },
+    "models": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "roles": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/modelSpec" }
+        }
+      },
+      "required": ["roles"]
+    },
+    "tools": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "allowlist": { "type": "array", "items": { "type": "string" } },
+        "providers": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "native": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": { "enabled": { "type": "boolean" } }
+            },
+            "mcp_servers": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/mcpServer" }
+            }
+          }
+        }
+      }
+    },
+    "retrieval": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "gating": { "type": "string", "enum": ["none", "light", "deep"] },
+        "vectorstore": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "backend": { "type": "string" },
+            "config": { "type": "object" }
+          },
+          "required": ["backend"]
+        }
+      }
+    },
+    "memory": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "session_store": { "$ref": "#/$defs/backendSpec" },
+        "long_term_store": { "$ref": "#/$defs/backendSpec" },
+        "run_store": { "$ref": "#/$defs/backendSpec" }
+      }
+    },
+    "policies": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "read_only": { "type": "boolean" },
+        "budgets": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "max_tool_calls": { "type": "integer", "minimum": 0 },
+            "max_run_seconds": { "type": "integer", "minimum": 0 },
+            "max_total_tokens": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "observability": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "exporter": { "type": "string" },
+        "redact": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "pii": { "type": "boolean" },
+            "secrets": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "gate": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "min_average_score": { "type": "number", "minimum": 0, "maximum": 1 },
+            "max_regression": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "store": { "$ref": "#/$defs/backendSpec" }
+      }
+    },
+    "service": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "host": { "type": "string" },
+        "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+        "auth": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "mode": { "type": "string", "enum": ["none", "static_token"] }
+          }
+        }
+      }
+    }
+  },
+  "required": ["app", "models", "engine"],
+  "$defs": {
+    "modelSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "provider": { "type": "string", "enum": ["mock", "ollama", "openai", "anthropic", "azure_openai"] },
+        "model": { "type": "string" },
+        "base_url": { "type": "string" },
+        "api_key_env": { "type": "string" },
+        "timeout_s": { "type": "number", "minimum": 0 }
+      },
+      "required": ["provider", "model"]
+    },
+    "backendSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "backend": { "type": "string" },
+        "config": { "type": "object" }
+      },
+      "required": ["backend"]
+    },
+    "mcpServer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "url": { "type": "string" },
+        "allowlist": { "type": "array", "items": { "type": "string" } },
+        "auth": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": { "type": "string", "enum": ["none", "bearer_env"] },
+            "token_env": { "type": "string" }
+          },
+          "required": ["type"]
+        }
+      },
+      "required": ["name", "url"]
+    }
+  }
+}
+

@@ -1,0 +1,157 @@
+openapi: 3.0.3
+info:
+  title: agent_core service API
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8080
+paths:
+  /v1/runs:
+    post:
+      summary: Create a run
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RunRequest"
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateRunResponse"
+  /v1/runs/{run_id}:
+    get:
+      summary: Get run status and result
+      parameters:
+        - in: path
+          name: run_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RunStatusResponse"
+  /v1/runs/{run_id}/events:
+    get:
+      summary: Poll run events
+      parameters:
+        - in: path
+          name: run_id
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: cursor
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RunEventsResponse"
+  /v1/runs/{run_id}/artifact:
+    get:
+      summary: Download run artifact bundle (zip)
+      parameters:
+        - in: path
+          name: run_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+components:
+  schemas:
+    RunRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        input:
+          type: string
+        metadata:
+          type: object
+        context:
+          type: object
+      required: [input]
+    CreateRunResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        run_id:
+          type: string
+        status_url:
+          type: string
+        events_url:
+          type: string
+        artifact_url:
+          type: string
+      required: [run_id, status_url, events_url, artifact_url]
+    RunStatusResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        run_id:
+          type: string
+        status:
+          type: string
+          enum: [queued, running, finished, failed, canceled]
+        started_at:
+          type: string
+          format: date-time
+        finished_at:
+          type: string
+          format: date-time
+        result:
+          type: object
+      required: [run_id, status, started_at]
+    RunEvent:
+      type: object
+      additionalProperties: true
+      properties:
+        time:
+          type: string
+          format: date-time
+        run_id:
+          type: string
+        event_type:
+          type: string
+        severity:
+          type: string
+          enum: [debug, info, warn, error]
+      required: [time, run_id, event_type, severity]
+    RunEventsResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/RunEvent"
+        next_cursor:
+          type: string
+        complete:
+          type: boolean
+      required: [events, complete]
+

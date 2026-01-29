@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/run_artifact.schema.json",
+  "title": "RunArtifactIndex",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "run_id": { "type": "string" },
+    "request_id": { "type": "string" },
+    "status": { "type": "string", "enum": ["queued", "running", "finished", "failed", "canceled"] },
+    "started_at": { "type": "string", "format": "date-time" },
+    "finished_at": { "type": "string", "format": "date-time" },
+    "config_hash": { "type": "string" },
+    "paths": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "config_snapshot": { "type": "string" },
+        "events": { "type": "string" },
+        "evidence": { "type": "string" },
+        "tool_calls": { "type": "string" },
+        "eval_scorecard": { "type": "string" },
+        "eval_gate": { "type": "string" }
+      }
+    },
+    "versions": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "ai_agents": { "type": "string" },
+        "git_commit": { "type": "string" }
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "status": { "type": "string", "enum": ["success", "failed", "canceled"] },
+        "output_text": { "type": "string" }
+      }
+    },
+    "error": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "type": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  },
+  "required": ["run_id", "status", "started_at"]
+}
+

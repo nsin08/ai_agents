@@ -1,0 +1,112 @@
+# Agent Core - Example Configuration (YAML)
+#
+# This file is a concrete target for `agent_core` configuration.
+# Secrets must come from environment variables; do not commit API keys.
+
+app:
+  name: "agent_core_app"
+  environment: "local" # local|staging|prod
+
+# deterministic = correctness gate (no network/GPU); real = dev/prod
+mode: "real"
+
+# Execution engine selection (registry key)
+engine:
+  key: "local" # local|langgraph|...
+  config: {}
+
+models:
+  roles:
+    router:
+      provider: "ollama" # mock|ollama|openai
+      model: "llama3.1:8b-instruct-q4_K_M"
+      base_url: "http://localhost:11434"
+      timeout_s: 10
+    planner:
+      provider: "ollama"
+      model: "llama3.1:8b-instruct-q4_K_M"
+      base_url: "http://localhost:11434"
+      timeout_s: 30
+    actor:
+      provider: "openai"
+      model: "gpt-4o-mini"
+      api_key_env: "OPENAI_API_KEY"
+      timeout_s: 60
+    critic:
+      provider: "ollama"
+      model: "llama3.1:8b-instruct-q4_K_M"
+      base_url: "http://localhost:11434"
+      timeout_s: 20
+    summarizer:
+      provider: "mock"
+      model: "deterministic"
+    embedder:
+      provider: "mock"
+      model: "deterministic-embedder"
+
+tools:
+  allowlist:
+    - "search.read"
+    - "fetch.read"
+  providers:
+    native:
+      enabled: true
+    mcp_servers:
+      - name: "corp_tools"
+        url: "https://mcp.example.internal"
+        allowlist:
+          - "jira.read_ticket"
+          - "confluence.search"
+        auth:
+          type: "bearer_env"
+          token_env: "MCP_CORP_TOKEN"
+
+retrieval:
+  gating: "light" # none|light|deep
+  vectorstore:
+    backend: "memory" # memory|chroma_persist|...
+    config: {}
+
+memory:
+  session_store:
+    backend: "memory"
+    config: {}
+  long_term_store:
+    backend: "disabled" # disabled|sqlite|postgres|...
+    config: {}
+  run_store:
+    backend: "memory"
+    config: {}
+
+policies:
+  read_only: true
+  budgets:
+    max_tool_calls: 10
+    max_run_seconds: 120
+    max_total_tokens: 20000
+
+observability:
+  exporter: "stdout_json" # stdout_json|file_json|memory
+  redact:
+    pii: true
+    secrets: true
+
+evaluation:
+  enabled: false
+  gate:
+    min_average_score: 0.8
+    max_regression: 0.02
+
+artifacts:
+  store:
+    backend: "filesystem"
+    config:
+      root_dir: ".agent_core_artifacts"
+
+service:
+  enabled: false
+  host: "127.0.0.1"
+  port: 8080
+  auth:
+    mode: "none" # none|static_token
+

@@ -1,0 +1,139 @@
+name: Kanban Board Automation
+
+on:
+  issues:
+    types: [opened, reopened, labeled, unlabeled, closed]
+  pull_request:
+    types: [opened, ready_for_review, review_requested, closed]
+
+jobs:
+  update-project:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: read
+    
+    steps:
+      - name: Auto-label new issues as state:idea
+        if: |
+          github.event_name == 'issues' &&
+          github.event.action == 'opened' &&
+          !contains(github.event.issue.labels.*.name, 'state:')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: ['state:idea']
+            });
+            console.log('Added state:idea label to new issue');
+      
+      - name: Validate state transitions
+        if: github.event_name == 'issues' && github.event.action == 'labeled'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const label = context.payload.label.name;
+            const issue = context.payload.issue;
+            const currentLabels = issue.labels.map(l => l.name);
+            
+            // State machine: idea → approved → ready → in-progress → in-review → done → released
+            const stateOrder = ['state:idea', 'state:approved', 'state:ready', 'state:in-progress', 'state:in-review', 'state:done', 'state:released'];
+            
+            if (label.startsWith('state:')) {
+              // Remove other state labels (only one state at a time)
+              const otherStates = currentLabels.filter(l => l.startsWith('state:') && l !== label);
+              for (const oldState of otherStates) {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  name: oldState
+                });
+                console.log(`Removed old state label: ${oldState}`);
+              }
+              
+              // Validate state:in-review requires linked PR
+              if (label === 'state:in-review' && !issue.pull_request) {
+                const prs = await github.rest.pulls.list({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  state: 'open'
+                });
+                const linkedPR = prs.data.find(pr => pr.body && pr.body.includes(`#${issue.number}`));
+                if (!linkedPR) {
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    body: '⚠️ **State Transition Blocked**: Cannot move to `state:in-review` without a linked Pull Request.\n\nPlease create a PR that references this issue (e.g., "Resolves #' + issue.number + '") before changing state.'
+                  });
+                  await github.rest.issues.removeLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    name: label
+                  });
+                  console.log('Blocked state:in-review - no linked PR found');
+                }
+              }
+            }
+      
+      - name: Auto-transition on PR events
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            
+            // Extract issue numbers from PR body
+            const issueRefs = (pr.body || '').match(/(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\\s+#(\\d+)/gi);
+            if (!issueRefs) {
+              console.log('No linked issues found in PR body');
+              return;
+            }
+            
+            for (const ref of issueRefs) {
+              const issueNumber = parseInt(ref.match(/#(\\d+)/)[1]);
+              
+              try {
+                const issue = await github.rest.issues.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber
+                });
+                
+                // PR opened/ready_for_review → state:in-review
+                if (['opened', 'ready_for_review', 'review_requested'].includes(context.payload.action) && !pr.draft) {
+                  await github.rest.issues.addLabels({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issueNumber,
+                    labels: ['state:in-review']
+                  });
+                  console.log(`Moved issue #${issueNumber} to state:in-review (PR opened)`);
+                }
+                
+                // PR merged → state:done
+                if (context.payload.action === 'closed' && pr.merged) {
+                  await github.rest.issues.addLabels({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issueNumber,
+                    labels: ['state:done']
+                  });
+                  await github.rest.issues.update({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issueNumber,
+                    state: 'closed'
+                  });
+                  console.log(`Moved issue #${issueNumber} to state:done and closed (PR merged)`);
+                }
+              } catch (error) {
+                console.log(`Could not process issue #${issueNumber}: ${error.message}`);
+              }
+            }
