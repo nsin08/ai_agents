@@ -13,7 +13,7 @@ Detailed test procedures for all Phase 1-4 features. Use this when you need in-d
 
 ### TEST 1.1: Open Chat Panel
 **Steps:**
-1. `Ctrl+Shift+P` → `Agent: Start Conversation`
+1. `Ctrl+Shift+P` ? `Agent: Start Conversation`
 2. Verify panel opens in left sidebar
 
 **Expected:** Panel appears with title "AI Agent Chat"
@@ -67,7 +67,7 @@ See Phase 1 "Configuration" section below for details on:
 
 ### TEST 1.8: Command Palette
 **Steps:**
-1. `Ctrl+Shift+P` → Type "Agent"
+1. `Ctrl+Shift+P` ? Type "Agent"
 2. Observe 4 commands appear:
    - Agent: Start Conversation
    - Agent: Settings
@@ -135,11 +135,11 @@ See comprehensive guide for:
 ### Code Context Tests (15 tests)
 
 **TEST 3.1: Send Selection**
-- Select code, right-click → Send Selection
+- Select code, right-click ? Send Selection
 - Expected: Code sent with file/language metadata
 
 **TEST 3.2: Send File**
-- Right-click any file → Send File
+- Right-click any file ? Send File
 - Expected: Entire file sent with metadata
 
 **TEST 3.3-3.17: Security & File Type Tests**
@@ -151,7 +151,7 @@ See comprehensive guide for:
 
 **TEST 3.29: Display Suggestions**
 - Get agent response with code block
-- `Ctrl+Shift+P` → Show Code Suggestions
+- `Ctrl+Shift+P` ? Show Code Suggestions
 - Expected: Panel opens, code displays with syntax highlighting
 
 **TEST 3.30: Navigate Multiple Suggestions**
@@ -188,7 +188,7 @@ See comprehensive guide for edge cases
 
 **TEST 4.1: Start Multi-Agent Task**
 - Use task with dependencies: "Analyze, improve after 1, verify after 2"
-- Expected: Dashboard opens, all 3 agents visible, progress 0%→100%
+- Expected: Dashboard opens, all 3 agents visible, progress 0%?100%
 
 **TEST 4.2: Dashboard Rendering**
 - Dashboard shows all components correctly
@@ -196,7 +196,7 @@ See comprehensive guide for edge cases
 
 **TEST 4.3: Live Status Updates**
 - Watch agent cards during execution
-- Expected: Real-time status changes (IDLE→PROCESSING→COMPLETED)
+- Expected: Real-time status changes (IDLE?PROCESSING?COMPLETED)
 
 **TEST 4.4: Task Queue & Dependencies**
 - Use complex task with multiple "after N" dependencies
@@ -234,15 +234,48 @@ For in-depth testing of:
 
 ---
 
+## Phase 5: History & Export (6 manual tests)
+
+**TEST 5.1: History Storage Location**
+- Start a conversation and send 2 messages
+- Verify `.vscode/agent-history/` contains `index.json` and `{sessionId}.json`
+- Expected: Files created in workspace `.vscode/agent-history/`
+
+**TEST 5.2: Search by Keyword**
+- Open `Agent: Show History`
+- Search for a unique keyword from a prior conversation
+- Expected: Only matching conversations appear
+
+**TEST 5.3: Search by Date Range**
+- Use date range filters for today
+- Expected: Conversations outside the range are excluded
+
+**TEST 5.4: Filter by Agent Mode**
+- Switch to multi-agent mode and run a conversation
+- Filter by agent mode = Multi
+- Expected: Only multi-agent conversations returned
+
+**TEST 5.5: Replay Conversation**
+- Open a conversation from history
+- Expected: Read-only view shows full message list, no new agent calls
+
+**TEST 5.6: Export Markdown + HTML**
+- From history view, export a conversation to Markdown
+- Repeat for HTML
+- Expected: Files saved with readable content and styling
+
+---
+
 ## Automated Test Coverage
 
 ### All Phases Summary
 ```
-npm test  →  150+ tests passing
-├── Phase 1: 15 tests (chat, config, persistence)
-├── Phase 2: 51 tests (metrics, traces, exports)
-├── Phase 3: 84 tests (code extraction, suggestions, security)
-└── Phase 4: 39 tests (coordination, agents, integration)
+npm test  ?  150+ tests passing
++-- Phase 1: 15 tests (chat, config, persistence)
++-- Phase 2: 51 tests (metrics, traces, exports)
++-- Phase 3: 84 tests (code extraction, suggestions, security)
++-- Phase 4: 39 tests (coordination, agents, integration)
++-- Phase 5: 6 tests (history, export)
 ```
 
 ---
@@ -278,7 +311,7 @@ Use: **All documents**
 
 ## Key Testing Principles
 
-✅ **Do:**
+? **Do:**
 - Run automated tests first (quick feedback)
 - Test one feature at a time
 - Follow documented steps exactly
@@ -286,7 +319,7 @@ Use: **All documents**
 - Check console for errors
 - Document any failures
 
-❌ **Don't:**
+? **Don't:**
 - Skip error message validation
 - Assume UI looks correct without checking
 - Run all tests when focused on one feature
@@ -307,6 +340,5 @@ Use: **All documents**
 
 ---
 
-**Last Updated:** 2026-01-27  
+**Last Updated:** 2026-01-28  
 **Total Coverage:** 189 automated + 100+ manual test procedures
-

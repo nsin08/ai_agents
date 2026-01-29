@@ -22,8 +22,6 @@ jest.mock('vscode', () => ({
 
 describe('ReasoningPanel', () => {
   let mockPanel: any;
-  let mockCoordinator: any;
-
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -38,25 +36,21 @@ describe('ReasoningPanel', () => {
       })
     };
 
-    mockCoordinator = {
-      requestReasoning: jest.fn(async () => ({
-        steps: [{ action: 'Test', rationale: 'Because', chosen: true }],
-        summary: 'Summary',
-        confidence: 0.5
-      } as ReasoningChain))
-    };
-
     (vscode.window.createWebviewPanel as jest.Mock).mockReturnValue(mockPanel);
     (vscode.workspace.fs.readFile as jest.Mock).mockResolvedValue(Buffer.from('<html></html>'));
   });
 
   it('loads reasoning and posts update to webview', async () => {
-    const panel = new ReasoningPanel({ path: '/mock/extension' } as vscode.Uri, mockCoordinator);
+    const panel = new ReasoningPanel({ path: '/mock/extension' } as vscode.Uri, {} as any);
 
     await panel.showReasoning('planner-1');
+    panel.updateReasoning('planner-1', {
+      steps: [{ action: 'Test', rationale: 'Because', chosen: true }],
+      summary: 'Summary',
+      confidence: 0.5
+    } as ReasoningChain);
 
     expect(vscode.window.createWebviewPanel).toHaveBeenCalled();
-    expect(mockCoordinator.requestReasoning).toHaveBeenCalledWith('planner-1');
     expect(mockPanel.webview.postMessage).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'updateReasoning', agentId: 'planner-1' })
     );

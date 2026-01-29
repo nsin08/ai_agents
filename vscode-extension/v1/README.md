@@ -4,21 +4,21 @@ Interact with AI agents directly from VSCode with integrated configuration manag
 
 ## Features
 
-### Phase 1 (MVP) - ✅ Completed
+### Phase 1 (MVP) - ? Completed
 - **Chat Panel**: Dedicated sidebar panel for agent conversations
 - **Configuration UI**: Switch providers, models, and settings without file editing
 - **Command Palette**: Quick access to agent commands (`Ctrl+Shift+P`)
 - **Session Management**: Conversation state persists across restarts
 
-### Phase 2 - ✅ Completed
+### Phase 2 - ? Completed
 - **Statistics Panel**: Token usage, response times, and cost tracking with multi-provider support
-- **Trace Viewer**: Agent state transition visualization (Observe → Plan → Act → Verify)
+- **Trace Viewer**: Agent state transition visualization (Observe ? Plan ? Act ? Verify)
 - **Auto-Refresh**: Toggle-able 2-second interval refresh for live trace monitoring
 - **Export Functionality**: Export metrics and traces to CSV/JSON
 - **Ollama Integration**: Direct API calls with automatic model detection
 - **Provider-Specific UI**: Dynamic field behavior based on selected provider
 
-### Phase 3 - ✅ Completed (Issue #76)
+### Phase 3 - ? Completed (Issue #76)
 - **Code Intelligence**: Send code selections to agent with context
 - **Security Filtering**: Detects 15 sensitive data patterns (API keys, tokens, passwords)
 - **File Type Blocking**: Prevents sending credential files (.env, .pem, .key)
@@ -28,13 +28,18 @@ Interact with AI agents directly from VSCode with integrated configuration manag
 - **Context Menu**: Right-click integration for quick access
 - **Size Limits**: Enforces 10K lines / 500KB file size limits
 
-### Phase 4 - ✅ Completed (Issue #79)
+### Phase 4 - ? Completed (Issue #79)
 - **Multi-Agent Coordinator**: Orchestrates planner/executor/verifier workflows
 - **Multi-Agent Dashboard**: Live status, queue, progress, and log updates
 - **Reasoning Panel**: Inspect per-agent reasoning chains
 - **Capability-Based Routing**: Assigns subtasks by capability match
 - **Per-Agent Metrics**: Token and duration tracking per agent
-- **Debug Mode Configuration**: Toggle verbose logging via VS Code Settings or environment variable
+- **Debug Mode Configuration**: Toggle verbose logging via Agent Settings panel or environment variable
+
+### Phase 5 - ? In Progress (Issue #80)
+- **Conversation History**: Searchable history stored per workspace
+- **History Browser**: Replay conversations in read-only mode
+- **Export History**: Export conversation to Markdown or HTML
 
 ### Bug Fixes (Issue #76)
 - Fixed Trace Viewer showing wrong provider/model (now shows current session config)
@@ -55,45 +60,49 @@ Interact with AI agents directly from VSCode with integrated configuration manag
 
 ```
 vscode-extension/v1/
-├── src/
-│   ├── extension.ts          # Extension entry point
-│   ├── panels/
-│   │   ├── ChatPanel.ts      # Chat side panel
-│   │   ├── ConfigPanel.ts    # Configuration panel
-│   │   ├── StatisticsPanel.ts   # Metrics dashboard
-│   │   ├── TraceViewerPanel.ts  # Trace tree view
-│   │   ├── CodeSuggestionPanel.ts  # Code suggestions viewer (Phase 3)
-│   │   ├── MultiAgentDashboard.ts  # Multi-agent dashboard (Phase 4)
-│   │   └── ReasoningPanel.ts       # Agent reasoning view (Phase 4)
-│   ├── services/
-│   │   ├── AgentService.ts   # Backend communication
-│   │   ├── ConfigService.ts  # Settings management
-│   │   ├── MetricsService.ts # Token/cost tracking
-│   │   ├── TraceService.ts   # State transition capture
-│   │   ├── ExportService.ts  # CSV/JSON export
-│   │   ├── MultiAgentCoordinator.ts # Multi-agent orchestration (Phase 4)
-│   │   └── agents/
-│   │       ├── PlannerAgent.ts
-│   │       ├── ExecutorAgent.ts
-│   │       └── VerifierAgent.ts
-│   │   ├── CodeContextService.ts   # Code extraction & security (Phase 3)
-│   │   └── CodeInsertionService.ts # Code parsing & insertion (Phase 3)
-│   ├── models/
-│   │   ├── AgentRole.ts      # Multi-agent roles and capabilities
-│   │   ├── AgentMessage.ts   # Multi-agent message models
-│   │   ├── Statistics.ts     # Metrics data models
-│   │   └── Trace.ts          # Trace data models
-│   └── views/
-│       ├── chatView.html     # Chat UI template
-│       ├── configView.html   # Config UI template
-│       ├── multiAgentDashboard.html # Multi-agent dashboard UI
-│       └── reasoningPanel.html      # Agent reasoning UI
-├── webview/
-│   └── src/                  # Frontend code for webviews
-├── tests/                    # 150 tests (9 suites)
-│   ├── unit/                 # 137 unit tests
-│   └── integration/          # 13 integration tests
-└── package.json
++-- src/
+�   +-- extension.ts          # Extension entry point
+�   +-- panels/
+�   �   +-- ChatPanel.ts      # Chat side panel
+�   �   +-- ConfigPanel.ts    # Configuration panel
+�   �   +-- StatisticsPanel.ts   # Metrics dashboard
+�   �   +-- TraceViewerPanel.ts  # Trace tree view
+�   �   +-- CodeSuggestionPanel.ts  # Code suggestions viewer (Phase 3)
+�   �   +-- MultiAgentDashboard.ts  # Multi-agent dashboard (Phase 4)
+�   �   +-- ReasoningPanel.ts       # Agent reasoning view (Phase 4)
+�   �   +-- HistoryBrowserPanel.ts  # History browser (Phase 5)
+�   +-- services/
+�   �   +-- AgentService.ts   # Backend communication
+�   �   +-- ConfigService.ts  # Legacy settings management
+�   �   +-- MetricsService.ts # Token/cost tracking
+�   �   +-- TraceService.ts   # State transition capture
+�   �   +-- ExportService.ts  # CSV/JSON/MD/HTML export
+�   �   +-- HistoryService.ts # Workspace history storage
+�   �   +-- MultiAgentCoordinator.ts # Multi-agent orchestration (Phase 4)
+�   �   +-- agents/
+�   �       +-- PlannerAgent.ts
+�   �       +-- ExecutorAgent.ts
+�   �       +-- VerifierAgent.ts
+�   �   +-- CodeContextService.ts   # Code extraction & security (Phase 3)
+�   �   +-- CodeInsertionService.ts # Code parsing & insertion (Phase 3)
+�   +-- models/
+�   �   +-- AgentRole.ts      # Multi-agent roles and capabilities
+�   �   +-- AgentMessage.ts   # Multi-agent message models
+�   �   +-- Statistics.ts     # Metrics data models
+�   �   +-- Trace.ts          # Trace data models
+�   �   +-- History.ts        # History data models
+�   +-- views/
+�       +-- chatView.html     # Chat UI template
+�       +-- configView.html   # Config UI template
+�       +-- multiAgentDashboard.html # Multi-agent dashboard UI
+�       +-- reasoningPanel.html      # Agent reasoning UI
+�       +-- historyBrowser.html      # History browser UI
++-- webview/
+�   +-- src/                  # Frontend code for webviews
++-- tests/                    # 150+ tests (suites)
+�   +-- unit/                 # Unit tests
+�   +-- integration/          # Integration tests
++-- package.json
 ```
 
 ### Building
@@ -107,41 +116,41 @@ npm run watch        # Watch mode during development
 ### Testing
 
 ```bash
-npm test             # Run all tests (150 tests)
+npm test             # Run all tests (150+ tests)
 npm test -- --watch  # Watch mode
 npm run lint         # Lint code
 ```
 
-**Test Coverage:** 162 tests across 13 suites
+**Test Coverage:** 167 tests across 14 suites
 - **Phase 1:** 15 tests (MVP Chat)
 - **Phase 2:** 51 tests (Observability)
 - **Phase 3:** 84 tests (Code Intelligence + Bug Fixes)
 - **Phase 4:** 12 tests (Coordinator + Panels + Integration)
+- **Phase 5:** 5 tests (History + Export)
 
-See [TESTING.md](TESTING.md) for comprehensive testing guide.
+See [TESTING_COMPREHENSIVE.md](TESTING_COMPREHENSIVE.md) for comprehensive testing guide.
 
 ## Configuration
 
-Settings available in VSCode Settings UI:
+Configuration is managed from the **Agent: Settings** panel.
 
 ### General Settings
-- **AI Agent: Provider** - Select LLM provider (mock, ollama, openai, etc.)
-- **AI Agent: Model** - Model name
-- **AI Agent: Base URL** - Ollama endpoint (default: http://localhost:11434)
-- **AI Agent: API Key** - Cloud provider API key
-- **AI Agent: Max Turns** - Maximum conversation turns
-- **AI Agent: Timeout** - Request timeout in seconds
-- **AI Agent: Debug Mode** - Enable verbose logging for multi-agent orchestration
+- **Provider** - Select LLM provider (mock, ollama, openai, etc.)
+- **Model** - Model name
+- **Base URL** - Ollama endpoint (default: http://localhost:11434)
+- **API Key** - Cloud provider API key
+- **Max Turns** - Maximum conversation turns
+- **Timeout** - Request timeout in seconds
+- **Debug Mode** - Enable verbose logging for multi-agent orchestration
 
 ### Debug Mode
 
 Toggle detailed logging for multi-agent execution:
 
-**In VS Code Settings:**
-1. Open Settings (`Ctrl+,`)
-2. Search for "AI Agent: Debug Mode"
-3. Check the box to enable
-4. Logs appear in Extension Host console
+**In Agent Settings panel:**
+1. `Ctrl+Shift+P` ? `Agent: Settings`
+2. Toggle **Debug Mode**
+3. Logs appear in Extension Host console
 
 **Or via Environment Variable:**
 ```bash
@@ -172,6 +181,7 @@ DEBUG_MULTI_AGENT=true npm run watch
 | Agent: Reset Session | `Ctrl+Shift+P` | Clear conversation |
 | Agent: Show Statistics | `Ctrl+Shift+P` | View metrics dashboard |
 | Agent: Show Trace Viewer | `Ctrl+Shift+P` | View execution traces |
+| Agent: Show History | `Ctrl+Shift+P` | Browse conversation history (Phase 5) |
 
 ## Architecture
 
@@ -230,7 +240,7 @@ Sessions persist across VSCode restarts.
 
 ### Send Code to Agent
 1. Select code in editor
-2. Right-click → "Agent: Send Selection to Agent"
+2. Right-click ? "Agent: Send Selection to Agent"
 3. Chat panel opens with formatted code
 4. Agent analyzes and provides suggestions
 
@@ -243,7 +253,7 @@ Sessions persist across VSCode restarts.
 ### Monitor Agent Behavior
 1. Command: "Agent: Show Trace Viewer"
 2. Expand conversation nodes
-3. View state transitions (Observe → Plan → Act → Verify)
+3. View state transitions (Observe ? Plan ? Act ? Verify)
 4. Export traces for analysis
 
 ### Track Metrics
@@ -262,15 +272,15 @@ Sessions persist across VSCode restarts.
 
 ## Next Steps
 
-**Phase 3 Completed! ✅**
+**Phase 3 Completed! ?**
 
-1. ✅ All features implemented
-2. ✅ All tests passing (150/150)
-3. ✅ Bug fixes validated
-4. ✅ Documentation updated
-5. ⏭️ Create PR to feature/74-phase-1-mvp-chat-panel
-6. ⏭️ Request code review
-7. ⏭️ Merge to develop after approval
+1. ? All features implemented
+2. ? All tests passing (150/150)
+3. ? Bug fixes validated
+4. ? Documentation updated
+5. ? Create PR to feature/74-phase-1-mvp-chat-panel
+6. ? Request code review
+7. ? Merge to develop after approval
 
 **Phase 3 (Code Intelligence):**
 - [x] Code context extraction
@@ -315,4 +325,3 @@ Sessions persist across VSCode restarts.
 - [VSCode Extension API](https://code.visualstudio.com/api)
 - [Webview API](https://code.visualstudio.com/api/extension-guides/webview)
 - [Agent Labs Python Backend](../web/backend/)
-

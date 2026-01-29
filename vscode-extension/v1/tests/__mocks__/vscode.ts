@@ -14,7 +14,15 @@ export const workspace = {
       return defaults[`aiAgent.${key}`];
     }),
     update: jest.fn().mockResolvedValue(undefined)
-  })
+  }),
+  workspaceFolders: undefined,
+  fs: {
+    readFile: jest.fn(),
+    writeFile: jest.fn(),
+    stat: jest.fn(),
+    createDirectory: jest.fn(),
+    delete: jest.fn()
+  }
 };
 
 export const window = {
@@ -22,7 +30,8 @@ export const window = {
   showErrorMessage: jest.fn(),
   showWarningMessage: jest.fn(),
   createWebviewPanel: jest.fn(),
-  registerWebviewViewProvider: jest.fn()
+  registerWebviewViewProvider: jest.fn(),
+  activeTextEditor: undefined
 };
 
 export const commands = {
@@ -31,7 +40,11 @@ export const commands = {
 
 export const Uri = {
   file: jest.fn((path: string) => ({ fsPath: path })),
-  parse: jest.fn((uri: string) => ({ toString: () => uri }))
+  parse: jest.fn((uri: string) => ({ toString: () => uri })),
+  joinPath: jest.fn((base: any, ...paths: string[]) => {
+    const basePath = base?.fsPath || '';
+    return { fsPath: [basePath, ...paths].join('/'), path: [basePath, ...paths].join('/') };
+  })
 };
 
 export const ViewColumn = {

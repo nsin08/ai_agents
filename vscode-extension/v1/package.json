@@ -40,6 +40,11 @@
         "icon": "$(list-tree)"
       },
       {
+        "command": "ai-agent.showHistory",
+        "title": "Agent: Show History",
+        "icon": "$(history)"
+      },
+      {
         "command": "ai-agent.refreshTraces",
         "title": "Refresh Traces",
         "icon": "$(refresh)"
@@ -198,12 +203,6 @@
           "minimum": 0,
           "maximum": 2,
           "description": "Temperature for Act stage"
-        },
-        "aiAgent.debugMode": {
-          "type": "boolean",
-          "default": false,
-          "description": "Enable verbose debug logging for multi-agent orchestration",
-          "markdownDescription": "Enable verbose debug logging for multi-agent orchestration. Shows Plan and Act stage execution details in the Extension Host console."
         }
       }
     },
@@ -269,6 +268,9 @@
         },
         {
           "command": "ai-agent.showCodeSuggestions"
+        },
+        {
+          "command": "ai-agent.showHistory"
         }
       ]
     }

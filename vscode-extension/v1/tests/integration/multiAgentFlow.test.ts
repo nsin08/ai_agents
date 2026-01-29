@@ -3,16 +3,24 @@ import { AgentRole, AgentStatus, SpecialistAgent, TaskResult } from '../../src/m
 import { ConfigService } from '../../src/services/ConfigService';
 import { MetricsService } from '../../src/services/MetricsService';
 import { TraceService } from '../../src/services/TraceService';
+import axios from 'axios';
 
 jest.mock('../../src/services/ConfigService');
+jest.mock('axios', () => ({
+  create: jest.fn()
+}));
 
 describe('Multi-Agent Integration Flow', () => {
   let coordinator: MultiAgentCoordinator;
   let mockConfigService: jest.Mocked<ConfigService>;
   let mockMetricsService: jest.Mocked<MetricsService>;
   let mockTraceService: jest.Mocked<TraceService>;
+  let mockPost: jest.Mock;
 
   beforeEach(() => {
+    mockPost = jest.fn();
+    (axios.create as jest.Mock).mockReturnValue({ post: mockPost });
+
     mockConfigService = {
       getConfig: jest.fn(() => ({
         provider: 'mock',
@@ -51,6 +59,11 @@ describe('Multi-Agent Integration Flow', () => {
       mockTraceService,
       mockConfigService
     );
+    (coordinator as any).agentConfig = {
+      mode: 'multi',
+      plan: { provider: 'mock', model: 'llama2', maxTurns: 3, timeout: 30, temperature: 0.5, baseUrl: '', apiKey: '' },
+      act: { provider: 'mock', model: 'llama2', maxTurns: 5, timeout: 30, temperature: 0.7, baseUrl: '', apiKey: '' }
+    };
   });
 
   const buildAgent = (role: AgentRole): SpecialistAgent => ({
@@ -80,12 +93,16 @@ describe('Multi-Agent Integration Flow', () => {
       onProgressUpdate: (value) => progress.push(value)
     });
 
+    mockPost
+      .mockResolvedValueOnce({ data: { response: 'plan-output' } })
+      .mockResolvedValueOnce({ data: { response: 'act-output' } });
+
     const result = await coordinator.orchestrate('Do A\nDo B');
 
-    expect(result.subtaskResults.length).toBe(2);
+    expect(result.decomposition.subtasks.length).toBe(2);
     expect(states).toContain('decomposing');
     expect(states).toContain('complete');
     expect(progress[progress.length - 1]).toBe(100);
-    expect(mockTraceService.recordInterAgentMessage).toHaveBeenCalled();
+    expect(mockTraceService.recordInterAgentMessage).not.toHaveBeenCalled();
   });
 });

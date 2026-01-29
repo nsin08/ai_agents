@@ -6,6 +6,7 @@
 import * as vscode from 'vscode';
 import { ConversationMetrics, ExportFormat } from '../models/Statistics';
 import { ConversationTrace, TraceEntry } from '../models/Trace';
+import { ConversationHistoryEntry } from '../models/History';
 
 export class ExportService {
   /**
@@ -119,6 +120,150 @@ export class ExportService {
       data: csv,
       filename: `agent-traces-${this.getTimestamp()}.csv`,
       mimeType: 'text/csv'
+    };
+  }
+
+  /**
+   * Export conversation history to Markdown format.
+   */
+  public exportConversationToMarkdown(entry: ConversationHistoryEntry): ExportFormat {
+    const header = [
+      `# Conversation ${entry.id}`,
+      '',
+      `- Created: ${new Date(entry.createdAt).toLocaleString()}`,
+      `- Updated: ${new Date(entry.updatedAt).toLocaleString()}`,
+      `- Mode: ${entry.agentMode}`,
+      `- Provider: ${entry.provider || 'n/a'}`,
+      `- Model: ${entry.model || 'n/a'}`,
+      entry.planProvider ? `- Plan Provider: ${entry.planProvider}` : undefined,
+      entry.planModel ? `- Plan Model: ${entry.planModel}` : undefined,
+      entry.actProvider ? `- Act Provider: ${entry.actProvider}` : undefined,
+      entry.actModel ? `- Act Model: ${entry.actModel}` : undefined,
+      '',
+      '---',
+      ''
+    ].filter(Boolean);
+
+    const messages = entry.messages.map((message) => {
+      const timestamp = new Date(message.timestamp).toLocaleString();
+      return [
+        `## ${message.role.toUpperCase()} (${timestamp})`,
+        '',
+        message.content,
+        ''
+      ].join('\n');
+    });
+
+    const content = [...header, ...messages].join('\n');
+    return {
+      format: 'md',
+      data: content,
+      filename: `agent-conversation-${entry.id}.md`,
+      mimeType: 'text/markdown'
+    };
+  }
+
+  /**
+   * Export conversation history to HTML format.
+   */
+  public exportConversationToHTML(entry: ConversationHistoryEntry): ExportFormat {
+    const escapeHtml = (value: string): string =>
+      value.replace(/[&<>"']/g, (char) => {
+        const map: Record<string, string> = {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;'
+        };
+        return map[char];
+      });
+
+    const messages = entry.messages.map((message) => {
+      const timestamp = new Date(message.timestamp).toLocaleString();
+      return `
+        <div class="message ${message.role}">
+          <div class="message-header">
+            <span>${message.role.toUpperCase()}</span>
+            <span>${escapeHtml(timestamp)}</span>
+          </div>
+          <pre class="message-body">${escapeHtml(message.content)}</pre>
+        </div>
+      `;
+    }).join('\n');
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Conversation ${entry.id}</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 24px;
+      background: #f7f7f9;
+      color: #1a1a1a;
+    }
+    h1 {
+      margin-top: 0;
+    }
+    .meta {
+      margin-bottom: 24px;
+      font-size: 14px;
+      color: #444;
+    }
+    .meta div {
+      margin-bottom: 4px;
+    }
+    .message {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+    .message.user {
+      border-left: 4px solid #0066cc;
+    }
+    .message.assistant {
+      border-left: 4px solid #2e7d32;
+    }
+    .message-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+    .message-body {
+      white-space: pre-wrap;
+      font-family: \"Courier New\", monospace;
+      font-size: 13px;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Conversation ${escapeHtml(entry.id)}</h1>
+  <div class="meta">
+    <div><strong>Created:</strong> ${escapeHtml(new Date(entry.createdAt).toLocaleString())}</div>
+    <div><strong>Updated:</strong> ${escapeHtml(new Date(entry.updatedAt).toLocaleString())}</div>
+    <div><strong>Mode:</strong> ${escapeHtml(String(entry.agentMode))}</div>
+    <div><strong>Provider:</strong> ${escapeHtml(entry.provider || 'n/a')}</div>
+    <div><strong>Model:</strong> ${escapeHtml(entry.model || 'n/a')}</div>
+  </div>
+  ${messages}
+</body>
+</html>`;
+
+    return {
+      format: 'html',
+      data: html,
+      filename: `agent-conversation-${entry.id}.html`,
+      mimeType: 'text/html'
     };
   }
 
