@@ -570,5 +570,17 @@ Providers supported:
 
 ---
 
+## 📚 Related Resources
+
+- **[README.md](README.md)** ← Main documentation hub (start here)
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** ← Commands, settings, FAQs
+- **[RELEASE_v0.1.0.md](RELEASE_v0.1.0.md)** ← Release notes and changelog
+- **[DEVELOPMENT.md](DEVELOPMENT.md)** ← For developers
+
+---
+
 **Last Updated:** January 29, 2026  
 **Repository:** https://github.com/nsin08/ai_agents
+
+**Back to:** [README.md](README.md)
+
