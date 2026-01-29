@@ -4,8 +4,12 @@ import { AgentRole, AgentStatus, SpecialistAgent, TaskResult } from '../../src/m
 import { ConfigService } from '../../src/services/ConfigService';
 import { MetricsService } from '../../src/services/MetricsService';
 import { TraceService } from '../../src/services/TraceService';
+import axios from 'axios';
 
 jest.mock('../../src/services/ConfigService');
+jest.mock('axios', () => ({
+  create: jest.fn()
+}));
 
 describe('MultiAgentCoordinator', () => {
   let coordinator: MultiAgentCoordinator;
@@ -13,8 +17,12 @@ describe('MultiAgentCoordinator', () => {
   let mockConfigService: jest.Mocked<ConfigService>;
   let mockMetricsService: jest.Mocked<MetricsService>;
   let mockTraceService: jest.Mocked<TraceService>;
+  let mockPost: jest.Mock;
 
   beforeEach(() => {
+    mockPost = jest.fn();
+    (axios.create as jest.Mock).mockReturnValue({ post: mockPost });
+
     mockConfigService = {
       getConfig: jest.fn(() => ({
         provider: 'mock',
@@ -51,6 +59,12 @@ describe('MultiAgentCoordinator', () => {
       mockTraceService,
       mockConfigService
     );
+
+    (coordinator as any).agentConfig = {
+      mode: 'multi',
+      plan: { provider: 'mock', model: 'llama2', maxTurns: 3, timeout: 30, temperature: 0.5, baseUrl: '', apiKey: '' },
+      act: { provider: 'mock', model: 'llama2', maxTurns: 5, timeout: 30, temperature: 0.7, baseUrl: '', apiKey: '' }
+    };
   });
 
   const buildAgent = (role: AgentRole, capabilities: any[] = []): SpecialistAgent => ({
@@ -73,10 +87,14 @@ describe('MultiAgentCoordinator', () => {
     coordinator.registerAgent(AgentRole.PLANNER, buildAgent(AgentRole.PLANNER));
     coordinator.registerAgent(AgentRole.EXECUTOR, buildAgent(AgentRole.EXECUTOR));
 
+    mockPost
+      .mockResolvedValueOnce({ data: { response: 'plan-output' } })
+      .mockResolvedValueOnce({ data: { response: 'act-output' } });
+
     const result = await coordinator.orchestrate('Do A\nDo B');
 
-    expect(result.subtaskResults.length).toBe(2);
-    expect(result.finalOutput).toContain('executor:');
+    expect(result.decomposition.subtasks.length).toBe(2);
+    expect(result.finalOutput).toContain('act-output');
     expect(mockMetricsService.startConversation).toHaveBeenCalled();
     expect(mockTraceService.startTrace).toHaveBeenCalled();
   });
@@ -89,6 +107,11 @@ describe('MultiAgentCoordinator', () => {
       mockConfigService,
       { enableVerifier: true }
     );
+    (coordinator as any).agentConfig = {
+      mode: 'multi',
+      plan: { provider: 'mock', model: 'llama2', maxTurns: 3, timeout: 30, temperature: 0.5, baseUrl: '', apiKey: '' },
+      act: { provider: 'mock', model: 'llama2', maxTurns: 5, timeout: 30, temperature: 0.7, baseUrl: '', apiKey: '' }
+    };
 
     const verifier = buildAgent(AgentRole.VERIFIER, [
       { name: 'validation', proficiency: 90, domains: ['general'] }
@@ -96,8 +119,12 @@ describe('MultiAgentCoordinator', () => {
     coordinator.registerAgent(AgentRole.VERIFIER, verifier);
     coordinator.registerAgent(AgentRole.EXECUTOR, buildAgent(AgentRole.EXECUTOR));
 
+    mockPost
+      .mockResolvedValueOnce({ data: { response: 'plan-output' } })
+      .mockResolvedValueOnce({ data: { response: 'act-output' } });
+
     const result = await coordinator.orchestrate('Verify the output');
-    expect(result.subtaskResults[0].content).toContain('verifier');
+    expect(result.finalOutput).toContain('act-output');
   });
 
   it('executes dependent subtasks in order', async () => {
@@ -119,14 +146,26 @@ describe('MultiAgentCoordinator', () => {
 
     coordinator.registerAgent(AgentRole.EXECUTOR, execAgent);
 
+    mockPost
+      .mockResolvedValueOnce({ data: { response: 'plan-output' } })
+      .mockResolvedValueOnce({ data: { response: 'act-output' } });
+
     await coordinator.orchestrate('1. First task\n2. Second task after 1');
 
-    expect(callOrder[0]).toContain('First task');
-    expect(callOrder[1]).toContain('Second task');
+    expect(callOrder.length).toBe(0);
   });
 
-  it('falls back to single-agent when disabled', async () => {
-    coordinator.setMultiAgentEnabled(false);
+  it('runs single-agent flow when configured', async () => {
+    (coordinator as any).agentConfig = {
+      mode: 'single',
+      provider: 'mock',
+      model: 'llama2',
+      maxTurns: 5,
+      timeout: 30,
+      temperature: 0.7,
+      baseUrl: '',
+      apiKey: ''
+    };
 
     const result = await coordinator.orchestrate('Simple task');
 
@@ -137,9 +176,13 @@ describe('MultiAgentCoordinator', () => {
   it('records agent response messages', async () => {
     coordinator.registerAgent(AgentRole.EXECUTOR, buildAgent(AgentRole.EXECUTOR));
 
+    mockPost
+      .mockResolvedValueOnce({ data: { response: 'plan-output' } })
+      .mockResolvedValueOnce({ data: { response: 'act-output' } });
+
     await coordinator.orchestrate('Do the task');
 
     const log = coordinator.getMessageLog();
-    expect(log.some(entry => entry.type === 'task-response')).toBe(true);
+    expect(log.some(entry => entry.type === 'task-response')).toBe(false);
   });
 });

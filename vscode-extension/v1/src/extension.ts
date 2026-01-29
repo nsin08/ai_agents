@@ -7,12 +7,14 @@ import { TraceViewerPanel } from './panels/TraceViewerPanel';
 import { CodeSuggestionPanel } from './panels/CodeSuggestionPanel';
 import { MultiAgentDashboard } from './panels/MultiAgentDashboard';
 import { ReasoningPanel } from './panels/ReasoningPanel';
+import { HistoryBrowserPanel } from './panels/HistoryBrowserPanel';
 import { AgentService } from './services/AgentService';
 import { ConfigService } from './services/ConfigService';
 import { AgentConfigurationService } from './services/AgentConfigurationService';
 import { MetricsService } from './services/MetricsService';
 import { TraceService } from './services/TraceService';
 import { ExportService } from './services/ExportService';
+import { HistoryService } from './services/HistoryService';
 import { CodeContextService } from './services/CodeContextService';
 import { CodeInsertionService } from './services/CodeInsertionService';
 import { MultiAgentCoordinator } from './services/MultiAgentCoordinator';
@@ -28,12 +30,14 @@ let statisticsPanel: StatisticsPanel | undefined;
 let traceViewerPanel: TraceViewerPanel | undefined;
 let multiAgentDashboard: MultiAgentDashboard | undefined;
 let reasoningPanel: ReasoningPanel | undefined;
+let historyBrowserPanel: HistoryBrowserPanel | undefined;
 let agentService: AgentService;
 let configService: ConfigService;
 let agentConfigService: AgentConfigurationService;
 let metricsService: MetricsService;
 let traceService: TraceService;
 let exportService: ExportService;
+let historyService: HistoryService;
 let codeContextService: CodeContextService;
 let codeInsertionService: CodeInsertionService;
 let coordinator: MultiAgentCoordinator;
@@ -47,7 +51,8 @@ export function activate(context: vscode.ExtensionContext) {
   metricsService = new MetricsService(context);
   traceService = new TraceService(context);
   exportService = new ExportService();
-  agentService = new AgentService(configService, metricsService, traceService, agentConfigService);
+  historyService = new HistoryService(context, traceService);
+  agentService = new AgentService(configService, metricsService, traceService, agentConfigService, historyService);
   codeContextService = new CodeContextService();
   codeInsertionService = new CodeInsertionService();
   
@@ -69,6 +74,7 @@ export function activate(context: vscode.ExtensionContext) {
     traceService
   );
   reasoningPanel = new ReasoningPanel(context.extensionUri, coordinator, agentConfigService);
+  historyBrowserPanel = new HistoryBrowserPanel(context.extensionUri, historyService, exportService);
 
   // Register command: Start Conversation
   const startConversationCmd = vscode.commands.registerCommand(
@@ -179,6 +185,16 @@ export function activate(context: vscode.ExtensionContext) {
       console.log('Showing trace viewer...');
       if (traceViewerPanel) {
         traceViewerPanel.refresh();
+      }
+    }
+  );
+
+  const showHistoryCmd = vscode.commands.registerCommand(
+    'ai-agent.showHistory',
+    () => {
+      console.log('Showing conversation history...');
+      if (historyBrowserPanel) {
+        historyBrowserPanel.show();
       }
     }
   );
@@ -313,7 +329,8 @@ export function activate(context: vscode.ExtensionContext) {
     showTraceViewerCmd,
     sendSelectionCmd,
     sendFileCmd,
-    showCodeSuggestionsCmd
+    showCodeSuggestionsCmd,
+    showHistoryCmd
   );
 
   console.log('AI Agent Extension activated successfully');
@@ -338,5 +355,8 @@ export function deactivate() {
   }
   if (reasoningPanel) {
     reasoningPanel.dispose();
+  }
+  if (historyBrowserPanel) {
+    historyBrowserPanel.dispose();
   }
 }

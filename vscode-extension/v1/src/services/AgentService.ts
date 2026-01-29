@@ -9,6 +9,7 @@ import { AgentState } from '../models/Trace';
 import { AgentRole, SpecialistAgent, AgentCapability } from '../models/AgentRole';
 import { CombinedResult } from '../models/AgentMessage';
 import type { AgentConfiguration, MultiAgentConfig } from '../models/AgentRole';
+import { HistoryService } from './HistoryService';
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -34,6 +35,7 @@ export class AgentService {
   private metricsService: MetricsService | undefined;
   private traceService: TraceService | undefined;
   private coordinator: MultiAgentCoordinator | undefined;
+  private historyService: HistoryService | undefined;
   private currentSession: ChatSession | undefined;
   private httpClient: AxiosInstance;
   private sessionId: string;
@@ -42,11 +44,18 @@ export class AgentService {
   private activeModel: string = '';
   private specialistAgents: Map<AgentRole, SpecialistAgent> = new Map();
 
-  constructor(configService: ConfigService, metricsService?: MetricsService, traceService?: TraceService, agentConfigService?: AgentConfigurationService) {
+  constructor(
+    configService: ConfigService,
+    metricsService?: MetricsService,
+    traceService?: TraceService,
+    agentConfigService?: AgentConfigurationService,
+    historyService?: HistoryService
+  ) {
     this.configService = configService;
     this.agentConfigService = agentConfigService;
     this.metricsService = metricsService;
     this.traceService = traceService;
+    this.historyService = historyService;
     this.sessionId = this.generateSessionId();
     this.httpClient = axios.create();
     
@@ -233,6 +242,7 @@ export class AgentService {
 
       // Save session
       await this.configService.saveSession(this.sessionId, this.currentSession!);
+      await this.persistHistory();
 
       return response;
     } catch (error) {
@@ -399,6 +409,32 @@ export class AgentService {
     this.currentSession = undefined;
     this.currentTurn = 0;
     console.log('Session reset');
+  }
+
+  private async persistHistory(): Promise<void> {
+    if (!this.historyService || !this.currentSession) {
+      return;
+    }
+
+    const mode = this.agentConfigService?.getConfig().mode || 'single';
+    if (mode === 'multi') {
+      const multiConfig = this.agentConfigService?.getConfig() as MultiAgentConfig;
+      await this.historyService.saveConversation(this.currentSession, {
+        agentMode: 'multi',
+        planProvider: multiConfig?.plan?.provider,
+        planModel: multiConfig?.plan?.model,
+        actProvider: multiConfig?.act?.provider,
+        actModel: multiConfig?.act?.model
+      });
+      return;
+    }
+
+    const config = this.configService.getConfig();
+    await this.historyService.saveConversation(this.currentSession, {
+      agentMode: 'single',
+      provider: config.provider,
+      model: config.model
+    });
   }
 
   /**

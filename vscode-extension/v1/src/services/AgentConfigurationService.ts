@@ -25,6 +25,7 @@ export interface ConfigurationWithDebug extends Record<string, any> {
 }
 
 export class AgentConfigurationService {
+  private static readonly DEBUG_MODE_KEY = 'aiAgent.debugMode';
   private context: vscode.ExtensionContext;
   private currentConfig: AgentConfiguration & ConfigurationWithDebug;
   private onConfigChangeEmitter = new vscode.EventEmitter<AgentConfiguration & ConfigurationWithDebug>();
@@ -50,7 +51,7 @@ export class AgentConfigurationService {
   private loadConfiguration(): AgentConfiguration & ConfigurationWithDebug {
     const workspaceConfig = vscode.workspace.getConfiguration('aiAgent');
     const mode = workspaceConfig.get<'single' | 'multi'>('mode', 'single');
-    const debugMode = workspaceConfig.get<boolean>('debugMode', false);
+    const debugMode = this.context.workspaceState.get<boolean>(AgentConfigurationService.DEBUG_MODE_KEY, false);
 
     if (mode === 'multi') {
       const config = this.loadMultiAgentConfig(workspaceConfig);
@@ -110,6 +111,15 @@ export class AgentConfigurationService {
   public getConfig(): AgentConfiguration & ConfigurationWithDebug {
     const config = this.currentConfig;
     return JSON.parse(JSON.stringify(config));
+  }
+
+  /**
+   * Update debug mode flag (stored in workspace state, not VS Code settings).
+   */
+  public async updateDebugMode(debugMode: boolean): Promise<void> {
+    await this.context.workspaceState.update(AgentConfigurationService.DEBUG_MODE_KEY, debugMode);
+    this.currentConfig = { ...this.currentConfig, debugMode };
+    this.onConfigChangeEmitter.fire(this.currentConfig);
   }
 
   /**

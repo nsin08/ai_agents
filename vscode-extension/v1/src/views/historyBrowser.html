@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversation History</title>
+  <style>
+    :root {
+      --border: var(--vscode-panel-border);
+      --bg: var(--vscode-editor-background);
+      --fg: var(--vscode-foreground);
+      --muted: var(--vscode-descriptionForeground);
+      --accent: var(--vscode-textLink-foreground);
+      --button: var(--vscode-button-background);
+      --button-fg: var(--vscode-button-foreground);
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: var(--vscode-font-family);
+      color: var(--fg);
+      background: var(--bg);
+      height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+    header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    header h1 {
+      font-size: 16px;
+      margin: 0;
+    }
+    .filters {
+      display: grid;
+      grid-template-columns: 1.2fr 0.6fr 0.6fr 0.6fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+    input, select {
+      background: var(--vscode-input-background);
+      color: var(--vscode-input-foreground);
+      border: 1px solid var(--vscode-input-border);
+      border-radius: 4px;
+      padding: 6px 8px;
+      font-size: 12px;
+    }
+    button {
+      background: var(--button);
+      color: var(--button-fg);
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    button.secondary {
+      background: var(--vscode-button-secondaryBackground);
+      color: var(--vscode-button-secondaryForeground);
+    }
+    main {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 0;
+      height: 100%;
+    }
+    .list {
+      border-right: 1px solid var(--border);
+      overflow: auto;
+    }
+    .list-header {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .item {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .item:hover {
+      background: var(--vscode-list-hoverBackground);
+    }
+    .item.active {
+      background: var(--vscode-list-activeSelectionBackground);
+      color: var(--vscode-list-activeSelectionForeground);
+    }
+    .item-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .item-meta {
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .details {
+      padding: 16px;
+      overflow: auto;
+    }
+    .details h2 {
+      font-size: 15px;
+      margin: 0 0 12px 0;
+    }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .messages {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .message {
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    .message.user {
+      border-left: 3px solid var(--accent);
+    }
+    .message.assistant {
+      border-left: 3px solid var(--vscode-testing-iconPassed);
+    }
+    .message-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .empty {
+      color: var(--muted);
+      font-size: 13px;
+      padding: 16px;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Conversation History</h1>
+    <div class="filters">
+      <input id="query" type="text" placeholder="Search keywords" />
+      <input id="startDate" type="date" />
+      <input id="endDate" type="date" />
+      <select id="agentMode">
+        <option value="">All agents</option>
+        <option value="single">Single</option>
+        <option value="multi">Multi</option>
+      </select>
+      <div>
+        <button onclick="applyFilters()">Search</button>
+        <button class="secondary" onclick="resetFilters()">Reset</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <section class="list">
+      <div class="list-header" id="resultsHeader">No history loaded</div>
+      <div id="results"></div>
+    </section>
+    <section class="details" id="details">
+      <div class="empty">Select a conversation to view details.</div>
+    </section>
+  </main>
+
+  <script>
+    const vscode = acquireVsCodeApi();
+    let currentSelection = null;
+
+    function applyFilters() {
+      const query = document.getElementById('query').value;
+      const startDate = document.getElementById('startDate').value;
+      const endDate = document.getElementById('endDate').value;
+      const agentMode = document.getElementById('agentMode').value;
+
+      vscode.postMessage({
+        type: 'search',
+        filters: {
+          query,
+          startDate,
+          endDate,
+          agentMode
+        }
+      });
+    }
+
+    function resetFilters() {
+      document.getElementById('query').value = '';
+      document.getElementById('startDate').value = '';
+      document.getElementById('endDate').value = '';
+      document.getElementById('agentMode').value = '';
+      applyFilters();
+    }
+
+    function renderResults(entries, activeId) {
+      const container = document.getElementById('results');
+      container.innerHTML = '';
+      document.getElementById('resultsHeader').textContent = `${entries.length} conversation(s)`;
+
+      if (!entries.length) {
+        container.innerHTML = '<div class="empty">No conversations found.</div>';
+        return;
+      }
+
+      entries.forEach(entry => {
+        const item = document.createElement('div');
+        item.className = 'item' + (activeId && activeId === entry.id ? ' active' : '');
+        item.onclick = () => openConversation(entry.id);
+
+        const created = new Date(entry.createdAt).toLocaleString();
+        item.innerHTML = `
+          <div class="item-title">${entry.preview || 'Conversation'}</div>
+          <div class="item-meta">${entry.agentMode || 'unknown'} • ${created} • ${entry.messageCount} msgs</div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function openConversation(id) {
+      vscode.postMessage({ type: 'openConversation', id });
+    }
+
+    function renderConversation(entry) {
+      currentSelection = entry;
+      const details = document.getElementById('details');
+      const created = new Date(entry.createdAt).toLocaleString();
+      const updated = new Date(entry.updatedAt).toLocaleString();
+
+      const metadata = `
+        <div class="meta-grid">
+          <div><strong>Mode:</strong> ${entry.agentMode || 'unknown'}</div>
+          <div><strong>Messages:</strong> ${entry.messages.length}</div>
+          <div><strong>Created:</strong> ${created}</div>
+          <div><strong>Updated:</strong> ${updated}</div>
+          <div><strong>Provider:</strong> ${entry.provider || 'n/a'}</div>
+          <div><strong>Model:</strong> ${entry.model || 'n/a'}</div>
+        </div>
+      `;
+
+      const actions = `
+        <div class="actions">
+          <button onclick="exportConversation('markdown')">Export Markdown</button>
+          <button onclick="exportConversation('html')">Export HTML</button>
+          <button class="secondary" onclick="deleteConversation()">Delete</button>
+        </div>
+      `;
+
+      const messagesHtml = entry.messages.map(message => {
+        const timestamp = new Date(message.timestamp).toLocaleString();
+        return `
+          <div class="message ${message.role}">
+            <div class="message-header">
+              <span>${message.role}</span>
+              <span>${timestamp}</span>
+            </div>
+            <div>${escapeHtml(message.content)}</div>
+          </div>
+        `;
+      }).join('');
+
+      details.innerHTML = `
+        <h2>Conversation ${entry.id}</h2>
+        ${metadata}
+        ${actions}
+        <div class="messages">${messagesHtml}</div>
+      `;
+    }
+
+    function clearConversation() {
+      currentSelection = null;
+      const details = document.getElementById('details');
+      details.innerHTML = '<div class="empty">Select a conversation to view details.</div>';
+    }
+
+    function exportConversation(format) {
+      if (!currentSelection) {
+        return;
+      }
+      vscode.postMessage({ type: 'exportConversation', id: currentSelection.id, format });
+    }
+
+    function deleteConversation() {
+      if (!currentSelection) {
+        return;
+      }
+      vscode.postMessage({ type: 'deleteConversation', id: currentSelection.id });
+    }
+
+    function escapeHtml(text) {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return text.replace(/[&<>"']/g, (m) => map[m]);
+    }
+
+    window.addEventListener('message', (event) => {
+      const message = event.data;
+      switch (message.type) {
+        case 'historyList':
+          renderResults(message.entries || [], message.activeId);
+          break;
+        case 'conversationLoaded':
+          renderConversation(message.entry);
+          break;
+        case 'conversationCleared':
+          clearConversation();
+          break;
+        case 'error':
+          document.getElementById('resultsHeader').textContent = message.message;
+          break;
+      }
+    });
+
+    vscode.postMessage({ type: 'refresh' });
+  </script>
+</body>
+</html>
