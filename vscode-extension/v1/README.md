@@ -6,22 +6,43 @@ Powerful multi-agent orchestration directly in your IDE. Interact with AI agents
 
 ---
 
+## 📖 Documentation
+
+All documentation is organized for easy navigation. **Choose what you need:**
+
+### For Users - Get Started in 5 Minutes
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - All commands, settings, FAQs
+- **[VSIX_INSTALLATION_GUIDE.md](VSIX_INSTALLATION_GUIDE.md)** - How to install
+- **[RELEASE_v0.1.0.md](RELEASE_v0.1.0.md)** - What's new in this version
+
+### For Developers - Setup in 30 Minutes
+- **[DEVELOPMENT.md](DEVELOPMENT.md)** - Environment setup, architecture, debugging
+- **[BUILD.md](BUILD.md)** - Building, testing, creating VSIX packages
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Code standards, PR process, contribution guidelines
+- **[TESTING_COMPREHENSIVE.md](TESTING_COMPREHENSIVE.md)** - Testing strategies and execution
+
+### Archived Documentation
+- **[.context/ARCHIVE/](vscode-extension/v1/.context/ARCHIVE)** - Deprecated guides (for reference only)
+
+---
+
 ## 🚀 Quick Start - Choose Your Path
 
-### ✨ I Want to **Use the Extension**
-Get started in 5 minutes. Install, configure, and start chatting with agents.
-- **Time:** ~5 minutes
-- **Path:** [QUICK_REFERENCE.md](QUICK_REFERENCE.md) → [VSIX_INSTALLATION_GUIDE.md](VSIX_INSTALLATION_GUIDE.md) → Chat Panel
+### ✨ I Want to **Use the Extension** (5 min)
+1. Read [QUICK_REFERENCE.md](QUICK_REFERENCE.md) - Learn all commands
+2. Follow [VSIX_INSTALLATION_GUIDE.md](VSIX_INSTALLATION_GUIDE.md) - Install the extension
+3. Open chat panel and start using it!
 
-### 🛠️ I Want to **Develop/Contribute**
-Set up your development environment and understand the codebase.
-- **Time:** ~30 minutes (setup) + development time
-- **Path:** [DEVELOPMENT.md](DEVELOPMENT.md) → [BUILD.md](BUILD.md) → [CONTRIBUTING.md](CONTRIBUTING.md)
+### 🛠️ I Want to **Develop/Contribute** (30 min)
+1. Read [DEVELOPMENT.md](DEVELOPMENT.md) - Set up your environment
+2. Review [BUILD.md](BUILD.md) - Understand the build process
+3. Check [CONTRIBUTING.md](CONTRIBUTING.md) - Learn code standards
+4. Start coding and submit PRs!
 
-### 📦 I Want to **Package for Distribution**
-Build VSIX, deploy, or publish to VSCode marketplace.
-- **Time:** ~10 minutes
-- **Path:** [BUILD.md](BUILD.md) → Package/Deploy section
+### 📦 I Want to **Package for Distribution** (10 min)
+1. Follow [BUILD.md](BUILD.md) - VSIX Creation section
+2. Prepare for marketplace or direct distribution
+3. Deploy your package
 
 ---
 
@@ -48,24 +69,6 @@ Build VSIX, deploy, or publish to VSCode marketplace.
 
 ---
 
-## 🌍 Resources
-
-### For Users
-- [QUICK_REFERENCE.md](QUICK_REFERENCE.md) - Commands, features, FAQ (5 min read)
-- [VSIX_INSTALLATION_GUIDE.md](VSIX_INSTALLATION_GUIDE.md) - Installation methods (VSIX, marketplace, dev)
-- [RELEASE_v0.1.0.md](RELEASE_v0.1.0.md) - Release notes and changelog
-
-### For Developers
-- [DEVELOPMENT.md](DEVELOPMENT.md) - Setup, architecture, debugging, common tasks
-- [BUILD.md](BUILD.md) - Building, testing, VSIX creation, deployment
-- [CONTRIBUTING.md](CONTRIBUTING.md) - Code standards, PR process, issue workflow
-- [TESTING_COMPREHENSIVE.md](TESTING_COMPREHENSIVE.md) - Test strategies, running tests, coverage
-
-### Archived Docs
-See [.context/ARCHIVE/](vscode-extension/v1/.context/ARCHIVE) for deprecated guides.
-
----
-
 ## ⚡ Quick Commands
 
 | Command | Shortcut | Purpose |
@@ -78,41 +81,29 @@ See [.context/ARCHIVE/](vscode-extension/v1/.context/ARCHIVE) for deprecated gui
 | Agent: Start Multi-Agent Task | `Ctrl+Shift+P` | Coordinate agents |
 | Agent: Show History | `Ctrl+Shift+P` | Browse past conversations |
 
-See [QUICK_REFERENCE.md](QUICK_REFERENCE.md) for complete command list.
+**Full command list:** See [QUICK_REFERENCE.md](QUICK_REFERENCE.md)
 
 ---
 
 ## 🏗️ Architecture Overview
 
-```
-Extension Layer (TypeScript/VSCode API)
-  ├── ChatPanel (Side panel UI)
-  ├── ConfigPanel (Settings management)
-  ├── StatisticsPanel (Metrics dashboard)
-  ├── TraceViewerPanel (State transitions)
-  ├── CodeSuggestionPanel (Code intelligence)
-  ├── MultiAgentDashboard (Orchestration)
-  ├── ReasoningPanel (Agent reasoning)
-  └── HistoryBrowserPanel (Conversation storage)
+The extension consists of three layers:
 
-Service Layer (Business logic)
-  ├── AgentService (Chat communication)
-  ├── ConfigService (Settings)
-  ├── MetricsService (Token/cost tracking)
-  ├── TraceService (State capture)
-  ├── ExportService (CSV/JSON/Markdown/HTML)
-  ├── HistoryService (Workspace persistence)
-  ├── MultiAgentCoordinator (Orchestration)
-  ├── CodeContextService (Security)
-  └── CodeInsertionService (Code parsing)
+**Extension Layer (TypeScript/VSCode API)**
+- ChatPanel, ConfigPanel, StatisticsPanel, TraceViewerPanel
+- CodeSuggestionPanel, MultiAgentDashboard, ReasoningPanel, HistoryBrowserPanel
 
-Provider Layer (LLM abstraction)
-  ├── Mock Provider (Testing)
-  ├── Ollama (Local)
-  └── Cloud Providers (OpenAI, Anthropic, etc.)
-```
+**Service Layer (Business Logic)**
+- AgentService, ConfigService, MetricsService, TraceService
+- ExportService, HistoryService, MultiAgentCoordinator
+- CodeContextService, CodeInsertionService
 
-See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed architecture.
+**Provider Layer (LLM Abstraction)**
+- Mock Provider (Testing)
+- Ollama (Local)
+- Cloud Providers (OpenAI, Anthropic, Google, Azure)
+
+**Details:** See [DEVELOPMENT.md](DEVELOPMENT.md#architecture)
 
 ---
 
@@ -124,7 +115,7 @@ See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed architecture.
 - ✅ **Size Limits** - 10K lines / 500KB per operation
 - ✅ **User Warnings** - Alerts before sending potentially sensitive code
 
-See [DEVELOPMENT.md](DEVELOPMENT.md#security-features) for details.
+**Details:** See [DEVELOPMENT.md - Security Features](DEVELOPMENT.md#-security-features)
 
 ---
 
@@ -136,67 +127,24 @@ See [DEVELOPMENT.md](DEVELOPMENT.md#security-features) for details.
 - Unit + integration tests
 - Mock provider for deterministic testing
 
+**Run Tests:**
 ```bash
 npm test                    # Run all tests
 npm test -- --watch        # Watch mode
 npm run lint                # Code quality
 ```
 
-See [TESTING_COMPREHENSIVE.md](TESTING_COMPREHENSIVE.md) for full testing guide.
-
----
-
-## 📞 Need Help?
-
-### Getting Started Issues
-- Check [QUICK_REFERENCE.md](QUICK_REFERENCE.md) FAQ section
-- Review [VSIX_INSTALLATION_GUIDE.md](VSIX_INSTALLATION_GUIDE.md) troubleshooting
-
-### Development Questions
-- See [DEVELOPMENT.md](DEVELOPMENT.md) for setup and common issues
-- Check [CONTRIBUTING.md](CONTRIBUTING.md) for code standards
-
-### Build/Package Issues
-- See [BUILD.md](BUILD.md) troubleshooting section
-- Review test failures in [TESTING_COMPREHENSIVE.md](TESTING_COMPREHENSIVE.md)
-
-### Report an Issue
-Create an issue on GitHub with:
-- Extension version
-- VSCode version
-- Steps to reproduce
-- Expected vs actual behavior
-- Relevant logs from Extension Host console
-
----
-
-## 📖 Full Reference
-
-### User Documentation
-- [QUICK_REFERENCE.md](QUICK_REFERENCE.md) - All commands, settings, examples
-- [VSIX_INSTALLATION_GUIDE.md](VSIX_INSTALLATION_GUIDE.md) - Installation methods
-- [RELEASE_v0.1.0.md](RELEASE_v0.1.0.md) - What's new in this release
-
-### Developer Documentation
-- [DEVELOPMENT.md](DEVELOPMENT.md) - Development setup, architecture, debugging
-- [BUILD.md](BUILD.md) - Building, packaging, deployment
-- [CONTRIBUTING.md](CONTRIBUTING.md) - Contributing guidelines
-- [TESTING_COMPREHENSIVE.md](TESTING_COMPREHENSIVE.md) - Testing guide
-
-### External References
-- [VSCode Extension API](https://code.visualstudio.com/api)
-- [VSCode Webview API](https://code.visualstudio.com/api/extension-guides/webview)
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
-- [Jest Testing Framework](https://jestjs.io/)
+**Details:** See [TESTING_COMPREHENSIVE.md](TESTING_COMPREHENSIVE.md)
 
 ---
 
 ## 📊 Project Status
 
 **Current Version:** 0.1.0  
-**Release Date:** January 2025  
+**Release Date:** January 29, 2026  
 **Next Milestone:** v0.2.0 (Marketplace publication)
 
+**Status:**
 - ✅ All 5 phases implemented
 - ✅ 189/189 tests passing
 - ✅ 0 TypeScript errors
@@ -207,14 +155,60 @@ Create an issue on GitHub with:
 
 ---
 
+## 📞 Need Help?
+
+### Getting Started
+- **Installation issues?** → [VSIX_INSTALLATION_GUIDE.md](VSIX_INSTALLATION_GUIDE.md) troubleshooting
+- **How do I use this?** → [QUICK_REFERENCE.md](QUICK_REFERENCE.md) FAQ section
+
+### Development
+- **Setting up dev environment?** → [DEVELOPMENT.md](DEVELOPMENT.md#environment-setup)
+- **Code standards?** → [CONTRIBUTING.md](CONTRIBUTING.md#-code-standards)
+- **Running tests?** → [TESTING_COMPREHENSIVE.md](TESTING_COMPREHENSIVE.md)
+- **Building VSIX?** → [BUILD.md](BUILD.md#-vsix-creation)
+
+### Report Issues
+Create a GitHub issue with:
+- Extension version
+- VSCode version
+- Steps to reproduce
+- Expected vs actual behavior
+- Relevant logs from Extension Host console
+
+---
+
 ## 🤝 Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
-- Code standards and style guide
-- Testing requirements
-- PR process
-- Issue workflow
-- Development setup
+We welcome contributions! Start here:
+
+1. **Read the guides:**
+   - [DEVELOPMENT.md](DEVELOPMENT.md) - How to set up your environment
+   - [CONTRIBUTING.md](CONTRIBUTING.md) - Code standards and PR process
+   - [TESTING_COMPREHENSIVE.md](TESTING_COMPREHENSIVE.md) - Testing requirements
+
+2. **Make your changes** following code standards
+
+3. **Run tests:** `npm test`
+
+4. **Submit a PR** with clear description linking to related issues
+
+**Details:** See [CONTRIBUTING.md](CONTRIBUTING.md)
+
+---
+
+## 📚 All Documentation Files
+
+| File | Purpose | Audience |
+|------|---------|----------|
+| **README.md** | You are here - Overview and navigation | Everyone |
+| **QUICK_REFERENCE.md** | Commands, settings, examples | Users |
+| **DEVELOPMENT.md** | Setup, architecture, debugging | Developers |
+| **BUILD.md** | Building, testing, packaging, deployment | Developers/Release Engineers |
+| **CONTRIBUTING.md** | Code standards, PR process | Contributors |
+| **VSIX_INSTALLATION_GUIDE.md** | Installation methods and troubleshooting | Users |
+| **RELEASE_v0.1.0.md** | Release notes and changelog | Everyone |
+| **TESTING_COMPREHENSIVE.md** | Testing strategies and execution | Developers/QA |
+| **.context/ARCHIVE/** | Deprecated documentation | Reference only |
 
 ---
 
@@ -226,10 +220,13 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
 
 ## 📞 Support & Feedback
 
-- **Issues:** Report bugs or request features via GitHub Issues
-- **Discussions:** Ask questions in GitHub Discussions
+- **Report Bugs:** [GitHub Issues](https://github.com/nsin08/ai_agents/issues)
+- **Ask Questions:** [GitHub Discussions](https://github.com/nsin08/ai_agents/discussions)
 - **Email:** [contact email - add as needed]
 
 ---
 
-**Last Updated:** January 2025 | **Maintainer:** [Your Name]
+**Last Updated:** January 29, 2026  
+**Maintainer:** [Your Name]
+
+**Start reading:** Choose a guide above based on what you want to do!
