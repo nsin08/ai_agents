@@ -2,213 +2,231 @@
 
 Powerful multi-agent orchestration directly in your IDE. Interact with AI agents, coordinate complex tasks, track execution metrics, and manage conversation history—all without leaving VSCode.
 
-**Version:** 0.1.0 | **Status:** 5/5 phases complete | **Tests:** 189 passing | **Coverage:** 85%+
+**Version:** 0.1.0 | **Release Date:** January 29, 2026 | **Status:** Production Ready ✅
 
 ---
 
-## 📖 Documentation
+## 📦 Download
 
-All documentation is organized for easy navigation. **Choose what you need:**
+**VSIX File:** [`ai-agent-extension.vsix`](ai-agent-extension.vsix) (1.11 MB)
 
-### For Users - Get Started in 5 Minutes
-- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - All commands, settings, FAQs
-- **[VSIX_INSTALLATION_GUIDE.md](VSIX_INSTALLATION_GUIDE.md)** - How to install
+**Quick Install:**
+```bash
+# Option 1: Drag & drop VSIX file onto VSCode
+# Option 2: Extensions panel → ... → Install from VSIX
+# Option 3: Command line
+code --install-extension ai-agent-extension.vsix
+```
+
+**Full Installation Guide:** [VSIX_INSTALLATION_GUIDE.md](VSIX_INSTALLATION_GUIDE.md)
+
+---
+
+## 📖 Documentation for All Users
+
+### 👤 For Users - Get Started in 5 Minutes
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - All commands, settings, FAQs (the only guide you need as a user)
+- **[VSIX_INSTALLATION_GUIDE.md](VSIX_INSTALLATION_GUIDE.md)** - How to install the VSIX file
 - **[RELEASE_v0.1.0.md](RELEASE_v0.1.0.md)** - What's new in this version
 
-### For Developers - Setup in 30 Minutes
-- **[DEVELOPMENT.md](DEVELOPMENT.md)** - Environment setup, architecture, debugging
-- **[BUILD.md](BUILD.md)** - Building, testing, creating VSIX packages
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Code standards, PR process, contribution guidelines
-- **[TESTING_COMPREHENSIVE.md](TESTING_COMPREHENSIVE.md)** - Testing strategies and execution
+### 👨‍💻 For Developers - Setup in 30 Minutes
+- **[DEVELOPMENT.md](DEVELOPMENT.md)** - How to set up your development environment and understand the codebase
+- **[BUILD.md](BUILD.md)** - How to build, test, and create VSIX packages for distribution
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Code standards, testing requirements, PR process if you want to contribute
 
-### Archived Documentation
-- **[.context/ARCHIVE/](vscode-extension/v1/.context/ARCHIVE)** - Deprecated guides (for reference only)
+### 🧪 For QA/Testing
+- **[TESTING_COMPREHENSIVE.md](TESTING_COMPREHENSIVE.md)** - Full testing guide with strategies and execution
+- **[SANITY_TESTS.md](SANITY_TESTS.md)** - Quick sanity checks to verify the extension works
 
 ---
 
-## 🚀 Quick Start - Choose Your Path
+## 🚀 Quick Start
 
-### ✨ I Want to **Use the Extension** (5 min)
-1. Read [QUICK_REFERENCE.md](QUICK_REFERENCE.md) - Learn all commands
-2. Follow [VSIX_INSTALLATION_GUIDE.md](VSIX_INSTALLATION_GUIDE.md) - Install the extension
-3. Open chat panel and start using it!
+### Option 1: Just Use It (5 minutes)
+1. Download [`ai-agent-extension.vsix`](ai-agent-extension.vsix)
+2. Drag & drop it onto VSCode or install via Extensions panel
+3. Press `Ctrl+Shift+P` → "Agent: Start Conversation"
+4. Start chatting with the agent!
 
-### 🛠️ I Want to **Develop/Contribute** (30 min)
+### Option 2: Develop/Modify (30 minutes)
 1. Read [DEVELOPMENT.md](DEVELOPMENT.md) - Set up your environment
-2. Review [BUILD.md](BUILD.md) - Understand the build process
-3. Check [CONTRIBUTING.md](CONTRIBUTING.md) - Learn code standards
-4. Start coding and submit PRs!
-
-### 📦 I Want to **Package for Distribution** (10 min)
-1. Follow [BUILD.md](BUILD.md) - VSIX Creation section
-2. Prepare for marketplace or direct distribution
-3. Deploy your package
+2. Press `F5` to launch Extension Development Host
+3. Make changes and test
+4. Build VSIX with instructions in [BUILD.md](BUILD.md)
 
 ---
 
-## 📋 What's Included
+## ✨ What This Extension Does
 
-**5 Complete Phases (189 tests, 100% passing)**
+**5 Complete Phases - All Production Ready**
 
 | Phase | Feature | Status |
 |-------|---------|--------|
-| **1** | MVP Chat, Configuration, Session Management | ✅ Complete |
-| **2** | Observability: Metrics, Traces, Export | ✅ Complete |
-| **3** | Code Intelligence: Context, Security, Suggestions | ✅ Complete |
-| **4** | Multi-Agent Coordination with Dashboard | ✅ Complete |
-| **5** | Conversation History & Export (Markdown/HTML) | ✅ Complete |
+| **Phase 1** | MVP Chat, Configuration, Session Management | ✅ Complete |
+| **Phase 2** | Observability: Metrics, Traces, Export | ✅ Complete |
+| **Phase 3** | Code Intelligence: Context, Security, Suggestions | ✅ Complete |
+| **Phase 4** | Multi-Agent Coordination with Dashboard | ✅ Complete |
+| **Phase 5** | Conversation History & Export (Markdown/HTML) | ✅ Complete |
 
-**Key Features:**
-- 🎯 **Single & Multi-Agent Modes** - Chat or orchestrate multi-agent workflows
+**Key Capabilities:**
+- 💬 **Chat with AI Agents** - Single or multi-agent conversations
+- 🔍 **Code Intelligence** - Send code selections with security filtering
 - 📊 **Real-Time Metrics** - Token usage, response times, cost tracking
-- 🔍 **Trace Viewer** - Watch agent state transitions (Observe → Plan → Act → Verify)
-- 💻 **Code Intelligence** - Send code with security filtering (15 pattern detection)
-- 📝 **Conversation History** - Searchable, persistent per workspace
-- 🔐 **Security** - Local-only storage, no telemetry, sensitive data blocking
-- 🌐 **Multi-Provider** - Mock, Ollama, OpenAI, Anthropic, Google, Azure
+- 🕵️ **Trace Viewer** - Watch agent state transitions (Observe → Plan → Act → Verify)
+- 🤖 **Multi-Agent Orchestration** - Coordinate planner, executor, verifier agents
+- 📝 **Conversation History** - Search, replay, export past conversations
+- 🔐 **Security Built-In** - Detects 15 sensitive data patterns, blocks 11 file types
+- 🌐 **Multi-Provider** - Mock, Ollama (local), OpenAI, Anthropic, Google, Azure
 
 ---
 
-## ⚡ Quick Commands
+## ⚡ Most Used Commands
 
-| Command | Shortcut | Purpose |
-|---------|----------|---------|
+| Command | Shortcut | What It Does |
+|---------|----------|--------------|
 | Agent: Start Conversation | `Ctrl+Shift+P` | Open chat panel |
 | Agent: Settings | `Ctrl+Shift+P` | Configure provider/model |
-| Agent: Send Selection to Agent | Right-click | Send code with context |
-| Agent: Show Statistics | `Ctrl+Shift+P` | View metrics dashboard |
-| Agent: Show Trace Viewer | `Ctrl+Shift+P` | Watch agent state transitions |
-| Agent: Start Multi-Agent Task | `Ctrl+Shift+P` | Coordinate agents |
+| Agent: Send Selection to Agent | Right-click code | Send selected code to agent |
+| Agent: Show Statistics | `Ctrl+Shift+P` | View token usage & costs |
+| Agent: Show Trace Viewer | `Ctrl+Shift+P` | Watch agent thinking process |
+| Agent: Start Multi-Agent Task | `Ctrl+Shift+P` | Coordinate multiple agents |
 | Agent: Show History | `Ctrl+Shift+P` | Browse past conversations |
 
-**Full command list:** See [QUICK_REFERENCE.md](QUICK_REFERENCE.md)
+**All commands:** See [QUICK_REFERENCE.md](QUICK_REFERENCE.md)
 
 ---
 
-## 🏗️ Architecture Overview
+## ⚙️ Configuration (Single Agent Mode)
 
-The extension consists of three layers:
+The extension supports single-agent chat (default) and multi-agent orchestration.
 
-**Extension Layer (TypeScript/VSCode API)**
-- ChatPanel, ConfigPanel, StatisticsPanel, TraceViewerPanel
-- CodeSuggestionPanel, MultiAgentDashboard, ReasoningPanel, HistoryBrowserPanel
+**Configure via Settings Panel:**
+1. Press `Ctrl+Shift+P` → "Agent: Settings"
+2. Select your provider and model
+3. Start chatting!
 
-**Service Layer (Business Logic)**
-- AgentService, ConfigService, MetricsService, TraceService
-- ExportService, HistoryService, MultiAgentCoordinator
-- CodeContextService, CodeInsertionService
+**Supported Providers:**
+- **Mock** - No setup needed, instant responses (for testing)
+- **Ollama** - Local LLM (requires Ollama installation)
+- **OpenAI** - GPT models (requires API key)
+- **Anthropic** - Claude models (requires API key)
+- **Google** - Gemini models (requires API key)
+- **Azure OpenAI** - Azure-hosted models (requires endpoint + key)
 
-**Provider Layer (LLM Abstraction)**
-- Mock Provider (Testing)
-- Ollama (Local)
-- Cloud Providers (OpenAI, Anthropic, Google, Azure)
-
-**Details:** See [DEVELOPMENT.md](DEVELOPMENT.md#architecture)
+**For multi-agent setup:** See [DEVELOPMENT.md](DEVELOPMENT.md#multi-agent-configuration)
 
 ---
 
-## 🔒 Security
+## 🏗️ Architecture (High Level)
 
-- ✅ **15 Sensitive Data Patterns** - Detects API keys, tokens, passwords, JWTs
-- ✅ **11 Blocked File Types** - Prevents .env, .pem, .key from being sent
-- ✅ **Local-Only Storage** - No cloud telemetry, no external calls
+```
+VSCode Extension (TypeScript)
+├── 8 Panels (Chat, Config, Statistics, Trace, Code, Multi-Agent, Reasoning, History)
+├── 9 Services (Agent, Config, Metrics, Trace, Export, History, Coordinator, Context, Insertion)
+└── 3 Provider Types (Mock, Ollama Local, Cloud APIs)
+```
+
+**Full architecture details:** [DEVELOPMENT.md](DEVELOPMENT.md#architecture)
+
+---
+
+## 🔒 Security Features
+
+- ✅ **15 Sensitive Data Patterns** - API keys, tokens, passwords, JWTs, credit cards
+- ✅ **11 Blocked File Types** - `.env`, `.pem`, `.key`, `.p12`, `.pfx`, etc.
+- ✅ **Local-Only Storage** - No external telemetry, all data stays on your machine
 - ✅ **Size Limits** - 10K lines / 500KB per operation
 - ✅ **User Warnings** - Alerts before sending potentially sensitive code
 
-**Details:** See [DEVELOPMENT.md - Security Features](DEVELOPMENT.md#-security-features)
+**Details:** [DEVELOPMENT.md - Security](DEVELOPMENT.md#-security-features)
 
 ---
 
-## 🧪 Testing
+## 🧪 Testing & Quality
 
-- **189 tests** across 14 suites
-- **100% pass rate**
+- **189 tests** across 14 suites (100% passing)
 - **85%+ code coverage**
-- Unit + integration tests
-- Mock provider for deterministic testing
+- **0 TypeScript compilation errors**
+- **0 ESLint violations**
 
-**Run Tests:**
+**Run tests yourself:**
 ```bash
-npm test                    # Run all tests
+npm test                    # All tests
 npm test -- --watch        # Watch mode
-npm run lint                # Code quality
+npm run lint                # Code quality check
 ```
 
-**Details:** See [TESTING_COMPREHENSIVE.md](TESTING_COMPREHENSIVE.md)
+**Testing guides:**
+- **[TESTING_COMPREHENSIVE.md](TESTING_COMPREHENSIVE.md)** - Full testing guide
+- **[SANITY_TESTS.md](SANITY_TESTS.md)** - Quick sanity checks
 
 ---
 
-## 📊 Project Status
+## 📊 Release Status
 
 **Current Version:** 0.1.0  
 **Release Date:** January 29, 2026  
-**Next Milestone:** v0.2.0 (Marketplace publication)
+**VSIX File:** [`ai-agent-extension.vsix`](ai-agent-extension.vsix) (1.11 MB)
 
-**Status:**
-- ✅ All 5 phases implemented
+**What's Complete:**
+- ✅ All 5 phases implemented and tested
 - ✅ 189/189 tests passing
-- ✅ 0 TypeScript errors
-- ✅ 85%+ code coverage
-- ✅ Security audit complete
-- ✅ VSIX package ready
+- ✅ VSIX package created and ready to install
 - ✅ Documentation complete
+- ✅ Security audit passed
+- ✅ Production ready
+
+**What's Next:** v0.2.0 will include marketplace publication
+
+**Release notes:** [RELEASE_v0.1.0.md](RELEASE_v0.1.0.md)
 
 ---
 
 ## 📞 Need Help?
 
-### Getting Started
-- **Installation issues?** → [VSIX_INSTALLATION_GUIDE.md](VSIX_INSTALLATION_GUIDE.md) troubleshooting
-- **How do I use this?** → [QUICK_REFERENCE.md](QUICK_REFERENCE.md) FAQ section
+### Installation Issues
+→ See [VSIX_INSTALLATION_GUIDE.md](VSIX_INSTALLATION_GUIDE.md) troubleshooting section
 
-### Development
-- **Setting up dev environment?** → [DEVELOPMENT.md](DEVELOPMENT.md#environment-setup)
-- **Code standards?** → [CONTRIBUTING.md](CONTRIBUTING.md#-code-standards)
-- **Running tests?** → [TESTING_COMPREHENSIVE.md](TESTING_COMPREHENSIVE.md)
-- **Building VSIX?** → [BUILD.md](BUILD.md#-vsix-creation)
+### Using the Extension
+→ See [QUICK_REFERENCE.md](QUICK_REFERENCE.md) - Has FAQ, examples, and all commands
 
-### Report Issues
-Create a GitHub issue with:
-- Extension version
-- VSCode version
-- Steps to reproduce
-- Expected vs actual behavior
-- Relevant logs from Extension Host console
+### Development Setup
+→ See [DEVELOPMENT.md](DEVELOPMENT.md) - Complete setup guide
 
----
+### Building VSIX
+→ See [BUILD.md](BUILD.md) - Build and packaging instructions
 
-## 🤝 Contributing
+### Running Tests
+→ See [TESTING_COMPREHENSIVE.md](TESTING_COMPREHENSIVE.md) and [SANITY_TESTS.md](SANITY_TESTS.md)
 
-We welcome contributions! Start here:
-
-1. **Read the guides:**
-   - [DEVELOPMENT.md](DEVELOPMENT.md) - How to set up your environment
-   - [CONTRIBUTING.md](CONTRIBUTING.md) - Code standards and PR process
-   - [TESTING_COMPREHENSIVE.md](TESTING_COMPREHENSIVE.md) - Testing requirements
-
-2. **Make your changes** following code standards
-
-3. **Run tests:** `npm test`
-
-4. **Submit a PR** with clear description linking to related issues
-
-**Details:** See [CONTRIBUTING.md](CONTRIBUTING.md)
+### Contributing Code
+→ See [CONTRIBUTING.md](CONTRIBUTING.md) - Code standards and PR process
 
 ---
 
-## 📚 All Documentation Files
+## 🤝 Want to Contribute?
 
-| File | Purpose | Audience |
-|------|---------|----------|
-| **README.md** | You are here - Overview and navigation | Everyone |
-| **QUICK_REFERENCE.md** | Commands, settings, examples | Users |
-| **DEVELOPMENT.md** | Setup, architecture, debugging | Developers |
-| **BUILD.md** | Building, testing, packaging, deployment | Developers/Release Engineers |
-| **CONTRIBUTING.md** | Code standards, PR process | Contributors |
-| **VSIX_INSTALLATION_GUIDE.md** | Installation methods and troubleshooting | Users |
+1. Read [DEVELOPMENT.md](DEVELOPMENT.md) - Set up your dev environment
+2. Read [CONTRIBUTING.md](CONTRIBUTING.md) - Understand code standards
+3. Make your changes and run tests: `npm test`
+4. Submit a PR with clear description
+
+---
+
+## 📚 Complete Documentation Index
+
+| File | Purpose | Who Should Read |
+|------|---------|-----------------|
+| **README.md** | Overview and quick start | Everyone (you are here) |
+| **ai-agent-extension.vsix** | The extension package to install | Users who want to install |
+| **QUICK_REFERENCE.md** | All commands, settings, FAQs | Users |
+| **VSIX_INSTALLATION_GUIDE.md** | How to install the VSIX file | Users |
 | **RELEASE_v0.1.0.md** | Release notes and changelog | Everyone |
-| **TESTING_COMPREHENSIVE.md** | Testing strategies and execution | Developers/QA |
-| **.context/ARCHIVE/** | Deprecated documentation | Reference only |
+| **DEVELOPMENT.md** | Dev setup, architecture, debugging | Developers |
+| **BUILD.md** | Building, testing, creating VSIX | Developers/Release Engineers |
+| **CONTRIBUTING.md** | Code standards, PR process | Contributors |
+| **TESTING_COMPREHENSIVE.md** | Full testing guide | Developers/QA |
+| **SANITY_TESTS.md** | Quick sanity checks | Developers/QA |
 
 ---
 
@@ -222,11 +240,9 @@ We welcome contributions! Start here:
 
 - **Report Bugs:** [GitHub Issues](https://github.com/nsin08/ai_agents/issues)
 - **Ask Questions:** [GitHub Discussions](https://github.com/nsin08/ai_agents/discussions)
-- **Email:** [contact email - add as needed]
 
 ---
 
-**Last Updated:** January 29, 2026  
-**Maintainer:** [Your Name]
+**🎉 Ready to start? Download [`ai-agent-extension.vsix`](ai-agent-extension.vsix) and install it in VSCode!**
 
-**Start reading:** Choose a guide above based on what you want to do!
+**Need help?** Read [QUICK_REFERENCE.md](QUICK_REFERENCE.md) (for users) or [DEVELOPMENT.md](DEVELOPMENT.md) (for developers).
