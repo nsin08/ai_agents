@@ -32,37 +32,97 @@ Building a conversational AI agent that:
 - Handles **production concerns** (idempotency, concurrency, errors, observability)
 - Scales from **single developer POC** → **multi-tenant SaaS**
 
-### 1.2 Solution Architecture
+### 1.2 High-Level Solution Architecture
 
 **Three-Layer Design**:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    CHANNEL LAYER (Adapters)                     │
+│                    CHANNEL LAYER (Input)                         │
 │    WhatsApp (Twilio) │ Telegram │ Slack │ Future Channels      │
 └────────────────────────┬────────────────────────────────────────┘
                          │
-                    [Webhook Router]
-                    (POST /webhook/{channel})
-                         │
+         ┌───────────────┴───────────────┐
+         ↓                               ↓
+  [Message Adapters]         [Signature Validators]
+  (Normalize format)          (Per-channel auth)
+  - WhatsAppAdapter           - HMAC-SHA1 validation
+  - TelegramAdapter           - Timestamp checks
+  - SlackAdapter              - Replay protection
+         │                               │
+         └───────────────┬───────────────┘
+                         ↓
+              [ChannelMessage]
+              (Canonical format)
+                         ↓
+       ┌─────────────────┴──────────────────┐
+       ↓                                    ↓
+[Webhook Router]                  [Observability & Correlation]
+(HTTP /webhook/{ch})              (Logging, metrics, tracing)
+       │                                    │
+       └─────────────────┬──────────────────┘
+                         ↓
+    ┌────────────────────────────────────────────┐
+    │   CORE AGENT LAYER (LLM-Agnostic)          │
+    ├────────────────────────────────────────────┤
+    │ 1. Agent Core Orchestrator                │
+    │    - Receives ChannelMessage              │
+    │    - Checks idempotency                   │
+    │    - Acquires concurrency lock            │
+    │                                           │
+    │ 2. Conversation Storage ←──────────────┐  │
+    │    - Query history by (channel, user)   │  │
+    │    - Add message (with dedup)            │  │
+    │    - Store (SQLite→Postgres)             │  │
+    │                                           │
+    │ 3. Context Engineering                   │  │
+    │    - Build system prompt                 │  │
+    │    - Truncate history to token limit     │  │
+    │    - Summarize long conversations        │  │
+    │                                           │
+    │ 4. Agent Bridge (Ollama)                 │  │
+    │    - Call LLM with context               │  │
+    │    - Timeout handling (10s)              │  │
+    │    - Circuit breaker on failures         │  │
+    │                                           │
+    │ 5. Safety Guardrails                     │  │
+    │    - Keyword filtering                   │  │
+    │    - Content validation                  │  │
+    │    - Fallback responses                  │  │
+    └────────────────────────────────────────────┘
+                         ↓
+       ┌─────────────────┴──────────────────┐
+       ↓                                    ↓
+[Message Senders]                  [Observability & Correlation]
+(Format & send response)            (Logging, metrics, tracing)
+- WhatsAppSender                    (Correlation IDs throughout)
+- TelegramSender
+- SlackSender
+       │                                    │
+       └─────────────────┬──────────────────┘
                          ↓
 ┌─────────────────────────────────────────────────────────────────┐
-│               CORE AGENT LAYER (LLM-Agnostic)                   │
-│  - Message normalization (ChannelMessage)                       │
-│  - Conversation history retrieval & context engineering        │
-│  - LLM orchestration (Ollama bridge)                           │
-│  - Safety guardrails & idempotency                            │
-│  - Error handling & backpressure                              │
-└─────────────────────────────────────────────────────────────────┘
-                         │
-                         ↓
-┌─────────────────────────────────────────────────────────────────┐
-│                 CHANNEL LAYER (Senders)                         │
+│                    CHANNEL LAYER (Output)                        │
 │    WhatsApp (Twilio) │ Telegram │ Slack │ Future Channels      │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 **Key Insight**: Agent core is **completely channel-agnostic**. Adding a new channel requires only adapters + senders, zero changes to core logic.
+
+### 1.3 Component Connection Map
+
+| Component | Section | Diagram Layer | Connects To |
+|-----------|---------|---------------|------------|
+| **Webhook Router** | 2.1 | Input → Core | Adapters, Observability, Senders |
+| **Message Adapters** | 2.2 | Input Layer | Webhook Router, ChannelMessage |
+| **ChannelMessage** | 2.3 | Normalization | Adapters, Agent Core, Senders |
+| **Conversation Storage** | 2.4 | Core → Persistence | Agent Core, Context Engineering |
+| **Agent Core Orchestrator** | 2.5 | Core Heart | All other core components |
+| **Agent Bridge (Ollama)** | 2.6 | Core → LLM | Agent Core, Context Engineering |
+| **Context Engineering** | 2.7 | Core → History | Agent Core, Storage, Bridge |
+| **Message Senders** | 2.8 | Core → Output | Webhook Router, Agent Core |
+| **Observability** | 2.9 | Cross-cutting | Entire flow (logging + correlation) |
+| **Safety Guardrails** | 2.10 | Core → Validation | Agent Core, before Bridge call |
 
 ---
 
