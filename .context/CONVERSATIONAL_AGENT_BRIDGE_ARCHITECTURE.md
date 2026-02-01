@@ -617,76 +617,77 @@ Webhook: correlation_id=abc-123-def, event="webhook_end", total_latency_ms=3200
 
 ---
 
-## 6. PHASE-BY-PHASE DELIVERY
+## 6. PHASE-BY-PHASE DELIVERY (CONSOLIDATED: 12 Stories, 6 Weeks)
 
-### **Phase 1: Local Dev Foundation (14 stories, ~20 days, 4 weeks)**
+### **Phase 1: MVP — WhatsApp Agent (5 stories, ~12 days, 2.5 weeks)**
 
-**Delivers**: Working WhatsApp agent on your laptop, POC quality
+**Delivers**: Fully functional WhatsApp conversational agent on your laptop
 
-**Stories**:
-1. Architecture & Decisions Lock
-2. Twilio WhatsApp Sandbox Setup
-3. Cloudflare Tunnel Infrastructure
-4. FastAPI Webhook Router + Signature Validation
-5. ChannelMessage Data Model
-6. WhatsApp Adapter (Twilio) + Golden Payloads
-7. SQLite Conversation Schema
-8. Conversation Storage Interface
-9. Agent Core Orchestrator
-10. Ollama Bridge Contract
-11. Context Engineering (History + Prompt)
-12. WhatsApp Sender (Twilio API)
-13. E2E Test: WhatsApp Local Loop
-14. Environment Configuration + Logging
+| Story # | Title | Scope | Est. Days | Acceptance Criteria |
+|---------|-------|-------|-----------|-------------------|
+| **1** | **Architecture & Setup** | Twilio sandbox, Cloudflare tunnel, FastAPI scaffold, .env config, decisions locked | 2 | ✅ Tunnel active, Twilio sandbox ready, FastAPI runs on localhost, all 5 decisions documented |
+| **2** | **WhatsApp Adapter + Storage** | Twilio webhook parsing (signature validation, schema checks, golden payloads), SQLite schema with idempotency & ordering, CRUD ops (add_message, get_history, dedup) | 3 | ✅ Parse Twilio payloads (normal, emoji, long text), store in SQLite, idempotency by external_msg_id works, correlation IDs in logs |
+| **3** | **Agent Core Orchestrator** | Receive ChannelMessage, query history, call Ollama (mocked), store messages, return response text (zero channel coupling) | 3 | ✅ End-to-end flow works: webhook → adapter → agent → storage → sender; channel-agnostic verified |
+| **4** | **Context Engineering + Logging** | System prompt definition, 4K token limit enforcement, history truncation, structured JSON logging with correlation IDs throughout | 2 | ✅ Token limits respected, logs show correlation_id at every step (adapter→agent→storage→sender), old messages excluded from context |
+| **5** | **E2E Test: WhatsApp Loop** | Send 3 test messages, verify responses appear in chat, verify history stored correctly, verify correlation IDs trace entire flow | 2 | ✅ Send message via Twilio Sandbox → get response within 3s → history queryable → logs show end-to-end trace |
 
-**Acceptance**: Send WhatsApp message → agent responds with Ollama answer → message stored in SQLite → correlation IDs in logs
+**Phase 1 Total: 5 stories, ~12 days** ✅ **Working WhatsApp agent (local dev)**
 
 ---
 
-### **Phase 1.5: Prove Abstraction (3 stories, ~8 days, 1.5 weeks)**
+### **Phase 1.5: Prove Multi-Channel Abstraction (1 story, ~2 days, 0.5 weeks)**
 
-**Delivers**: Multi-channel support, proves abstraction pattern works
+**Delivers**: Multi-channel support proven, adapters are truly pluggable
 
-**Stories**:
-15. Telegram Adapter + Sender (no core changes, pure plugin)
-16. Multi-Channel History Isolation Tests
-17. Telegram E2E Test
+| Story # | Title | Scope | Est. Days | Acceptance Criteria |
+|---------|-------|-------|-----------|-------------------|
+| **6** | **Telegram Adapter + E2E** | TelegramAdapter (parse JSON, validate secret_token, extract user_id), TelegramSender (call Bot API), multi-turn test, verify history isolation from WhatsApp | 2 | ✅ Send Telegram message → get response; separate history from WhatsApp; same agent core used (zero changes to Story 3); correlation IDs trace flow |
 
-**Acceptance**: Send Telegram message → agent responds → separate history from WhatsApp → correlation IDs trace flow
-
----
-
-### **Phase 2: Hardening + Scaling (10 stories, ~20 days, 4-5 weeks)**
-
-**Delivers**: Production-ready, handles errors, scales to multi-instance
-
-**Stories**:
-18. Message Idempotency + Ordering
-19. Concurrency Control (Row-Level Lock)
-20. Outbound Queue + Exponential Backoff
-21. Ollama Fallback + Circuit Breaker
-22. Context Summarization (Long Conversations)
-23. System Prompt Versioning
-24. Safety Guardrails + Fallback Responses
-25. Postgres Migration + Connection Pooling
-26. Failure Scenario Tests
-27. Metrics + Monitoring Dashboard
-
-**Acceptance**: Ollama down → user gets fallback within 2s → message retried → metrics show incident → no data loss
+**Phase 1.5 Total: 1 story, ~2 days** ✅ **Multi-channel works, agent core untouched**
 
 ---
 
-### **Phase 3: Compliance + Future-Proof (4 stories, ~8 days, 2 weeks)**
+### **Phase 2: Hardening + Scaling (4 stories, ~11 days, 2.5 weeks)**
 
-**Delivers**: Deployable to cloud, compliant, future-proof
+**Delivers**: Production-ready, handles errors gracefully, scales horizontally
 
-**Stories**:
-28. Secret Rotation + Vault Plan
-29. GDPR + Data Retention Policies
-30. Public Deployment Plan (Docker Compose + Cloud)
-31. Account Linking Preparation (Schema Extension)
+| Story # | Title | Scope | Est. Days | Acceptance Criteria |
+|---------|-------|-------|-----------|-------------------|
+| **7** | **Idempotency + Concurrency** | Enforce external_msg_id uniqueness (prevents duplicate processing), row-level pessimistic lock (prevents message interleaving), ordering by timestamp (not arrival order), simulate 5 concurrent messages for same user | 3 | ✅ Send same message 2x → stored once, response sent both times; 5 concurrent messages → processed in correct timestamp order; no history corruption |
+| **8** | **Resilience + Backpressure** | Outbound message queue (in-memory for Phase 2), exponential backoff retries (1s, 2s, 4s, 8s, max 5), Ollama timeout handling with fallback response, circuit breaker (3 failures → return fallback 5 min), simulate Ollama down + DB error | 3 | ✅ Ollama timeout → user gets fallback within 2s; Twilio API error → message queued & retried; circuit breaker activates & recovery logs shown; no message loss |
+| **9** | **Safety + Context Management** | Guardrail rules (reject passwords, illegal activity), keyword filtering, summarization for long conversations (>50 msgs), system prompt versioning (for regression), prompt version stored in DB | 2 | ✅ Guardrail test triggers & returns fallback (not sent to Ollama); 100-message convo fits 4K token window via summarization; old conversations reload with original prompt version |
+| **10** | **Postgres + Monitoring** | Provision Postgres (local or AWS free tier), schema migration script (SQLite → Postgres), connection pooling (pgbouncer), metrics emission (inbound rate, latency p50/p95, error rate), dashboard/alerts setup (basic: print to stdout or file) | 3 | ✅ Webhook server scaled to 3 instances, all connect to Postgres; metrics show message rate, latency heatmap, error rate; alerts if error rate >5%; migration reversible |
 
-**Acceptance**: Deploy to AWS EC2 free tier → messages work → GDPR deletion API works → secrets rotate without downtime
+**Phase 2 Total: 4 stories, ~11 days** ✅ **Production-ready, error handling, scaling proof**
+
+---
+
+### **Phase 3: Compliance + Deployment (2 stories, ~4 days, 1 week)**
+
+**Delivers**: Deployable to cloud, compliant with regulations, future-proof
+
+| Story # | Title | Scope | Est. Days | Acceptance Criteria |
+|---------|-------|-------|-----------|-------------------|
+| **11** | **GDPR + Secrets Management** | Data retention policy (TTL: 90 days free users, 1 year paid), scheduled deletion job, GDPR right-to-deletion API (delete all messages for user), data export API (download as JSON), secret masking in logs, secret rotation plan (runbook), account linking schema prep (future Phase 4) | 2 | ✅ Retention job runs daily, old messages deleted; export API returns user data; GDPR deletion API removes all traces; secrets not in logs; rotation runbook documented |
+| **12** | **Public Deployment** | Docker Compose (webhook + Ollama + Postgres), deployment guide (AWS EC2 free tier or DigitalOcean), HTTPS via Cloudflare Tunnel, monitoring dashboards (or alerting integration), tested on live cloud instance | 2 | ✅ Docker Compose spins up full stack; deployed to cloud; HTTPS works; messages flow end-to-end; monitoring accessible; documentation for hand-off |
+
+**Phase 3 Total: 2 stories, ~4 days** ✅ **Production deployed, compliant, future-ready**
+
+---
+
+## Summary: 12-Story Breakdown
+
+| Phase | Stories | Duration | Team | Deliverable |
+|-------|---------|----------|------|-------------|
+| **Phase 1** | 5 | 2.5 weeks | 1 dev | ✅ Working WhatsApp agent (local) |
+| **Phase 1.5** | 1 | 0.5 weeks | 1 dev | ✅ Multi-channel (Telegram added, abstraction proven) |
+| **Phase 2** | 4 | 2.5 weeks | 1 dev | ✅ Production-ready (errors, scaling, monitoring) |
+| **Phase 3** | 2 | 1 week | 1 dev | ✅ Deployed, compliant, future-proof |
+| **TOTAL** | **12** | **6 weeks** | 1 full-time | ✅ Fully operational, ready for users |
+
+**Alternative Staffing**:
+- 2 devs: ~4-5 weeks (parallel work on adapters, storage, bridge)
+- 1 part-time dev (20h/week): ~12 weeks
 
 ---
 
@@ -759,19 +760,19 @@ Webhook: correlation_id=abc-123-def, event="webhook_end", total_latency_ms=3200
 
 ---
 
-## 9. IMPLEMENTATION TIMELINE
+## 7. IMPLEMENTATION TIMELINE (CONSOLIDATED)
 
 | Phase | Stories | Duration | Team | Deliverable |
 |-------|---------|----------|------|-------------|
-| **Phase 1** | 14 | 4 weeks | 1 dev | ✅ Working WhatsApp agent (local) |
-| **Phase 1.5** | 3 | 1.5 weeks | 1 dev | ✅ Multi-channel (Telegram added, abstraction proven) |
-| **Phase 2** | 10 | 4-5 weeks | 1-2 devs | ✅ Production-ready (errors, scaling, monitoring) |
-| **Phase 3** | 4 | 2 weeks | 1 dev | ✅ Deployed, compliant, future-proof |
-| **TOTAL** | **31** | **12 weeks** | 1 full-time | ✅ Fully operational, ready for users |
+| **Phase 1** | 5 | 2.5 weeks | 1 dev | ✅ Working WhatsApp agent (local) |
+| **Phase 1.5** | 1 | 0.5 weeks | 1 dev | ✅ Multi-channel (Telegram added, abstraction proven) |
+| **Phase 2** | 4 | 2.5 weeks | 1 dev | ✅ Production-ready (errors, scaling, monitoring) |
+| **Phase 3** | 2 | 1 week | 1 dev | ✅ Deployed, compliant, future-proof |
+| **TOTAL** | **12** | **6 weeks** | 1 full-time | ✅ Fully operational, ready for users |
 
 **Alternative Staffing**:
-- 2 devs: ~8-10 weeks (parallel work on adapters)
-- 1 part-time dev (20h/week): ~30 weeks (careful scoping)
+- 2 devs: ~4-5 weeks (parallel work on adapters, storage, bridge)
+- 1 part-time dev (20h/week): ~12 weeks
 
 ---
 
@@ -839,10 +840,10 @@ Before starting Phase 1, confirm:
 1. ✅ **Architecture makes sense?** (Channel adapters, agent core, senders)
 2. ✅ **Tech stack approved?** (FastAPI, Ollama, Postgres, all free & open-source)
 3. ✅ **5 decisions locked?** (Mistral 7B, 4K tokens, Cloudflare Tunnel, Twilio Sandbox, Postgres)
-4. ✅ **31 stories realistic?** (12 weeks for 1 full-time dev)
+4. ✅ **12 stories realistic?** (6 weeks for 1 full-time dev, proportional to Issue #58)
 5. ✅ **Risk mitigations acceptable?** (Idempotency, concurrency, observability, fallbacks)
 6. ✅ **POC cost understood?** ($0 guaranteed for Phases 1-2, $0-50/month for Phase 3)
-7. ✅ **Ready to create GitHub issues?** (EPIC-1 + 31 stories)
+7. ✅ **Consolidated scope acceptable?** (5 stories per phase reduces over-engineering)
 
 ---
 
