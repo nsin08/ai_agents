@@ -3,14 +3,12 @@
 Provides REST API for chat interactions with LLM agents.
 All responses follow a standardized format (ChatResponse or ErrorResponse).
 """
-import sys
-from pathlib import Path
 import uuid
 import logging
 from fastapi import APIRouter, Depends, HTTPException
 
-# Add backend to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Centralized path setup
+import core.path_setup  # noqa: F401
 
 from models import ChatRequest, ChatResponse, ErrorResponse
 from services.interfaces import AgentServiceInterface

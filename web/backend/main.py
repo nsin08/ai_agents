@@ -1,14 +1,14 @@
 """FastAPI application entry point."""
-import sys
 from pathlib import Path
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
+# Load environment variables from root .env file
+root_env_path = Path(__file__).parent.parent.parent / ".env"
+load_dotenv(dotenv_path=root_env_path)
 
-# Add backend to path for imports
-sys.path.insert(0, str(Path(__file__).parent))
+# Centralized path setup
+import core.path_setup  # noqa: F401
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware

@@ -1,11 +1,9 @@
 """Provider API endpoints for listing and validating providers."""
-import sys
-from pathlib import Path
 from fastapi import APIRouter, HTTPException
 from typing import List
 
-# Add backend to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Centralized path setup
+import core.path_setup  # noqa: F401
 
 from models import (
     ProviderInfo,

@@ -24,9 +24,13 @@ This is the foundation of the web-based agent chat interface. It establishes the
 ## Quick Start
 
 ### Prerequisites
-- Python 3.11+
+- Python 3.11+ (Python 3.14+ requires pydantic >= 2.10.0)
 - Node.js 18+ and npm 9+
 - Git
+
+**Windows Users:**
+- PowerShell or Windows Terminal (recommended)
+- Execution policy may need adjustment: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
 
 ### 1. Clone Repository
 ```bash
@@ -39,15 +43,29 @@ git pull origin develop
 ```bash
 cd web/backend
 
-# Create virtual environment (optional but recommended)
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# Create virtual environment (recommended)
+python -m venv .web_env
+
+# Activate virtual environment
+# Windows PowerShell:
+.\.web_env\Scripts\Activate.ps1
+# Windows CMD:
+.web_env\Scripts\activate.bat
+# macOS/Linux:
+source .web_env/bin/activate
+
+# Upgrade pip (important for Python 3.14+)
+python -m pip install --upgrade pip
 
 # Install dependencies
-python -m pip install -r requirements.txt
+pip install -r requirements.txt
 
 # Set environment (optional)
-export AGENT_CORE_BACKEND=agent_labs  # Default
+# Windows PowerShell:
+$env:AGENT_CORE_BACKEND="agent_labs"
+$env:LLM_PROVIDER="mock"
+# macOS/Linux:
+export AGENT_CORE_BACKEND=agent_labs
 export LLM_PROVIDER=mock
 
 # Run server
@@ -66,8 +84,8 @@ INFO: Application startup complete
 ```bash
 cd web/frontend
 
-# Install dependencies
-npm install
+# Install dependencies (use --legacy-peer-deps for TypeScript 5.x compatibility)
+npm install --legacy-peer-deps
 
 # Start development server
 npm start
@@ -435,6 +453,55 @@ app.add_middleware(
 )
 ```
 
+### ❌ `pydantic-core` Compilation Error (Windows + Python 3.14)
+**Error:**
+```
+Cargo, the Rust package manager, is not installed or is not on PATH.
+This package requires Rust and Cargo to compile extensions.
+```
+
+**Root Cause:** Older pydantic versions require Rust compiler on Windows.
+
+**Solution:**
+```bash
+# 1. Upgrade pip first
+python -m pip install --upgrade pip
+
+# 2. Install with updated requirements (includes pydantic >= 2.10.0 with pre-built wheels)
+pip install -r requirements.txt
+
+# 3. Verify installation
+pip list | findstr pydantic
+# Should show: pydantic 2.10+ and pydantic-core 2.41+
+```
+
+**Why This Works:** The updated `requirements.txt` uses `pydantic>=2.10.0`, which includes pre-compiled Windows wheels (no Rust compilation needed).
+
+### ❌ `pip` Command Not Found (Windows)
+**Solution:** Use `python -m pip` instead:
+```bash
+python -m pip install -r requirements.txt
+python -m pip install --upgrade pip
+```
+
+### ❌ Virtual Environment Activation Fails (Windows)
+**Wrong:**
+```bash
+source .web_env/bin/activate  # ❌ Unix path on Windows
+```
+
+**Correct:**
+```powershell
+# PowerShell (Windows)
+.\.web_env\Scripts\Activate.ps1
+
+# CMD (Windows)
+.\.web_env\Scripts\activate.bat
+
+# If PowerShell blocks script execution:
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
 ### Tests Failing
 ```bash
 # Backend tests
@@ -447,6 +514,21 @@ cd web/frontend
 npm install
 npm test
 ```
+
+---
+
+## Platform-Specific Notes
+
+**Windows:**
+- Use `\` for paths: `.\.web_env\Scripts\activate`
+- Use `python` or `python.exe` (not `python3`)
+- PowerShell recommended over CMD
+- May need execution policy adjustment (see troubleshooting above)
+
+**macOS/Linux:**
+- Use `/` for paths: `./web_env/bin/activate`
+- Use `python3` if multiple Python versions installed
+- May need `sudo` for global package installations
 
 ---
 

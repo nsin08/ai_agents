@@ -77,10 +77,11 @@ Expected output:
 # Navigate to frontend directory
 cd web/frontend
 
-# Install dependencies
-npm install
+# Install dependencies (with legacy peer deps flag for TypeScript 5.x compatibility)
+npm install --legacy-peer-deps
 
 # Note: This may take 2-3 minutes on first install
+# The --legacy-peer-deps flag is required due to react-scripts@5.0.1 not officially supporting TypeScript 5.x
 ```
 
 ### Running the Development Server
@@ -489,7 +490,168 @@ To add new features:
 
 ---
 
-## 8. Additional Resources
+## 8. Troubleshooting
+
+### Backend Installation Issues
+
+#### ❌ Error: `pydantic-core` requires Rust compilation
+```
+Cargo, the Rust package manager, is not installed or is not on PATH.
+This package requires Rust and Cargo to compile extensions.
+```
+
+**Root Cause:** Older pydantic versions (< 2.10) require Rust compiler on Windows, especially with Python 3.14+.
+
+**Solution:**
+```bash
+# Upgrade pip first
+python -m pip install --upgrade pip
+
+# Install with newer versions (already in requirements.txt)
+pip install -r requirements.txt
+```
+
+**What Changed:** The `requirements.txt` now uses `pydantic>=2.10.0` which includes pre-built Windows wheels, avoiding Rust compilation.
+
+#### ❌ Error: `pip` command not found (Windows)
+```
+pip : The term 'pip' is not recognized...
+```
+
+**Solution:** Use `python -m pip` instead:
+```bash
+python -m pip install -r requirements.txt
+python -m pip install --upgrade pip
+```
+
+#### ❌ Virtual Environment Not Activating (Windows PowerShell)
+```
+.\.web_env\bin\activate  # ❌ WRONG (Unix path)
+```
+
+**Solution:** On Windows, use `Scripts` directory instead of `bin`:
+```powershell
+# PowerShell (Windows)
+.\.web_env\Scripts\Activate.ps1
+
+# CMD (Windows)
+.\.web_env\Scripts\activate.bat
+
+# macOS/Linux
+source .web_env/bin/activate
+```
+
+#### ❌ Backend Tests Fail with Import Errors
+```
+ModuleNotFoundError: No module named 'fastapi'
+```
+
+**Solution:** Ensure virtual environment is activated before installing:
+```bash
+# Activate first
+.\.web_env\Scripts\Activate.ps1  # Windows
+source .web_env/bin/activate      # macOS/Linux
+
+# Then install
+pip install -r requirements.txt
+
+# Verify installation
+pip list | grep fastapi
+```
+
+### Frontend Installation Issues
+
+#### ❌ TypeScript Peer Dependency Error
+```
+npm error ERESOLVE could not resolve
+npm error peerOptional typescript@"^3.2.1 || ^4" from react-scripts@5.0.1
+npm error Conflicting peer dependency: typescript@4.9.5
+```
+
+**Root Cause:** `react-scripts@5.0.1` doesn't officially support TypeScript 5.x (you likely have 5.3+ installed).
+
+**Solution:** Use `--legacy-peer-deps` flag:
+```bash
+# Remove existing modules (if install was partial)
+rm -rf node_modules package-lock.json  # Unix
+# Windows PowerShell: Remove-Item -Recurse -Force node_modules, package-lock.json
+
+# Install with legacy peer deps flag
+npm install --legacy-peer-deps
+```
+
+**What This Does:** Bypasses peer dependency version checks, allowing TypeScript 5.x to work with react-scripts 5.0.1 (they're compatible despite the warning).
+
+#### ❌ `npm install` Takes Too Long or Hangs
+**Solution:** Clear cache and retry:
+```bash
+npm cache clean --force
+rm -rf node_modules package-lock.json
+npm install --legacy-peer-deps
+```
+
+#### ❌ Port 3000 Already in Use
+**Solution:** Kill process or use different port:
+```bash
+# Option 1: Kill process on port 3000
+# Windows: netstat -ano | findstr :3000, then taskkill /PID <pid> /F
+# macOS/Linux: lsof -ti:3000 | xargs kill
+
+# Option 2: Use different port
+PORT=3001 npm start
+```
+
+### Runtime Issues
+
+#### ❌ CORS Errors in Browser Console
+```
+Access to fetch at 'http://localhost:8000' from origin 'http://localhost:3000' has been blocked
+```
+
+**Solution:** Backend already includes CORS configuration. Ensure:
+1. Backend running on port 8000: `python main.py`
+2. Frontend running on port 3000: `npm start`
+3. Check `main.py` has CORS middleware enabled
+
+#### ❌ Provider Not Responding (Ollama)
+**Solution:** Verify Ollama is running:
+```bash
+# Check if Ollama is running
+ollama list
+
+# Pull a model if not available
+ollama pull mistral
+
+# Test directly
+ollama run mistral "Hello"
+```
+
+#### ❌ API Key Not Working (Cloud Providers)
+**Solution:**
+1. Verify key format (no extra spaces/quotes)
+2. Check key permissions in provider dashboard
+3. Test with provider's official CLI/SDK first
+4. Review browser console for specific error messages
+
+### Platform-Specific Notes
+
+**Windows:**
+- Use `\` for paths: `.\.web_env\Scripts\activate.ps1`
+- Use `python` or `python.exe` (not `python3`)
+- PowerShell may require execution policy: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
+
+**macOS/Linux:**
+- Use `/` for paths: `./web_env/bin/activate`
+- Use `python3` and `pip3` if multiple versions installed
+- May need `sudo` for global package installations
+
+**Python 3.14+ Users:**
+- Requires pydantic >= 2.10.0 (already in requirements.txt)
+- Some packages may show deprecation warnings (non-blocking)
+
+---
+
+## 9. Additional Resources
 
 | Resource | Purpose |
 |----------|---------|

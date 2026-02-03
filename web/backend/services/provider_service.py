@@ -1,13 +1,11 @@
 """Provider service for managing LLM providers and API key validation."""
 from typing import Optional, Dict, List, Any
 import os
-import sys
 import logging
 import httpx
-from pathlib import Path
 
-# Add backend to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Centralized path setup
+import core.path_setup  # noqa: F401
 
 from models import ProviderEnum, ProviderInfo, ValidateKeyResponse
 

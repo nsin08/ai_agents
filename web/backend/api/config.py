@@ -1,12 +1,10 @@
 """Configuration API endpoints."""
-import sys
-from pathlib import Path
 import logging
 from typing import Optional
 from fastapi import APIRouter, HTTPException
 
-# Add backend to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Centralized path setup
+import core.path_setup  # noqa: F401
 
 from models import ConfigRequest, ConfigResponse, AgentConfig, PresetConfig
 from services.config_service import ConfigService

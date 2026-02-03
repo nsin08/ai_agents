@@ -1,19 +1,19 @@
 """AgentLabsService implementation using agent_labs core."""
 import time
 import asyncio
-import sys
-from pathlib import Path
+import logging
 from typing import Dict, Any, Optional
 
-# Add paths for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "src"))
+# Centralized path setup
+import core.path_setup  # noqa: F401
 
 from models import ChatResponse, ProviderEnum, DebugMetadata
 from services.interfaces import AgentServiceInterface
 from services.provider_factory import ProviderFactory
 from agent_labs.llm_providers import ProviderConfigError
 from agent_labs.orchestrator import Agent
+
+logger = logging.getLogger(__name__)
 
 
 class AgentLabsService(AgentServiceInterface):

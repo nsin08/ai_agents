@@ -69,7 +69,7 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
               <div className="provider-info">
                 <p>
                   {availableProviders.find(p => p.id === selectedProvider)?.requires_api_key
-                    ? '🔐 Requires API credentials from environment'
+                    ? '🔐 Requires API key from .env file'
                     : '✓ No authentication required'}
                 </p>
               </div>

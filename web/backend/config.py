@@ -1,11 +1,9 @@
 """Backend configuration and dependency injection."""
 import os
-import sys
-from pathlib import Path
 from typing import Generator
 
-# Add backend to path
-sys.path.insert(0, str(Path(__file__).parent))
+# Centralized path setup
+import core.path_setup  # noqa: F401
 
 from services.interfaces import AgentServiceInterface
 from services.agent_labs_impl import AgentLabsService

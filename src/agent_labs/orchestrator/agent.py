@@ -110,9 +110,9 @@ class Agent:
             prompt = (
                 f"Goal: {context.goal}\n\n"
                 f"Recent history:\n{history_str}\n\n"
-                "What should I do next to achieve this goal?"
+                "What should I do next to achieve this goal? Keep answer concise."
             )
-            response = await self.provider.generate(prompt)
+            response = await self.provider.generate(prompt, max_tokens=200, temperature=0.7)
             plan = response.text
         except Exception as exc:
             raise PlanningError(str(exc)) from exc

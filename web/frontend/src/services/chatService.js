@@ -1,7 +1,6 @@
 // Chat API Service
 // Handles communication with the backend FastAPI server
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+import { API_BASE_URL } from "../config/api.ts";
 
 class ChatService {
   /**

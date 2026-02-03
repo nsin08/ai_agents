@@ -53,15 +53,15 @@ describe("Chat Component", () => {
     ]);
 
     mockConfigService.getDefaultConfig.mockResolvedValue({
+      success: true,
       config: {
-        provider: "mock",
-        model: "mock-model",
-        api_key: null,
+        max_turns: 10,
         temperature: 0.7,
-        max_tokens: 1000,
-        timeout: 30,
+        timeout_seconds: 30,
+        system_prompt: null,
+        enable_debug: false,
       },
-      preset: "default",
+      message: null,
     });
   });
 

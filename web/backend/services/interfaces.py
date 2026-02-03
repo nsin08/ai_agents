@@ -17,13 +17,11 @@ Backend Switching Example:
 This pattern enables production deployment with agent_labs while preparing
 for seamless upgrade to agent_core when ready.
 """
-import sys
-from pathlib import Path
 from typing import Protocol, Dict, Any, Optional
 import logging
 
-# Add backend to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Centralized path setup
+import core.path_setup  # noqa: F401
 
 from models import ChatResponse
 

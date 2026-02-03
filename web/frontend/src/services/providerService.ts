@@ -4,8 +4,7 @@ import type {
   ValidateKeyRequest,
   ValidateKeyResponse,
 } from "../types/providers";
-
-const API_BASE_URL = "http://localhost:8000";
+import { API_BASE_URL, apiFetch } from "../config/api";
 
 class ProviderService {
   /**
@@ -14,15 +13,9 @@ class ProviderService {
    * @returns Promise resolving to array of ProviderInfo
    */
   async listProviders(includeModels: boolean = false): Promise<ProviderInfo[]> {
-    const response = await fetch(
+    return apiFetch<ProviderInfo[]>(
       `${API_BASE_URL}/providers?include_models=${includeModels}`
     );
-
-    if (!response.ok) {
-      throw new Error(`Failed to list providers: ${response.statusText}`);
-    }
-
-    return response.json();
   }
 
   /**
@@ -45,19 +38,14 @@ class ProviderService {
   async validateApiKey(
     request: ValidateKeyRequest
   ): Promise<ValidateKeyResponse> {
-    const response = await fetch(`${API_BASE_URL}/providers/validate`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(request),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to validate API key: ${response.statusText}`);
-    }
-
-    return response.json();
+    return apiFetch<ValidateKeyResponse>(
+      `${API_BASE_URL}/providers/validate`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(request),
+      }
+    );
   }
 }
 

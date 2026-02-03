@@ -12,9 +12,9 @@ class ConfigService:
             name="Creative",
             description="High creativity, more variation in responses",
             config=AgentConfig(
-                max_turns=5,
+                max_turns=2,
                 temperature=1.2,
-                timeout_seconds=45,
+                timeout_seconds=90,
                 system_prompt="You are a creative AI assistant. Generate diverse and imaginative responses.",
                 enable_debug=False
             )
@@ -23,9 +23,9 @@ class ConfigService:
             name="Precise",
             description="Low temperature, more deterministic responses",
             config=AgentConfig(
-                max_turns=3,
+                max_turns=1,
                 temperature=0.3,
-                timeout_seconds=30,
+                timeout_seconds=60,
                 system_prompt="You are a precise AI assistant. Provide accurate, focused responses.",
                 enable_debug=False
             )
@@ -34,9 +34,9 @@ class ConfigService:
             name="Balanced",
             description="Default balanced configuration",
             config=AgentConfig(
-                max_turns=3,
+                max_turns=1,
                 temperature=0.7,
-                timeout_seconds=30,
+                timeout_seconds=90,
                 system_prompt=None,
                 enable_debug=False
             )

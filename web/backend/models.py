@@ -89,9 +89,9 @@ class DebugMetadata(BaseModel):
 
 class AgentConfig(BaseModel):
     """Agent configuration settings."""
-    max_turns: int = Field(default=3, ge=1, le=10, description="Max iterations (1-10)")
+    max_turns: int = Field(default=1, ge=1, le=10, description="Max iterations (1-10)")
     temperature: float = Field(default=0.7, ge=0.0, le=2.0, description="Temperature (0.0-2.0)")
-    timeout_seconds: int = Field(default=30, ge=5, le=300, description="Timeout in seconds")
+    timeout_seconds: int = Field(default=90, ge=5, le=300, description="Timeout in seconds")
     system_prompt: Optional[str] = Field(None, description="Custom system prompt")
     enable_debug: bool = Field(default=False, description="Enable debug mode")
 
