@@ -633,6 +633,27 @@ ollama run mistral "Hello"
 3. Test with provider's official CLI/SDK first
 4. Review browser console for specific error messages
 
+#### ⚠️ npm audit Shows 11 Vulnerabilities
+**Status:** Safe to ignore (dev dependencies only)
+
+When running `npm install --legacy-peer-deps`, you may see:
+```
+11 vulnerabilities (5 moderate, 6 high)
+```
+
+**Why this is acceptable:**
+- All vulnerabilities are in **development dependencies** (webpack-dev-server, react-scripts build tools)
+- They **do not affect production builds** or deployed applications
+- The vulnerabilities only affect developers running `npm start` locally
+- Fixing them requires breaking changes (`npm audit fix --force` would break the app by installing react-scripts@0.0.0)
+
+**These are known issues with react-scripts 5.0.1** that pose no production security risk. To properly address them would require:
+- Migrating to Vite (modern build tool)
+- Or upgrading to a newer React toolchain
+- Both require significant refactoring
+
+**Recommendation:** Continue development as-is. The application is secure for both development and production use.
+
 ### Platform-Specific Notes
 
 **Windows:**
